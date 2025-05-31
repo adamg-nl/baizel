@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+START_TIMESTAMP=$(date '+%s%N')
+currentScriptPath="${BASH_SOURCE[0]:-${(%):-%x}}" # on zsh this has to be on the top level
+
+
+
+### Baizel Build System
+###
+### Usage: baizel [--debug | --verbose] <TASK> <ARGS>...
+###
+### If ARGS are supplied as a JSON object (in case of no arguments, '{}'), then output will be JSON too.
+### This command can be sourced, in order to propagate any environment changes done by the task, to the shell.
+###
+### Arguments:
+###   --debug    Makes the JVM wait, listening for debugger on port 5005.
+###   --verbose  Enables verbose logging.
+###   TASK       Command name (optionally prefixed with module path and ':'), or path to class source.
+###              The paths can be relative to the current directory or to the project root.
+###
+### Examples:
+###   baizel finance/accounting:build
+###   baizel finance/accounting/src/main/java/com/example/accounting/FooCalculator.java '{ "fee": 0.01 }'
+###   baizel finance/accounting:dependencyTree
+###
+### Environment variables used:
+###   BAIZEL_DEBUG     Enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
+###   BAIZEL_VERBOSE   Enables verbose logging. Values: true, false
+###   BAIZEL_JVM_OPTS  Additional JVM arguments, space-separated
+function main() {
+	# Bootstrap Stage 1: a thin shell script ('baizel/bin/baizel') will invoke JVM in the "single-source-file-program" mode:
+	# 'java .../baizel/internal/bootstrap/Bootstrap.java "${@}"'
+	# All further steps including the target tool/script will run in that JVM.
+
+	if [[ ${1:-} == "--debug" ]]; then
+		export BAIZEL_DEBUG=true
+		export BAIZEL_VERBOSE=true
+		shift
+	fi
+	if [[ ${BAIZEL_DEBUG:-} == true ]]; then
+		set -x # log each executed line of this script
+	fi
+	if [[ ${1:-} == "--verbose" ]]; then
+		export BAIZEL_VERBOSE=true
+		shift
+	fi
+	local args=("${@}")
+
+	log "Bootstrap Stage 1"
+
+	if handleSourcingIntoTerminal; then
+		return
+	fi
+
+	local stage2Module="$(dirname "${currentScriptPath}")/../internal/bootstrap"
+	local compiledClassPathRoot="${stage2Module}/.build/classes/java/main"
+	local stage2Class="nl.adamg.baizel.internal.bootstrap.Bootstrap"
+	buildStage2IfCacheExpired "${stage2Module}" "${compiledClassPathRoot}" "${stage2Class}"
+	startJvmWithStage2Class "${compiledClassPathRoot}" "${stage2Class}" "${args[@]}"
+}
+
+
+
+## Return true if the script was sourced and execution is already handled
+function handleSourcingIntoTerminal() {
+    local scriptPath=${BASH_SOURCE[${#BASH_SOURCE[@]}-1]:-${funcstack[-1]}}
+    if [[ $(basename "${scriptPath}") == "baizel" ]]; then
+        scriptPath=""
+    fi
+    local sourceMode=false
+    if [[ ${ZSH_VERSION[*]:-} != "" || ${0} == "bash" ]]; then
+        sourceMode=true
+    fi
+    if [[ ${sourceMode} != true ]]; then
+    	false; return
+    fi
+	if [[ ${scriptPath} == "" ]]; then
+		true; return
+	fi
+
+	# a terminal (possibly with ZSH) sourced some baizel-powered script
+	# we need to run baizel in a new process, and propagate export of env variables
+	export BAIZEL_ENV_CAPTURE_FILE=$(mktemp)
+	"${currentScriptPath}" "${args[@]}"
+	if [[ -s "${BAIZEL_ENV_CAPTURE_FILE}" ]]; then # if file not empty
+		log "importing variables into env"
+		set -o allexport
+		source "${BAIZEL_ENV_CAPTURE_FILE}"
+		set +o allexport
+	fi
+	rm -f "${BAIZEL_ENV_CAPTURE_FILE}"
+    unset BAIZEL_ENV_CAPTURE_FILE
+    true; return
+}
+
+
+
+function buildStage2IfCacheExpired() {
+	local stage2Module=${1}
+	local compiledClassPathRoot=${2}
+	local stage2Class=${3}
+
+	local sourcePathRoot="${stage2Module}/src/main/java"
+	local sourcePaths=$(find "${sourcePathRoot}" -name '*.java')
+	local stage2SourcePath="${sourcePathRoot}/$(echo "${stage2Class}" | tr '.' '/').java"
+	local compiledPath="${stage2Module}/.build/classes/java/main/$(echo "${stage2Class}" | tr '.' '/').class"
+	local checksum="$(pathChecksum "${sourcePathRoot}")"
+	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
+	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
+	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
+		log "stage 2 checksum changed or cache not found"
+		rm -rf "${stage2Module}/.build"
+		mkdir "${stage2Module}/.build"
+		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${sourcePathRoot}" "${stage2SourcePath}" )
+		IFS=' '; log "${compileCommand[*]}"
+		"${compileCommand[@]}"
+		echo "${checksum}" > "${checksumFile}"
+		log "stage 2 compilation finished"
+	else
+		log "stage 2 checksum matches, will run from cache"
+	fi
+}
+
+
+
+function log() {
+    local line=${1}
+	if [[ ${BAIZEL_VERBOSE:-} != true ]]; then
+		return
+	fi
+	echo "$(date '+%H:%M:%S.%N' | cut -c 1-12) INFO .(baizel:${BASH_LINENO[0]}) ${line}" >&2
+}
+
+
+
+function pathChecksum() {
+    local path=${1}
+
+    if [[ ! -e ${path} ]]; then
+    	return
+    fi
+    local statArgs=()
+    if stat -f '' . 2>/dev/null; then # BSD/macOS (uses -f format)
+      	stat=(-f "%N %z %m")
+    else # GNU/Linux (uses -c format)
+		stat=(-c "%n %s %Y")
+    fi
+    if [[ -d ${path} ]]; then # if it's a dir
+    	find "${path}" -exec stat "${stat[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
+    else
+    	stat "${stat[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
+    fi
+}
+
+
+
+function startJvmWithStage2Class() {
+	local compiledClassPathRoot=${1}
+	shift
+	local stage2Class=${1}
+	shift
+    local args=("${@}")
+
+    if [[ $(which java) == "" ]]; then
+        # if Java cannot be found, do best effort at auto-detecting
+        local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin:${PATH}"
+        local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
+        export PATH="$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${PATH}"
+	fi
+
+	local command=( java --class-path "${compiledClassPathRoot}" )
+	if [[ ${BAIZEL_DEBUG:-} == true ]]; then
+		BAIZEL_DEBUG=5005
+	fi
+	if [[ ${BAIZEL_DEBUG:-} != "" && ${BAIZEL_DEBUG:-} != false ]]; then
+		command+=( "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:${BAIZEL_DEBUG}" )
+	fi
+	if [[ ${BAIZEL_JVM_OPTS:-} != "" ]]; then
+		IFS=' '; command+=( ${BAIZEL_JVM_OPTS} ) # explode on spaces (no quotes)
+	fi
+	command+=( "${stage2Class}" )
+	if [[ ${args[*]:-} != "" ]]; then
+		command+=("${args[@]}")
+	fi
+	log "Stage 1 finished -- { \"durationMs\": $(( ( $(date '+%s%N') - ${START_TIMESTAMP} ) / 1000000 )) }"
+	IFS=' '; log "$ ${command[*]}"
+	exec "${command[@]}" # starts bootstrap stage 2
+}
+
+
+
+main "${@}"

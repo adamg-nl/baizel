@@ -1,0 +1,15 @@
+# ignore hidden files
+.*
+
+# commit git ignore lists
+!.gitignore
+
+# ignore build output
+build/
+dist/
+out/
+
+# ignore auto-imported build system files
+gradle/wrapper/
+gradlew
+gradlew.bat

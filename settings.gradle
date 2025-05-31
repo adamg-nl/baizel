@@ -1,0 +1,8 @@
+rootProject.name = "baizel"
+
+include(":cli")
+include(":core")
+include(":internal:bootstrap")
+include(":internal:common:annotations")
+include(":internal:common:util")
+include(":internal:common:io")
