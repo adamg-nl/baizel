@@ -45,7 +45,7 @@ function main() {
 	fi
 	local args=("${@}")
 
-	log "Bootstrap Stage 1"
+	log INFO "Bootstrap Stage 1"
 
 	if handleSourcingIntoTerminal; then
 		return
@@ -54,6 +54,7 @@ function main() {
 	local stage2Module="$(dirname "${currentScriptPath}")/../internal/bootstrap"
 	local compiledClassPathRoot="${stage2Module}/.build/classes/java/main"
 	local stage2Class="nl.adamg.baizel.internal.bootstrap.Bootstrap"
+	configureJavaPath
 	buildStage2IfCacheExpired "${stage2Module}" "${compiledClassPathRoot}" "${stage2Class}"
 	startJvmWithStage2Class "${compiledClassPathRoot}" "${stage2Class}" "${args[@]}"
 }
@@ -82,7 +83,7 @@ function handleSourcingIntoTerminal() {
 	export BAIZEL_ENV_CAPTURE_FILE=$(mktemp)
 	"${currentScriptPath}" "${args[@]}"
 	if [[ -s "${BAIZEL_ENV_CAPTURE_FILE}" ]]; then # if file not empty
-		log "importing variables into env"
+		log INFO "importing variables into env"
 		set -o allexport
 		source "${BAIZEL_ENV_CAPTURE_FILE}"
 		set +o allexport
@@ -90,6 +91,33 @@ function handleSourcingIntoTerminal() {
 	rm -f "${BAIZEL_ENV_CAPTURE_FILE}"
 	unset BAIZEL_ENV_CAPTURE_FILE
 	true; return
+}
+
+
+
+function configureJavaPath() {
+	if [[ $(which java) == "" || $(which javac) == "" ]]; then
+		# if Java cannot be found, do best effort at auto-detecting
+		local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin/java"
+		local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
+		local windowsStandardJava="/c/Program Files/Common Files/Oracle/Java/javapath/java"
+		export PATH="${PATH}:$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${windowsStandardJava}"
+		if [[ $(which java) == "" ]]; then
+			log ERROR "Java Development Kit not found (try setting \$JAVA_HOME)"
+			exit 201 # JDK_NOT_FOUND
+		fi
+		if [[ $(which javac) == "" ]]; then
+			log ERROR "Java Development Kit not found (only JRE found, JDK required) (try setting \$JAVA_HOME)"
+			exit 201 # JDK_NOT_FOUND
+		fi
+	fi
+
+	# ensure that PATH selects javac matching JAVA_HOME, and fix JAVA_HOME if needed
+	if [[ ${JAVA_HOME:-} == "" || ! -e "${JAVA_HOME}/bin/javac" ]]; then
+		export JAVA_HOME="$(dirname "$(dirname "$(which javac)")")"
+	elif [[ ${JAVA_HOME:-} != "" && -e "${JAVA_HOME}/bin/javac" && $(which javac) != "${JAVA_HOME}/bin/javac" ]]; then
+		export PATH="${JAVA_HOME}/bin:${PATH}"
+	fi
 }
 
 
@@ -107,27 +135,28 @@ function buildStage2IfCacheExpired() {
 	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
 	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
 	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
-		log "stage 2 checksum changed or cache not found"
+		log INFO "stage 2 checksum changed or cache not found"
 		rm -rf "${stage2Module}/.build"
 		mkdir "${stage2Module}/.build"
 		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${sourcePathRoot}" "${stage2SourcePath}" )
 		IFS=' '; log "${compileCommand[*]}"
 		"${compileCommand[@]}"
 		echo "${checksum}" > "${checksumFile}"
-		log "stage 2 compilation finished"
+		log INFO "stage 2 compilation finished"
 	else
-		log "stage 2 checksum matches, will run from cache"
+		log INFO "stage 2 checksum matches, will run from cache"
 	fi
 }
 
 
 
 function log() {
-	local line=${1}
-	if [[ ${BAIZEL_VERBOSE:-} != true ]]; then
+	local level=${1}
+	local line=${2}
+	if [[ ${BAIZEL_VERBOSE:-} != true && ${level} == INFO ]]; then
 		return
 	fi
-	echo "$(date '+%H:%M:%S.%N' | cut -c 1-12) INFO .(baizel:${BASH_LINENO[0]}) ${line}" >&2
+	echo "$(date '+%H:%M:%S.%N' | cut -c 1-12) ${level} .(baizel:${BASH_LINENO[0]}) ${line}" >&2
 }
 
 
@@ -160,13 +189,6 @@ function startJvmWithStage2Class() {
 	shift
 	local args=("${@}")
 
-	if [[ $(which java) == "" ]]; then
-		# if Java cannot be found, do best effort at auto-detecting
-		local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin:${PATH}"
-		local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
-		export PATH="$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${PATH}"
-	fi
-
 	local command=( java --class-path "${compiledClassPathRoot}" )
 	if [[ ${BAIZEL_DEBUG:-} == true ]]; then
 		BAIZEL_DEBUG=5005
@@ -181,8 +203,8 @@ function startJvmWithStage2Class() {
 	if [[ ${args[*]:-} != "" ]]; then
 		command+=("${args[@]}")
 	fi
-	log "Stage 1 finished -- { \"durationMs\": $(( ( $(date '+%s%N') - ${START_TIMESTAMP} ) / 1000000 )) }"
-	IFS=' '; log "$ ${command[*]}"
+	log INFO "Stage 1 finished -- { \"durationMs\": $(( ( $(date '+%s%N') - ${START_TIMESTAMP} ) / 1000000 )) }"
+	IFS=' '; log INFO "$ ${command[*]}"
 	exec "${command[@]}" # starts bootstrap stage 2
 }
 
