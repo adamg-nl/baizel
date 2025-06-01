@@ -10,6 +10,13 @@ public class Timer implements AutoCloseable {
     private final String description;
     private final Instant start;
 
+    public Timer(Logger log, String description, boolean logStart) {
+        this(log, description);
+        if (logStart) {
+            log.info(description + " started");
+        }
+    }
+
     public Timer(Logger log, String description) {
         this.log = log;
         this.description = description;
@@ -25,7 +32,11 @@ public class Timer implements AutoCloseable {
     }
 
     public static <T, E extends Exception> T timed(Logger log, ThrowingSupplier<T, E> timed, String description) throws E {
-        try (var ignored = new Timer(log, description)) {
+        return timed(log, timed, description, false);
+    }
+
+    public static <T, E extends Exception> T timed(Logger log, ThrowingSupplier<T, E> timed, String description, boolean logStart) throws E {
+        try (var ignored = new Timer(log, description, logStart)) {
             return timed.get();
         }
     }

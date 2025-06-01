@@ -15,7 +15,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 @SuppressWarnings("unused")
-public class Collections {
+public class Items {
     public static <C extends Collection<O>, I, O, E extends Exception> C map(Collection<I> input, ThrowingFunction<I,O,E> mapping, C output) throws E {
         for(var i : input) {
             output.add(mapping.apply(i));

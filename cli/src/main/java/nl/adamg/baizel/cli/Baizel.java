@@ -1,7 +1,7 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
-import nl.adamg.baizel.internal.common.util.collections.Collections;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import javax.annotation.CheckForNull;
 import java.nio.file.Files;
@@ -17,29 +17,37 @@ import java.util.logging.Logger;
 /// - Usage: `baizel [<BAIZEL_OPTION>...] <COMMAND> [<COMMAND_ARG>...] [-- <TARGET>...]`
 /// - Usage: `baizel <CLASS_TARGET> <ARGS>...`
 ///
-/// ## Arguments:
-/// - `TARGET` can use one of the formats:
-///   -       `//path/to/package:target_name`  a specific target within a package
-///   -       `//path/to/package`              the main target within a package
-///   -       `//path/to/package/...`          all targets within a package and its subpackages
-///   -       `//path/to/package:*`            all targets directly within a package
-///   -       `:target_name`                   a shorthand for a target in the current package
-///   -       `-//path/to/package:target_name` excludes a specific target
+/// To get detailed information about a particular command, use `baizel <COMMAND> --help`.
+///
+/// ## Targets:
+/// - `<TARGET>` is in format `[@[<ORG>/][<MODULE>]][//<PATH>][:<TARGET_NAME>]`
+/// - `<PATH>` can end with `...` to match all targets within a package and its subpackages.
+/// - `<PATH>` can contain `**` to match any number of intermediate directories and files.
+/// - `<TARGET_NAME>` equal to `*` means all the targets directly within package.
+/// - `<TARGET_NAME>` missing means the main target.
+/// - `<PATH>` missing means the current package.
+/// - `<ORG>/<MODULE>` when defined mean running a task from remote package.
+/// - `-<TARGET>` means excluding that target
 ///
 /// ## Commands:
 /// - `build` Builds the specified targets.
-/// - `test`  Builds and runs the specified test targets.
-/// - `run`   Builds and runs a single executable target.
+/// - `test`  Runs the sspecified test targets.
+/// - `run`   Runs the specified executable targets.
 /// - `clean` Removes Baizel's output files and invalidates local cache.
-/// - `help`  Provides help for commands or the index.
+/// - `shell` Opens `jshell` session with given target's classpath
+///
+/// ## Environment variables used:
+/// - `BAIZEL_DEBUG`    Enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
+/// - `BAIZEL_VERBOSE`  Enables verbose logging. Values: true, false
+/// - `BAIZEL_JVM_OPTS` Additional JVM arguments, space-separated
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
 
-    public record Args(List<String> options, String command, List<String> commandArgs, List<String> targets) {}
+    public record Args(List<String> options, List<String> commands, List<String> commandArgs, List<String> targets) {}
 
     public static void main(String... args) {
         LOG.info("Hello Baizel");
-//        main(CliParser.parse(args));
+        main(CliParser.parse(args));
     }
 
     public static void main(Args args) {
@@ -50,7 +58,7 @@ public class Baizel {
     private static Path inferProjectRoot(Set<String> requestedModulePaths, Path currentDir) {
         var level = currentDir;
         while (level != null) {
-            var allDepsMatch = Collections.allMatch(requestedModulePaths, p -> Files.isDirectory(currentDir.resolve(p)));
+            var allDepsMatch = Items.allMatch(requestedModulePaths, p -> Files.isDirectory(currentDir.resolve(p)));
             if (allDepsMatch) {
                 return level;
             }

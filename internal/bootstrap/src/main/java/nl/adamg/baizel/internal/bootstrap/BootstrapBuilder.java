@@ -3,6 +3,7 @@ package nl.adamg.baizel.internal.bootstrap;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -52,7 +54,7 @@ class BootstrapBuilder {
     }
 
     List<Path> readCachedMavenClasspath() throws IOException {
-        return mapToList(Arrays.asList(Files.readString(mavenClasspathFile).split(":")), Path::of);
+        return mapToList(Arrays.asList(Files.readString(mavenClasspathFile).split(File.pathSeparator)), Path::of);
     }
 
     void writeCurrentBaizelChecksum(String currentBaizelChecksum) throws IOException {
@@ -67,11 +69,11 @@ class BootstrapBuilder {
         var modulePaths = timed(LOG, () -> ModuleFinder.findModules(baizelRoot), "finding modules");
         var mavenDependencyCoordinates = timed(LOG, () -> readMavenDependencies(modulePaths), "reading module definitions");
         var mavenClient = timed(LOG, () -> MavenClient.loadClient(baizelRoot), "loading Maven client");
-        timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies");
-        Files.writeString(mavenClasspathFile, String.join(":", mapToList(libraries, Path::toString)));
+        timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies", true);
+        Files.writeString(mavenClasspathFile, String.join(File.pathSeparator, mapToList(libraries, Path::toString)));
         var sourceRoots = new TreeSet<>(mapToList(modulePaths, p -> p.resolve("src/main/java")));
-        Files.writeString(sourcePathFile, String.join(":", mapToList(sourceRoots, Path::toString)));
-        return timed(LOG, () -> compile(sourceRoots, mavenClasspathFile, sourcePathFile, compiledClasspathRoot), "compiling");
+        Files.writeString(sourcePathFile, String.join(File.pathSeparator, mapToList(sourceRoots, Path::toString)));
+        return timed(LOG, () -> compile(sourceRoots, mavenClasspathFile, sourcePathFile, compiledClasspathRoot), "compiling", true);
     }
 
     private static Set<String> readMavenDependencies(Set<Path> modulePaths) throws IOException {
@@ -103,19 +105,34 @@ class BootstrapBuilder {
         var fileManager = compiler.getStandardFileManager(diagnosticListener, null, null);
         var sourceFiles = mergeSet(mapToList(sourceRoots, BootstrapBuilder::findJavaSources));
         var compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles.stream().map(Path::toFile).toList());
+        var javacArgs = List.of(
+                "--class-path", "@" + relativize(mavenClasspathFile),
+                "--source-path", "@" + relativize(sourcePathFile),
+                "-d", relativize(outputDir)
+        );
         var task = compiler.getTask(
                 new PrintWriter(logStream),
                 fileManager,
                 diagnosticListener,
-                List.of(
-                        "--class-path", "@" + mavenClasspathFile + ":" + outputDir,
-                        "--source-path", "@" + sourcePathFile,
-                        "-d", outputDir.toString()
-                ),
+                javacArgs,
                 null,
                 compilationUnits
         );
+        if (LOG.isLoggable(Level.INFO)) {
+            // TODO make sure this doesn't run without --verbose
+            System.err.println("XXX LOG.isLoggable(Level.INFO)");
+            var mavenClasspath = Files.readString(mavenClasspathFile);
+            var sourcePath = Files.readString(sourcePathFile);
+            LOG.info("$ javac " + String.join(" ", javacArgs) + " " + String.join(" ", mapToList(sourceFiles, BootstrapBuilder::relativize)));
+            LOG.info("class-path -- { \"path\": \"" + mavenClasspath + "\" }");
+            LOG.info("source-path -- { \"path\": \"" + sourcePath + "\" }");
+            System.out.println("ZZZ LOG.isLoggable(Level.INFO)");
+        }
         return task.call();
+    }
+
+    private static String relativize(Path path) {
+        return Path.of(".").toAbsolutePath().relativize(path).toString();
     }
 
     static Map<String, List<String>> readGradleConfig(Path gradleGroovyFile) throws IOException {

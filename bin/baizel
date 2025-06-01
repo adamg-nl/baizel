@@ -4,23 +4,27 @@ currentScriptPath="${BASH_SOURCE[0]:-${(%):-%x}}" # on zsh this has to be on the
 
 
 
-### Baizel Build System
+### Baizel build system
 ###
-### Usage: baizel [--debug | --verbose] <TASK> <ARGS>...
-###
-### If ARGS are supplied as a JSON object (in case of no arguments, '{}'), then output will be JSON too.
-### This command can be sourced, in order to propagate any environment changes done by the task, to the shell.
+### Usage: baizel [<BAIZEL_OPTION>...] <COMMAND> [<COMMAND_ARG>...] [-- <TARGET>...]
+### Usage: baizel <CLASS_TARGET> <ARGS>...
 ###
 ### Arguments:
-###   --debug    Makes the JVM wait, listening for debugger on port 5005.
-###   --verbose  Enables verbose logging.
-###   TASK       Command name (optionally prefixed with module path and ':'), or path to class source.
-###              The paths can be relative to the current directory or to the project root.
+###   TARGET  can use one of the formats:
+###             //path/to/package:target_name   a specific target within a package
+###             //path/to/package               the main target within a package
+###             //path/to/package/...           all targets within a package and its subpackages
+###             //path/to/package:*             all targets directly within a package
+###             :target_name                    a shorthand for a target in the current package
+###             -//path/to/package:target_name  excludes a specific target
 ###
-### Examples:
-###   baizel finance/accounting:build
-###   baizel finance/accounting/src/main/java/com/example/accounting/FooCalculator.java '{ "fee": 0.01 }'
-###   baizel finance/accounting:dependencyTree
+### Commands:
+###   build  Builds the specified targets.
+###   test   Builds and runs the specified test targets.
+###   run    Builds and runs a single executable target.
+###   clean  Removes Baizel's output files and invalidates local cache.
+###   help   Provides help for commands or the index.
+###   shell  Opens `jshell` session with given target's classpath
 ###
 ### Environment variables used:
 ###   BAIZEL_DEBUG     Enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
@@ -139,7 +143,7 @@ function buildStage2IfCacheExpired() {
 		rm -rf "${stage2Module}/.build"
 		mkdir "${stage2Module}/.build"
 		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${sourcePathRoot}" "${stage2SourcePath}" )
-		IFS=' '; log "${compileCommand[*]}"
+		IFS=' '; log INFO "$ ${compileCommand[*]}"
 		"${compileCommand[@]}"
 		echo "${checksum}" > "${checksumFile}"
 		log INFO "stage 2 compilation finished"
