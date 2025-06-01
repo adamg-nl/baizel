@@ -77,7 +77,7 @@ public final class Bootstrap {
         var currentSourceUrl = Bootstrap.class.getProtectionDomain().getCodeSource().getLocation();
         var currentSourcePath = Path.of(Objects.requireNonNull(currentSourceUrl).toURI()).toRealPath();
         var buildClasspathRelativePath = "internal/bootstrap/.build/classes/java/main";
-        var currentClassPathString = currentSourcePath.toString();
+        var currentClassPathString = currentSourcePath.toString().replaceAll("\\\\", "/");
         if (currentClassPathString.endsWith(buildClasspathRelativePath)) {
             var pathLength = currentClassPathString.length() - buildClasspathRelativePath.length();
             return Path.of(currentClassPathString.substring(0, pathLength));

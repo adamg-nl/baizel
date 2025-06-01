@@ -62,17 +62,17 @@ function main() {
 
 ## Return true if the script was sourced and execution is already handled
 function handleSourcingIntoTerminal() {
-    local scriptPath=${BASH_SOURCE[${#BASH_SOURCE[@]}-1]:-${funcstack[-1]}}
-    if [[ $(basename "${scriptPath}") == "baizel" ]]; then
-        scriptPath=""
-    fi
-    local sourceMode=false
-    if [[ ${ZSH_VERSION[*]:-} != "" || ${0} == "bash" ]]; then
-        sourceMode=true
-    fi
-    if [[ ${sourceMode} != true ]]; then
-    	false; return
-    fi
+	local scriptPath=${BASH_SOURCE[${#BASH_SOURCE[@]}-1]:-${funcstack[-1]}}
+	if [[ $(basename "${scriptPath}") == "baizel" ]]; then
+		scriptPath=""
+	fi
+	local sourceMode=false
+	if [[ ${ZSH_VERSION[*]:-} != "" || ${0} == "bash" ]]; then
+		sourceMode=true
+	fi
+	if [[ ${sourceMode} != true ]]; then
+		false; return
+	fi
 	if [[ ${scriptPath} == "" ]]; then
 		true; return
 	fi
@@ -88,8 +88,8 @@ function handleSourcingIntoTerminal() {
 		set +o allexport
 	fi
 	rm -f "${BAIZEL_ENV_CAPTURE_FILE}"
-    unset BAIZEL_ENV_CAPTURE_FILE
-    true; return
+	unset BAIZEL_ENV_CAPTURE_FILE
+	true; return
 }
 
 
@@ -123,7 +123,7 @@ function buildStage2IfCacheExpired() {
 
 
 function log() {
-    local line=${1}
+	local line=${1}
 	if [[ ${BAIZEL_VERBOSE:-} != true ]]; then
 		return
 	fi
@@ -133,22 +133,22 @@ function log() {
 
 
 function pathChecksum() {
-    local path=${1}
+	local path=${1}
 
-    if [[ ! -e ${path} ]]; then
-    	return
-    fi
-    local statArgs=()
-    if stat -f '' . 2>/dev/null; then # BSD/macOS (uses -f format)
-      	stat=(-f "%N %z %m")
-    else # GNU/Linux (uses -c format)
+	if [[ ! -e ${path} ]]; then
+		return
+	fi
+	local statArgs=()
+	if stat -f '' . 2>/dev/null; then # BSD/macOS (uses -f format)
+	  	stat=(-f "%N %z %m")
+	else # GNU/Linux (uses -c format)
 		stat=(-c "%n %s %Y")
-    fi
-    if [[ -d ${path} ]]; then # if it's a dir
-    	find "${path}" -exec stat "${stat[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
-    else
-    	stat "${stat[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
-    fi
+	fi
+	if [[ -d ${path} ]]; then # if it's a dir
+		find "${path}" -exec stat "${stat[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
+	else
+		stat "${stat[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
+	fi
 }
 
 
@@ -158,13 +158,13 @@ function startJvmWithStage2Class() {
 	shift
 	local stage2Class=${1}
 	shift
-    local args=("${@}")
+	local args=("${@}")
 
-    if [[ $(which java) == "" ]]; then
-        # if Java cannot be found, do best effort at auto-detecting
-        local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin:${PATH}"
-        local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
-        export PATH="$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${PATH}"
+	if [[ $(which java) == "" ]]; then
+		# if Java cannot be found, do best effort at auto-detecting
+		local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin:${PATH}"
+		local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
+		export PATH="$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${PATH}"
 	fi
 
 	local command=( java --class-path "${compiledClassPathRoot}" )
