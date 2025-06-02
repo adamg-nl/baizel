@@ -1,8 +1,11 @@
-# ignore hidden files
-.*
+# ignore everything inside dot-directories
 
-# commit git ignore lists
-!.gitignore
+.*/**
+.build/**
+.idea/**
+
+# Allow .gitignore files inside dot-directories (1 level deep)
+#!.idea/.gitignore
 
 # ignore build output
 build/
