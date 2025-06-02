@@ -1,11 +1,6 @@
-# ignore everything inside dot-directories
-
-.*/**
-.build/**
-.idea/**
-
-# Allow .gitignore files inside dot-directories (1 level deep)
-#!.idea/.gitignore
+# ignore everything inside dot-directories, except of .gitignore files
+**/.*/**
+!**/.*/.gitignore
 
 # ignore build output
 build/
