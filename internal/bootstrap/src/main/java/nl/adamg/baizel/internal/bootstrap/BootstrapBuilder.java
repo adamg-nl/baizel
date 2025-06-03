@@ -8,16 +8,13 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.text.ParseException;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import static nl.adamg.baizel.internal.bootstrap.Collections.mapToList;
 import static nl.adamg.baizel.internal.bootstrap.Collections.mergeSet;
@@ -62,13 +59,14 @@ class BootstrapBuilder {
     }
 
     String readLastBaizelChecksum() throws IOException {
-        return Files.exists(baizelChecksumFile) ? Files.readString(baizelChecksumFile()).trim() : "";
+        return Files.exists(baizelChecksumFile) ? Files.readString(baizelChecksumFile).trim() : "";
     }
 
     boolean build() throws IOException {
         var modulePaths = timed(LOG, () -> ModuleFinder.findModules(baizelRoot), "finding modules");
-        var mavenDependencyCoordinates = timed(LOG, () -> readMavenDependencies(modulePaths), "reading module definitions");
-        var mavenClient = timed(LOG, () -> MavenClient.loadClient(baizelRoot), "loading Maven client");
+        var projectInfo = timed(LOG, this::loadProjectInfo, "reading project-info.java");
+        var mavenDependencyCoordinates = timed(LOG, () -> loadMavenDependencyCoordinates(projectInfo), "reading bootstra/module-info.java");
+        var mavenClient = timed(LOG, () -> MavenClient.loadClient(getRepositories(projectInfo), baizelRoot), "loading Maven client");
         timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies", true);
         Files.writeString(mavenClasspathFile, String.join(File.pathSeparator, mapToList(libraries, Path::toString)));
         var sourceRoots = new TreeSet<>(mapToList(modulePaths, p -> p.resolve("src/main/java")));
@@ -76,20 +74,20 @@ class BootstrapBuilder {
         return timed(LOG, () -> compile(sourceRoots, mavenClasspathFile, sourcePathFile, compiledClasspathRoot), "compiling", true);
     }
 
-    private static Set<String> readMavenDependencies(Set<Path> modulePaths) throws IOException {
-        return mergeSet(Collections.mapToList(modulePaths, BootstrapBuilder::readMavenDependencies));
+    private List<String> loadMavenDependencyCoordinates(ObjectTree projectInfo) {
+        return projectInfo.getMap().getList("dependsOn");
     }
 
-    private static Set<String> readMavenDependencies(Path module) throws IOException {
-        var dependencies = new TreeSet<String>();
-        var moduleConfig = readGradleConfig(module.resolve("build.gradle"));
-        for (var configuration : List.of("implementation", "runtimeOnly", "api", "compileOnly", "compileOnlyApi")) {
-            var configurationDependencies = moduleConfig.get(configuration);
-            if (configurationDependencies != null) {
-                dependencies.addAll(configurationDependencies);
-            }
+    private static List<String> getRepositories(ObjectTree projectInfo) {
+        return projectInfo.getMap().getList("repository");
+    }
+
+    private ObjectTree loadProjectInfo() throws IOException {
+        try {
+            return new ConfigParser(true).read(Files.readString(baizelRoot.resolve("project-info.java")));
+        } catch (ParseException e) {
+            throw new IOException(e);
         }
-        return dependencies;
     }
 
     private static List<Path> findJavaSources(Path directory) throws IOException {
@@ -134,50 +132,14 @@ class BootstrapBuilder {
     private static String relativize(Path path) {
         return Path.of(".").toAbsolutePath().relativize(path).toString();
     }
-
-    static Map<String, List<String>> readGradleConfig(Path gradleGroovyFile) throws IOException {
-        // this only has to be good enough to extract minimum of information from specific bootstrap gradle file
-        var data = new LinkedHashMap<String, List<String>>();
-        var assignmentPattern = Pattern.compile("^ *(?<key>[^(]+)\\(\"(?<value>[^\"]+)\"\\) *(//.*)?$");
-        for (var line : Files.readAllLines(gradleGroovyFile)) {
-            var matcher = assignmentPattern.matcher(line);
-            if (!matcher.matches()) {
-                continue;
-            }
-            var key = matcher.group("key");
-            var value = matcher.group("value");
-            data.computeIfAbsent(key, k -> new ArrayList<>()).add(value);
-        }
-        return data;
-    }
     
     //region generated code
     Path baizelRoot() {
         return baizelRoot;
     }
 
-    Path bootstrapDir() {
-        return bootstrapDir;
-    }
-
-    Path bootstrapBuildDir() {
-        return bootstrapBuildDir;
-    }
-
-    Path mavenClasspathFile() {
-        return mavenClasspathFile;
-    }
-
-    Path sourcePathFile() {
-        return sourcePathFile;
-    }
-
     Path compiledClasspathRoot() {
         return compiledClasspathRoot;
-    }
-
-    Path baizelChecksumFile() {
-        return baizelChecksumFile;
     }
 
     Set<Path> libraries() {

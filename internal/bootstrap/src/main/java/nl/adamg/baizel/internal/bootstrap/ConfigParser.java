@@ -2,28 +2,31 @@ package nl.adamg.baizel.internal.bootstrap;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Predicate;
-import java.util.stream.IntStream;
 
-import static nl.adamg.baizel.internal.bootstrap.ObjectTree.isEmpty;
-
-/// Abstract superset of 'module-info.java' syntax. Supports strings, arrays and maps.
+/// Abstract superset of 'module-info.java' syntax. Supports strings and nested lists.
 ///
-/// Doesn't assume any keywords or structures other than block and statement.
+/// Doesn't assume any keywords or structures other than brace-delimited block made of
+/// statements, and semicolon-terminated statement made of identifiers and/or trailing block.
 ///
-/// All sequences not containing ` \t\n{};` are considered plain Strings, and Strings can come in any sequences.
+/// Identifiers can contain any characters other than whitespace, braces and semicolon.
 ///
-/// First String in each entry is used as a key for enclosing map.
+/// Syntax:
+/// ```
+/// identifier ::= /[^ \t\r\n;{}]+/ ;
+/// declaration ::= identifier* ( identifier ';' | '{' scope '}' ) ;
+/// scope ::= declaration* ;
+/// file ::= scope ;
+/// ```
 ///
-/// If key repeats (in example below, `exports`), then values are merged into a list.
-///
-/// If entry is made of more than two identifiers, the "tail" is parsed as list of identifiers
-/// (in example below, `provides`).
-///
+/// Runtime representation:
+/// ```
+/// file (conceptually List<Declaration>) -> List<Object>
+/// declaration (conceptually List<Identifier|Block>) -> List<Object>
+/// block (conceptually List<Declaration> == List<List<Identifier|Block>>) -> List<List<Object>>
+/// identifier -> String
+/// ```
 ///
 /// Example:
 /// ```
@@ -35,137 +38,77 @@ import static nl.adamg.baizel.internal.bootstrap.ObjectTree.isEmpty;
 /// ```
 /// is parsed into:
 /// ```
-/// List.of("module", "com.example", Map.of(
-///     "exports", List.of("com.example", "com.example.util"),
-///     "provides", List.of("com.example.Service", "with", "com.example.Impl")
-/// ));
+/// List.of(
+///     "module", "example", List.of(
+///         List.of("exports", "com.example"),
+///         List.of("exports", "com.example.util"),
+///         List.of("provides", "com.example.Service", "with", "com.example.Impl")
+///     )
+/// )
 /// ```
 public class ConfigParser {
+    private final boolean postprocess;
     private int currentOffset;
     private int currentChar;
     private InputStream input = InputStream.nullInputStream();
-    private final StringBuilder debugPreview = new StringBuilder();
+    private final StringBuilder currentLine = new StringBuilder();
 
-    public ObjectTree read(InputStream input) throws IOException, ParseException {
-        var state = new ConfigParser();
-        state.input = input;
-        state.nextChar();
-        return ObjectTree.of(state.readItem());
+    public ConfigParser(boolean postprocess) {
+        this.postprocess = postprocess;
     }
 
     public ObjectTree read(String input) throws ParseException {
         try {
-            return read(new ByteArrayInputStream(input.getBytes()));
+            return read(new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void nextChar() throws IOException, ParseException {
-        assertSomeCurrentChar();
-        if (debugPreview != null) {
-            debugPreview.append((char)currentChar);
-        }
+    public ObjectTree read(InputStream input) throws IOException, ParseException {
+        this.input = input;
+        this.currentOffset = -1;
+
+        throw null; // TODO implement
+    }
+
+    // internal utils
+    private void nextChar() throws IOException {
         currentChar = input.read();
-        currentOffset++;
-    }
-
-    private void skipWhitespace() throws IOException, ParseException {
-        while (currentChar != -1 && currentChar < 33) {
-            nextChar();
-        }
-    }
-
-    private String readValue() throws IOException, ParseException {
-        var sb = new StringBuilder();
-        while (isCurrentCharNot(" \n\t{};")) {
-            sb.append((char) currentChar);
-            nextChar();
-        }
-        return sb.toString();
-    }
-
-    private boolean isCurrentCharNot(String anyOf) {
-        return currentChar != -1 && anyOf.indexOf(currentChar) < 0;
-    }
-
-    private Object readItem() throws IOException, ParseException {
-        assertCurrentCharIsNot(";{}");
-        var subItems = new ArrayList<>();
-        while (true) {
-            assertCurrentCharIsNot("}");
-            if (currentChar == '{') {
-                var scope = readScopeWithBraces();
-                if (!isEmpty(scope)) {
-                    subItems.add(scope);
-                }
-                break;
-            } else {
-                var value = readValue();
-                if (!value.isEmpty()) {
-                    subItems.add(value);
-                }
-                if (currentChar == ';') {
-                    nextChar();
-                    break;
-                }
-            }
-            skipWhitespace();
-            assertSomeCurrentChar();
-        }
-        if (subItems.size() == 1) {
-            return subItems.get(0);
-        }
-        return subItems;
-    }
-
-    private void assertCurrentCharIsNot(String anyOf) throws ParseException {
-        if (! isCurrentCharNot(anyOf)) {
-            throw new ParseException("unexpected " + ((char)currentChar), currentOffset);
-        }
-    }
-
-    private void assertSomeCurrentChar() throws ParseException {
         if (currentChar == -1) {
-            throw new ParseException("unexpected end of input", currentOffset);
+            return;
+        }
+        currentOffset++;
+        if (currentChar == '\r') {
+            nextChar();
+            return;
+        }
+        if (currentChar == '\n') {
+            currentLine.replace(0, currentLine.length(), "");
+        } else {
+            currentLine.append((char) currentChar);
         }
     }
 
-    private Object readScopeWithBraces() throws IOException, ParseException {
-        assertChar('{');
-        nextChar();
-        var scope = readScope();
-        assertChar('}');
-        nextChar();
-        return scope;
+    private void skipWhitespace() throws IOException {
+        while (currentChar != -1 && Character.isWhitespace(currentChar)) {
+            nextChar();
+        }
     }
 
-    private Object readScope() throws IOException, ParseException {
-        var scope = (Object) new LinkedHashMap<String, Object>();
-        skipWhitespace();
-        while (currentChar != -1 && currentChar != '}') {
-            var item = readItem();
-            if (isEmpty(item)) {
-                continue;
+    private ParseException syntaxError() throws ParseException {
+        var column = currentLine.length();
+        while (currentChar != -1 && currentChar != '\r' && currentChar != '\n') {
+            try {
+                nextChar();
+            } catch (IOException e) {
+                break;
             }
-            scope = ObjectTree.merge(scope, item);
-            skipWhitespace();
+            currentLine.append((char) currentChar);
         }
-
-        if (scope instanceof Map<?,?> scopeMap) {
-            var isNumber = (Predicate<Object>) k -> k instanceof String ks && ks.matches("[0-9]+");
-            if (scopeMap.keySet().stream().allMatch(isNumber)) {
-                if (scopeMap.keySet().equals(IntStream.range(0, scopeMap.size()-1))) {
-                    scope = new ArrayList<>(scopeMap.values());
-                }
-            }
-        }
-        return scope;
+        var message = "Syntax error at line \"" + currentLine + "\" column " + column
+                + " (character: '" + ((char) currentChar) + "')";
+        throw new ParseException(message, currentOffset);
     }
-
-    private void assertChar(char c) throws ParseException {
-        if (currentChar != c) {
-            throw new ParseException("expected " + c, currentOffset);
-        }
-    }
+    //endregion
 }

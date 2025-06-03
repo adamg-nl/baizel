@@ -3,6 +3,7 @@ rootProject.name = "baizel"
 include(":cli")
 include(":core")
 include(":internal:bazel")
+include(":internal:baizellang")
 include(":internal:bootstrap")
 include(":internal:common:annotations")
 include(":internal:common:util")

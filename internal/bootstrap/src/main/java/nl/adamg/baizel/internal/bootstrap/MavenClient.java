@@ -11,12 +11,8 @@ import java.net.URLClassLoader;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.text.ParseException;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -32,8 +28,7 @@ public final class MavenClient {
     private final AfterClientLib libClient;
     private final Map<String, Path> cache = new ConcurrentHashMap<>();
 
-    public static MavenClient loadClient(Path baizelRoot) throws IOException {
-        var repositories = BeforeClientLib.getRepositories(baizelRoot);
+    public static MavenClient loadClient(List<String> repositories, Path baizelRoot) throws IOException {
         var mavenClientLibDependencies = BeforeClientLib.resolveMavenClientLibDependencies(baizelRoot, repositories.get(0));
         var dynamicLibs = DynamicClassLoader.forPaths(mavenClientLibDependencies, MavenClient.class);
         var libClient = AfterClientLib.load(repositories.stream().map(BeforeClientLib::url).toList(), dynamicLibs);
@@ -71,27 +66,36 @@ public final class MavenClient {
 
         @SuppressWarnings("unused")
         public static List<Path> resolveMavenClientLibDependencies(Path baizelRoot, String remoteRepositoryUrl) throws IOException {
-            var gradleFile = baizelRoot.resolve("internal/bootstrap/build.gradle");
+            var moduleInfoFile = baizelRoot.resolve("internal/bootstrap/src/main/java/module-info.java");
+            var moduleInfoText = Files.readString(moduleInfoFile).replaceAll("//baizel//", "");
+            var libraryModuleIds = new TreeSet<String>();
+            try {
+                var moduleInfo = new ConfigParser().read(moduleInfoText);
+            } catch (ParseException e) {
+                throw new RuntimeException("broken " + moduleInfoFile, e);
+            }
             var respository = new BeforeClientLib(remoteRepositoryUrl);
             var classpath = new ArrayList<Path>();
-            var moduleConfig = BootstrapBuilder.readGradleConfig(gradleFile);
-            for (var configuration : List.of("implementation", "runtimeOnly")) {
-                var dependencies = moduleConfig.get(configuration);
-                if (dependencies == null) {
-                    continue;
-                }
-                for (var dependency : dependencies) {
-                    var localPath = respository.resolve(dependency);
-                    if (localPath != null) {
-                        classpath.add(localPath);
-                    }
-                }
-            }
+//            var moduleConfig = BootstrapBuilder.readGradleConfig(moduleInfoFile);
+//            for (var configuration : List.of("implementation", "runtimeOnly")) {
+//                var dependencies = moduleConfig.get(configuration);
+//                if (dependencies == null) {
+//                    continue;
+//                }
+//                for (var dependency : dependencies) {
+//                    var localPath = respository.resolve(dependency);
+//                    if (localPath != null) {
+//                        classpath.add(localPath);
+//                    }
+//                }
+//            }
             return classpath;
         }
 
         public static List<String> getRepositories(Path baizelRoot) throws IOException {
-            return BootstrapBuilder.readGradleConfig(baizelRoot.resolve("build.gradle")).get("url");
+
+            throw null;
+//            return BootstrapBuilder.readGradleConfig(baizelRoot.resolve("build.gradle")).get("url");
         }
 
         /*@CheckForNull*/

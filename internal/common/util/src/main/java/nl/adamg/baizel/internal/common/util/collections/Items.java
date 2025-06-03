@@ -2,14 +2,17 @@ package nl.adamg.baizel.internal.common.util.collections;
 
 import nl.adamg.baizel.internal.common.util.functions.ThrowingFunction;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
-import nl.adamg.baizel.internal.common.util.java.Reflection;
+import nl.adamg.baizel.internal.common.util.java.Types;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -54,7 +57,7 @@ public class Items {
     /** @return read-only array */
     public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
         var output = mapToList(input, mapping);
-        var type = Reflection.findCommonSuperClass(output);
+        var type = Types.findCommonSuperClass(output);
         @SuppressWarnings("unchecked") // safe for read-only use
         var array = (O[]) Array.newInstance(type, output.size());
         for (var i = 0; i < output.size(); i++) {
@@ -109,5 +112,29 @@ public class Items {
 
     public static <T, E extends Exception> boolean noneMatch(Collection<T> input, ThrowingPredicate<T, E> predicate) throws E {
         return ! anyMatch(input, predicate);
+    }
+
+    public static <K, V> Map<V, List<K>> invert(Map<K, V> map) {
+        var result = new LinkedHashMap<V, List<K>>();
+        for (var entry : map.entrySet()) {
+            var value = entry.getValue();
+            var key = entry.getKey();
+            result.computeIfAbsent(value, k -> new ArrayList<>()).add(key);
+        }
+        return result;
+    }
+
+    public <T> T first(List<T> input) {
+        if (input.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+        return input.get(0);
+    }
+
+    public static <T> T last(List<T> input) {
+        if (input.isEmpty()) {
+            throw new NoSuchElementException();
+        }
+        return input.get(input.size()-1);
     }
 }

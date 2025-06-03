@@ -4,4 +4,6 @@ module nl.adamg.baizel.internal.common.util {
     exports nl.adamg.baizel.internal.common.util.java;
 
     requires nl.adamg.baizel.internal.common.annotations;
+    requires jsr305;
+    requires java.compiler;
 }

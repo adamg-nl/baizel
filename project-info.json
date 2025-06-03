@@ -1,0 +1,31 @@
+{
+  "name": "nl.adamg.baizel",
+  "repositories": {
+    "maven": {
+      "url": "https://repo1.maven.org/maven2/"
+    }
+  },
+  "dependencies": [
+    "com.google.code.findbugs:jsr305:3.0.2",
+    "org.apache.httpcomponents:httpclient:4.5.14",
+    "org.apache.httpcomponents:httpcore:4.4.16",
+    "org.apache.maven.resolver:maven-resolver-api:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-connector-basic:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-impl:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-named-locks:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-spi:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-transport-file:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-transport-http:1.9.20",
+    "org.apache.maven.resolver:maven-resolver-util:1.9.20",
+    "org.apache.maven:maven-artifact:3.9.8",
+    "org.apache.maven:maven-builder-support:3.9.8",
+    "org.apache.maven:maven-model-builder:3.9.8",
+    "org.apache.maven:maven-model:3.9.8",
+    "org.apache.maven:maven-resolver-provider:3.9.8",
+    "org.codehaus.plexus:plexus-interpolation:1.27",
+    "org.codehaus.plexus:plexus-utils:3.5.1",
+    "org.slf4j:jcl-over-slf4j:1.7.36",
+    "org.slf4j:slf4j-api:1.7.36",
+    "org.slf4j:slf4j-simple:1.7.36"
+  ]
+}

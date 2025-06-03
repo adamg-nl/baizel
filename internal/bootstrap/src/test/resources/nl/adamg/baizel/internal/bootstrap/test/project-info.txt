@@ -1,0 +1,15 @@
+project nl.adamg.baizel {
+    repository maven https://repo1.maven.org/maven2/;
+
+    dependencies maven {
+        com.google.code.findbugs:jsr305:3.0.2;
+        org.apache.httpcomponents:httpclient:4.5.14;
+    }
+
+    dependencies maven {
+        com.google.code.findbugs:jsr305:3.0.2;
+        org.slf4j:slf4j-api:1.7.36;
+    }
+
+    repository maven https://repo1.maven.org/maven3/;
+}

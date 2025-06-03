@@ -4,4 +4,33 @@ subprojects {
             url("https://repo1.maven.org/maven2/")
         }
     }
+
+    plugins.withType(JavaPlugin) {
+        tasks.withType(Test).configureEach {
+            useJUnitPlatform()
+        }
+
+        dependencies {
+            testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+        }
+    }
+
+    afterEvaluate { project ->
+        // Exclude module-info.java from compilation
+        project.tasks.withType(JavaCompile).configureEach {
+            source = source.filter { !it.name.equals("module-info.java") }
+        }
+
+        // Exclude module-info.class from runtime classpath and packaging
+        if (project.plugins.hasPlugin('java')) {
+            project.sourceSets.all { sourceSet ->
+                sourceSet.java {
+                    exclude 'module-info.java'
+                }
+                sourceSet.output.classesDirs = sourceSet.output.classesDirs.filter {
+                    !it.toString().contains("module-info")
+                }
+            }
+        }
+    }
 }

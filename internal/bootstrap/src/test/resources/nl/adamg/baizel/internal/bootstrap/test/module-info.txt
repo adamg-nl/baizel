@@ -1,0 +1,8 @@
+module com.example {
+    exports com.example;
+    exports com.example.util;
+
+    requires org.apache.maven.maven.resolver.provider;
+    requires transitive com.example.common.util;
+    uses com.example.spi.api.JmsService;
+    provides com.example.spi.api.JmsService with com.example.spi.impl.JmsServiceSimpleImpl;
