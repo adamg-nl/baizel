@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class BaizelLangWriter1Test {
+public class Serializer1Test {
     @Test
     public void testWriter() throws IOException {
         var expected = " { x y; z 1 2 3 ; y  { X 2; Z a b c ; } } ";
