@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class BaizelLangWriterTest {
+public class BaizelLangWriter1Test {
     @Test
     public void testWriter() throws IOException {
         var expected = " { x y; z 1 2 3 ; y  { X 2; Z a b c ; } } ";
@@ -188,7 +188,7 @@ public class BaizelLangWriterTest {
 
     private static void assertWritesTo(Object input, String expected) throws IOException {
         var output = new ByteArrayOutputStream();
-        var writer = new BaizelLangWriter(output);
+        var writer = new BaizelLangWriter1(output);
         writer.write(input);
         var actual = output.toString(StandardCharsets.UTF_8);
         Assertions.assertEquals(normalizeWhitespace(expected), normalizeWhitespace(actual));
