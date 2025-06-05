@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/// Abstract superset of 'module-info.java' syntax. Supports strings and nested lists.
+/// Java DSL: abstract superset of syntax of Java and 'module-info.java' syntax.
+/// Supports nested lists and strings ("stringly typed").
 ///
 /// Doesn't assume any keywords or structures other than brace-delimited block made of
 /// statements, and semicolon-terminated statement made of identifiers and/or trailing block.
@@ -61,16 +62,13 @@ public class JavaDsl {
 
     public Object read(InputStream input) {
         try {
-            input = wrap(input);
-            var r = new PushbackReader(new InputStreamReader(input), 2); // TODO try 1
-            skipWhitespace(r);
-            int c;
-            if ((c = r.read()) != '{') {
-                r.unread(c);
+            var reader = new PushbackReader(new InputStreamReader(wrap(input)), 1);
+            skipWhitespace(reader);
+            var character = reader.read();
+            if (character != '{') {
+                reader.unread(character);
             }
-            var result = (Object)parseBlock(r, 0);
-            result = unwrap(result);
-            return result;
+            return unwrap(parseBlock(reader, 0));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -87,121 +85,127 @@ public class JavaDsl {
     }
 
     public void write(Object object, OutputStream output) throws IOException {
-        object = wrap(object);
         var writer = new PrintWriter(output);
-        writeRecursive(writer, object, 0);
+        writeRecursive(writer, wrap(object), 0);
         writer.flush();
     }
 
     //region writer implementation
-    private void writeRecursive(PrintWriter w, Object o, int d) {
-        if (o == null) return;
-        if (!(o instanceof List<?> l)) {
-            w.print(o);
+    private void writeRecursive(PrintWriter writer, Object element, int depth) {
+        if (element == null) {
             return;
         }
-        if (l.isEmpty()) {
-            w.print("{}");
-            if (d % 2 == 1) w.print(";");
+        if (!(element instanceof List<?> list)) {
+            writer.print(element);
             return;
         }
-        if (d % 2 == 0 && d != 0) w.print("{");
-        boolean f = true;
-        for (Object i : l) {
-            if (!f && d % 2 == 1) w.print(" ");
-            if (i instanceof List<?> && d % 2 == 1) w.print(" ");
-            writeRecursive(w, i, d + 1);
-            f = false;
+        if (list.isEmpty()) {
+            return;
         }
-        if (d % 2 == 0 && d != 0) w.print("}");
-        else if (d % 2 == 1 && !(l.isEmpty() || l.get(l.size() - 1) instanceof List<?>)) {
-            w.print(";");
+
+        var isStatement = depth % 2 == 1; // scope alternates between 'statement' and 'block'
+        if (!isStatement && depth != 0) {
+            writer.print("{");
+        }
+
+        var isFirst = true;
+        for (var item : list) {
+            if (!isFirst || (!isStatement && depth != 0)) {
+                writer.print(" ");
+            }
+            writeRecursive(writer, item, depth + 1);
+            isFirst = false;
+        }
+        if (!isStatement && depth != 0) {
+            writer.print(" }");
+        } else if (isStatement && !(list.get(list.size() - 1) instanceof List<?>)) {
+            writer.print(";");
         }
     }
 
     private Object wrap(Object object) {
         if (object instanceof List<?> list) {
-            if (list.stream().allMatch(i -> i instanceof List<?>)) {
-                return object; // nothing to wrap
-            } else {
-                return List.of(object); // wrap 1 layer
-            }
-        } else {
-            return List.of(List.of(object)); // wrap 2 layers
+            return list.stream().allMatch(item -> item instanceof List<?>) ? object : List.of(object);
         }
+        return List.of(List.of(object));
     }
     //endregion
 
     //region reader implementation
-    private void skipWhitespace(PushbackReader r) throws IOException {
-        int c;
-        while ((c = r.read()) != -1) {
-            if (!Character.isWhitespace(c)) {
-                r.unread(c);
-                break;
-            }
+    private void skipWhitespace(PushbackReader reader) throws IOException {
+        int character;
+        while ((character = reader.read()) != -1 && Character.isWhitespace(character)) {
+            // go ahead with read(), consuming the stream
+        }
+        if (character != -1) {
+            reader.unread(character);
         }
     }
 
-    private List<Object> parseBlock(PushbackReader r, int d) throws IOException {
-        var b = new ArrayList<>();
-        skipWhitespace(r);
-        int c;
-        while ((c = r.read()) != -1 && c != '}') {
-            if (c == '{') {
-                // For a block, we need to create a list containing another list (block)
-                ArrayList<Object> innerList = new ArrayList<>();
-                innerList.add(parseBlock(r, d + 2)); // +2 because we're going down two levels
-                b.add(innerList);
+    private List<Object> parseBlock(PushbackReader reader, int depth) throws IOException {
+        skipWhitespace(reader);
+        var blockContents = new ArrayList<>();
+        int character;
+        while ((character = reader.read()) != -1 && character != '}') {
+            if (character == '{') {
+                blockContents.add(List.of(parseBlock(reader, depth + 2)));
             } else {
-                r.unread(c);
-                var s = parseStatement(r, d + 1); // +1 because statements are at odd depths
-                if (s != null) b.add(s);
+                reader.unread(character);
+                var statement = parseStatement(reader, depth + 1);
+                if (statement != null) {
+                    blockContents.add(statement);
+                }
             }
-            skipWhitespace(r);
-            c = r.read();
-            if (c == ';') {
-                skipWhitespace(r);
-            } else if (c == '}') {
+            skipWhitespace(reader);
+            character = reader.read();
+            if (character == ';') {
+                skipWhitespace(reader);
+            } else if (character == '}') {
                 break;
-            } else if (c != -1) {
-                r.unread(c);
+            } else if (character != -1) {
+                reader.unread(character);
             }
         }
-        return b;
+        return blockContents;
     }
 
-    private Object parseStatement(PushbackReader r, int d) throws IOException {
-        var s = new ArrayList<>();
-        skipWhitespace(r);
-        int c;
-        while ((c = r.read()) != -1) {
-            if (c == '{') {
-                s.add(parseBlock(r, d + 1));
-                break; // End statement immediately after adding a block
-            } else if (c == ';' || c == '}') {
-                if (c == '}') r.unread(c);
+    private Object parseStatement(PushbackReader reader, int depth) throws IOException {
+        skipWhitespace(reader);
+        var statementParts = new ArrayList<>();
+        int character;
+        while ((character = reader.read()) != -1) {
+            if (character == '{') {
+                statementParts.add(parseBlock(reader, depth + 1));
                 break;
-            } else {
-                r.unread(c);
-                var t = parseToken(r);
-                if (!t.isEmpty()) s.add(t);
             }
-            skipWhitespace(r);
+            if (character == ';' || character == '}') {
+                if (character == '}') {
+                    reader.unread(character);
+                }
+                break;
+            }
+
+            reader.unread(character);
+            var token = parseToken(reader);
+            statementParts.add(token);
+            skipWhitespace(reader);
         }
-        return s.isEmpty() ? null : s;
+        return statementParts.isEmpty() ? null : statementParts;
     }
 
-    private String parseToken(PushbackReader r) throws IOException {
-        var t = new StringBuilder();
-        int c;
-        while ((c = r.read()) != -1 &&
-                !Character.isWhitespace(c) &&
-                c != '{' && c != ';' && c != '}') {
-            t.append((char)c);
+    private String parseToken(PushbackReader reader) throws IOException {
+        var tokenBuilder = new StringBuilder();
+        int character;
+        while ((character = reader.read()) != -1) {
+            if (Character.isWhitespace(character) || character == '{' || character == ';' || character == '}') {
+                break;
+            }
+            tokenBuilder.append((char) character);
         }
-        if (c != -1) r.unread(c);
-        return t.toString();
+        if (character != -1) {
+            reader.unread(character);
+        }
+        return tokenBuilder.toString();
     }
 
     private Object unwrap(Object object) {
@@ -213,10 +217,8 @@ public class JavaDsl {
 
     private InputStream wrap(InputStream input) {
         return new SequenceInputStream(Collections.enumeration(List.of(
-                new ByteArrayInputStream("{ ".getBytes(StandardCharsets.UTF_8)),
-                input,
+                new ByteArrayInputStream("{ ".getBytes(StandardCharsets.UTF_8)), input,
                 new ByteArrayInputStream(" }".getBytes(StandardCharsets.UTF_8))
         )));
     }
-    //endregion
 }
