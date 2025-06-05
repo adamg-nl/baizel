@@ -41,7 +41,9 @@ function main() {
 		shift
 	fi
 	if [[ ${BAIZEL_DEBUG:-} == true ]]; then
-		set -x # log each executed line of this script
+		# log each executed line of this script (best we can do on shell layer)
+		set -o xtrace
+		set -o verbose
 	fi
 	if [[ ${1:-} == "--verbose" ]]; then
 		export BAIZEL_VERBOSE=true
@@ -54,8 +56,12 @@ function main() {
 	if handleSourcingIntoTerminal; then
 		return
 	fi
+	# enable bash strict mode, since we're not sourced
+	set -o errexit
+    set -o nounset
+    set -o pipefail
 
-	local stage2Module="$(dirname "${currentScriptPath}")/../internal/bootstrap"
+	local stage2Module=$(relativePath "$(dirname "${currentScriptPath}")/../internal/bootstrap")
 	local compiledClassPathRoot="${stage2Module}/.build/classes/java/main"
 	local stage2Class="nl.adamg.baizel.internal.bootstrap.Bootstrap"
 	configureJavaPath
@@ -132,17 +138,23 @@ function buildStage2IfCacheExpired() {
 	local stage2Class=${3}
 
 	local sourcePathRoot="${stage2Module}/src/main/java"
-	local sourcePaths=$(find "${sourcePathRoot}" -name '*.java')
+	local sourcePaths=$(find "${stage2Module}" -name '*.java')
 	local stage2SourcePath="${sourcePathRoot}/$(echo "${stage2Class}" | tr '.' '/').java"
 	local compiledPath="${stage2Module}/.build/classes/java/main/$(echo "${stage2Class}" | tr '.' '/').class"
-	local checksum="$(pathChecksum "${sourcePathRoot}")"
+	local checksum="$(pathChecksum "${stage2Module}")"
 	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
 	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
 	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
 		log INFO "stage 2 checksum changed or cache not found"
 		rm -rf "${stage2Module}/.build"
 		mkdir "${stage2Module}/.build"
-		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${sourcePathRoot}" "${stage2SourcePath}" )
+		local javacSourcePathArg="${sourcePathRoot}"
+		local bootstrapSubModules=(io java javadsl util)
+		for subModule in "${bootstrapSubModules[@]}"; do
+			javacSourcePathArg+=";${stage2Module}/${subModule}/src/main/java"
+		done
+		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${javacSourcePathArg}" )
+		compileCommand+=( "${stage2SourcePath}" )
 		IFS=' '; log INFO "$ ${compileCommand[*]}"
 		"${compileCommand[@]}"
 		echo "${checksum}" > "${checksumFile}"
@@ -165,6 +177,24 @@ function log() {
 
 
 
+function realPath(){
+	(cd -- "${1%/*}" && echo "$PWD/${1##*/}")
+}
+
+
+function relativePath(){
+	local a=$(realPath "${1}")
+	local p=${PWD}
+	local up=""
+	while [[ ${a#$p/} == "$a" ]]; do
+		p=${p%/*}
+		up="../${up}"
+	done
+	echo "${up}${a#$p/}"
+}
+
+
+
 function pathChecksum() {
 	local path=${1}
 
@@ -173,14 +203,14 @@ function pathChecksum() {
 	fi
 	local statArgs=()
 	if stat -f '' . 2>/dev/null; then # BSD/macOS (uses -f format)
-	  	stat=(-f "%N %z %m")
+	  	statArgs+=(-f "%N %z %m")
 	else # GNU/Linux (uses -c format)
-		stat=(-c "%n %s %Y")
+		statArgs+=(-c "%n %s %Y")
 	fi
 	if [[ -d ${path} ]]; then # if it's a dir
-		find "${path}" -exec stat "${stat[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
+		find "${path}" -exec stat "${statArgs[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
 	else
-		stat "${stat[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
+		stat "${statArgs[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
 	fi
 }
 
