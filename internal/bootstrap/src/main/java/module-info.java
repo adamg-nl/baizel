@@ -2,6 +2,10 @@ module nl.adamg.baizel.internal.bootstrap {
     exports nl.adamg.baizel.internal.bootstrap to nl.adamg.baizel.internal.bootstrap.test;
     requires java.logging;
     requires java.compiler;
+    requires nl.adamg.baizel.internal.bootstrap.io;
+    requires nl.adamg.baizel.internal.bootstrap.java;
+    requires nl.adamg.baizel.internal.bootstrap.javadsl;
+    requires nl.adamg.baizel.internal.bootstrap.util;
     //baizel// requires org.apache.maven.maven.resolver.provider;
     //baizel// requires org.apache.maven.maven.model.builder;
     //baizel// requires org.apache.maven.maven.builder.support;

@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
-import nl.adamg.baizel.internal.common.util.functions.ThrowingFunction;
+import nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
 import nl.adamg.baizel.internal.common.util.java.Types;
 
@@ -17,8 +17,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+/**
+ * @see nl.adamg.baizel.internal.bootstrap.util.collections.Items
+ */
 @SuppressWarnings("unused")
-public class Items {
+public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.Items {
     public static <C extends Collection<O>, I, O, E extends Exception> C map(Collection<I> input, ThrowingFunction<I,O,E> mapping, C output) throws E {
         for(var i : input) {
             output.add(mapping.apply(i));
@@ -28,10 +31,6 @@ public class Items {
 
     public static <I, O, E extends Exception> List<O> mapToList(I[] input, ThrowingFunction<I,O,E> mapping) throws E {
         return mapToList(Arrays.asList(input), mapping);
-    }
-
-    public static <I, O, E extends Exception> List<O> mapToList(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
-        return map(input, mapping, new ArrayList<>());
     }
 
     public static <I, O, E extends Exception> Set<O> mapToSet(I[] input, ThrowingFunction<I,O,E> mapping) throws E {

@@ -4,27 +4,27 @@ currentScriptPath="${BASH_SOURCE[0]:-${(%):-%x}}" # on zsh this has to be on the
 
 
 
-### Baizel build system
+### Baizel build system for Java™
 ###
 ### Usage: baizel [<BAIZEL_OPTION>...] <COMMAND> [<COMMAND_ARG>...] [-- <TARGET>...]
 ### Usage: baizel <CLASS_TARGET> <ARGS>...
 ###
-### Arguments:
-###   TARGET  can use one of the formats:
-###             //path/to/package:target_name   a specific target within a package
-###             //path/to/package               the main target within a package
-###             //path/to/package/...           all targets within a package and its subpackages
-###             //path/to/package:*             all targets directly within a package
-###             :target_name                    a shorthand for a target in the current package
-###             -//path/to/package:target_name  excludes a specific target
-###
 ### Commands:
-###   build  Builds the specified targets.
-###   test   Builds and runs the specified test targets.
-###   run    Builds and runs a single executable target.
-###   clean  Removes Baizel's output files and invalidates local cache.
-###   help   Provides help for commands or the index.
-###   shell  Opens `jshell` session with given target's classpath
+###   build            Builds the specified targets.
+###   test             Builds and runs the specified test targets.
+###   run              Builds and runs a single executable target.
+###   clean            Removes Baizel's output files and invalidates local cache.
+###   help             Provides help for commands or the index.
+###   shell            Opens `jshell` session with given target's classpath
+###
+### Arguments:
+###   TARGET           can use one of the formats:
+###                      //path/to/package:target_name   a specific target within a package
+###                      //path/to/package               the main target within a package
+###                      //path/to/package/...           all targets within a package and its subpackages
+###                      //path/to/package:*             all targets directly within a package
+###                      :target_name                    a shorthand for a target in the current package
+###                      -//path/to/package:target_name  excludes a specific target
 ###
 ### Environment variables used:
 ###   BAIZEL_DEBUG     Enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)

@@ -1,5 +1,8 @@
 package nl.adamg.baizel.internal.bootstrap;
 
+import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
+import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
+
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
@@ -8,7 +11,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -16,9 +18,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static nl.adamg.baizel.internal.bootstrap.Collections.mapToList;
-import static nl.adamg.baizel.internal.bootstrap.Collections.mergeSet;
-import static nl.adamg.baizel.internal.bootstrap.Timer.timed;
+import static nl.adamg.baizel.internal.bootstrap.util.collections.Items.mapToList;
+import static nl.adamg.baizel.internal.bootstrap.util.collections.Items.mergeSet;
+import static nl.adamg.baizel.internal.bootstrap.util.logging.Timer.timed;
 
 class BootstrapBuilder {
     private static final Logger LOG = Logger.getLogger(BootstrapBuilder.class.getName());
@@ -64,7 +66,7 @@ class BootstrapBuilder {
 
     boolean build() throws IOException {
         var modulePaths = timed(LOG, () -> ModuleFinder.findModules(baizelRoot), "finding modules");
-        var projectInfo = timed(LOG, this::loadProjectInfo, "reading project-info.java");
+        var projectInfo = timed(LOG, () -> loadProjectInfo(baizelRoot.resolve("project-info.java")), "reading project-info.java");
         var mavenDependencyCoordinates = timed(LOG, () -> loadMavenDependencyCoordinates(projectInfo), "reading bootstra/module-info.java");
         var mavenClient = timed(LOG, () -> MavenClient.loadClient(getRepositories(projectInfo), baizelRoot), "loading Maven client");
         timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies", true);
@@ -82,12 +84,8 @@ class BootstrapBuilder {
         return projectInfo.getMap().getList("repository");
     }
 
-    private ObjectTree loadProjectInfo() throws IOException {
-        try {
-            return new ConfigParser(true).read(Files.readString(baizelRoot.resolve("project-info.java")));
-        } catch (ParseException e) {
-            throw new IOException(e);
-        }
+    private static ObjectTree loadProjectInfo(Path path) throws IOException {
+        return ObjectTree.of(new JavaDsl().read(Files.readString(path)));
     }
 
     private static List<Path> findJavaSources(Path directory) throws IOException {

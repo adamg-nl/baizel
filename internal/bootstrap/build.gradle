@@ -3,6 +3,11 @@ plugins {
 }
 
 dependencies {
+    api(project(":internal:bootstrap:io"))
+    api(project(":internal:bootstrap:java"))
+    api(project(":internal:bootstrap:javadsl"))
+    api(project(":internal:bootstrap:util"))
+
     implementation("org.apache.maven:maven-resolver-provider:3.9.8")
     runtimeOnly("org.apache.maven:maven-model-builder:3.9.8")
     runtimeOnly("org.apache.maven:maven-builder-support:3.9.8")

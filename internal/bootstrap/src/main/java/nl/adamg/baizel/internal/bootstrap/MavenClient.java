@@ -1,5 +1,8 @@
 package nl.adamg.baizel.internal.bootstrap;
 
+import nl.adamg.baizel.internal.bootstrap.java.DynamicClassLoader;
+import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -69,11 +72,7 @@ public final class MavenClient {
             var moduleInfoFile = baizelRoot.resolve("internal/bootstrap/src/main/java/module-info.java");
             var moduleInfoText = Files.readString(moduleInfoFile).replaceAll("//baizel//", "");
             var libraryModuleIds = new TreeSet<String>();
-            try {
-                var moduleInfo = new ConfigParser().read(moduleInfoText);
-            } catch (ParseException e) {
-                throw new RuntimeException("broken " + moduleInfoFile, e);
-            }
+            var moduleInfo = new JavaDsl().read(moduleInfoText);
             var respository = new BeforeClientLib(remoteRepositoryUrl);
             var classpath = new ArrayList<Path>();
 //            var moduleConfig = BootstrapBuilder.readGradleConfig(moduleInfoFile);

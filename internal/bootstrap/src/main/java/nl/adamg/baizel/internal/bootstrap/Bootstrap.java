@@ -1,5 +1,9 @@
 package nl.adamg.baizel.internal.bootstrap;
 
+import nl.adamg.baizel.internal.bootstrap.io.Checksum;
+import nl.adamg.baizel.internal.bootstrap.java.DynamicClassLoader;
+import nl.adamg.baizel.internal.bootstrap.util.logging.SourceInfoEnhancer;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -11,7 +15,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static nl.adamg.baizel.internal.bootstrap.Timer.timed;
+import static nl.adamg.baizel.internal.bootstrap.util.logging.Timer.timed;
 
 /**
  * Bootstrap Stage 2:
