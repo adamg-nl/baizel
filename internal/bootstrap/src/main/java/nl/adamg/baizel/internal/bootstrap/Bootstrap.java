@@ -2,7 +2,7 @@ package nl.adamg.baizel.internal.bootstrap;
 
 import nl.adamg.baizel.internal.bootstrap.io.Checksum;
 import nl.adamg.baizel.internal.bootstrap.java.DynamicClassLoader;
-import nl.adamg.baizel.internal.bootstrap.util.logging.SourceInfoEnhancer;
+import nl.adamg.baizel.internal.bootstrap.util.logging.LoggerUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -12,7 +12,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static nl.adamg.baizel.internal.bootstrap.util.logging.Timer.timed;
@@ -29,7 +28,7 @@ public final class Bootstrap {
 
     /** Called as JVM entrypoint from 'bin/baizel' (Stage 1) */
     public static void main(String... args) throws Exception {
-        configureLogger();
+        LoggerUtil.configureLogger();
         LOG.info("Bootstrap Stage 2");
 
         // Step 2.1: we compute some paths, relative to the path of this .java file as detected via reflection
@@ -60,20 +59,6 @@ public final class Bootstrap {
         try(var bootstrapClassLoader = DynamicClassLoader.forPaths(bootstrapClasspath, Bootstrap.class)) {
             LOG.info("Stage 2 finished -- { \"durationMs\": " + Duration.between(START_TIMESTAMP, Instant.now()).toMillis() + " }");
             bootstrapClassLoader.invoke("nl.adamg.baizel.cli.Baizel", "main", (Object)args);
-        }
-    }
-
-    private static void configureLogger() {
-        if ("true".equals(System.getenv("BAIZEL_VERBOSE"))) {
-            System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tH:%1$tM:%1$tS.%1$tL %4$-4s [%3$s] %5$s%n");
-            System.setProperty("java.util.logging.ConsoleHandler.level", Level.FINEST.getName());
-            var formatter = new SourceInfoEnhancer();
-            for (var handler : Logger.getLogger("").getHandlers()) {
-                handler.setFormatter(formatter);
-            }
-        } else {
-            System.setProperty("java.util.logging.SimpleFormatter.format", "");
-            System.setProperty("java.util.logging.ConsoleHandler.level", Level.OFF.getName());
         }
     }
 
