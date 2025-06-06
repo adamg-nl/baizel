@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 /// To get detailed information about a particular command, use `baizel <COMMAND> --help`.
 ///
 /// ## Targets:
-/// - `<TARGET>` is in format `[@[<ORG>/][<MODULE>]][//<PATH>][:<TARGET_NAME>]`
+/// - `<TARGET>` is in format `[@[<ORG>/][<MODULE>]]//<PATH>[:<TARGET_NAME>]`
 /// - `<PATH>` can end with `...` to match all targets within a package and its subpackages.
 /// - `<PATH>` can contain `**` to match any number of intermediate directories and files.
 /// - `<TARGET_NAME>` equal to `*` means all the targets directly within package.
@@ -43,7 +43,7 @@ import java.util.logging.Logger;
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
 
-    public record Args(List<String> options, List<String> commands, List<String> commandArgs, List<String> targets) {}
+    public record Args(List<String> options, List<String> commands, List<String> commandArgs, List<Target> targets) {}
 
     public static void main(String... args) {
         LOG.info("Hello Baizel");
@@ -52,33 +52,5 @@ public class Baizel {
 
     public static void main(Args args) {
 
-    }
-
-    @CheckForNull
-    private static Path inferProjectRoot(Set<String> requestedModulePaths, Path currentDir) {
-        var level = currentDir;
-        while (level != null) {
-            var allDepsMatch = Items.allMatch(requestedModulePaths, p -> Files.isDirectory(currentDir.resolve(p)));
-            if (allDepsMatch) {
-                return level;
-            }
-            level = level.getParent();
-        }
-        return null;
-    }
-
-    private record TaskRequest(String module, String taskName) {}
-
-    private static List<TaskRequest> parseEntryTasks(String... args) {
-        var tasks = new TreeMap<String, TaskRequest>();
-        for(var arg : args) {
-            if (arg.startsWith("-")) {
-                return new ArrayList<>(tasks.values());
-            }
-            var module = arg.contains(":") ? arg.replaceAll(":.*", "") : "";
-            var taskName = arg.contains(":") ? arg.replaceAll(".*:", "") : arg;
-            tasks.put(arg, new TaskRequest(module, taskName));
-        }
-        return new ArrayList<>(tasks.values());
     }
 }

@@ -1,6 +1,7 @@
 package nl.adamg.baizel.cli.internal;
 
 import nl.adamg.baizel.cli.Baizel;
+import nl.adamg.baizel.cli.Target;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import java.util.*;
@@ -14,7 +15,7 @@ public class CliParser {
         var options = new ArrayList<String>();
         var command = new ArrayList<String>();
         var commandArgs = new ArrayList<String>();
-        var targets = new ArrayList<String>();
+        var targets = new ArrayList<Target>();
 
         if (args.length == 0) {
             return new Baizel.Args(options, command, commandArgs, targets);
@@ -39,11 +40,12 @@ public class CliParser {
             }
         }
         while (! remainingArgs.isEmpty()) {
+            var next = remainingArgs.poll();
             var targetPrefixes = Set.of("//", ":", "-:", "-//");
             if (Items.noneMatch(targetPrefixes, p -> remainingArgs.peek().startsWith(p))) {
-                commandArgs.add(remainingArgs.poll());
+                commandArgs.add(next);
             } else {
-                targets.add(remainingArgs.poll());
+                targets.add(Target.parse(next));
             }
         }
         return new Baizel.Args(options, command, commandArgs, targets);
