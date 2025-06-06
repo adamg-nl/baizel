@@ -9,7 +9,8 @@ module nl.adamg.baizel.internal.bootstrap {
     //baizel// requires org.apache.httpcomponents.httpcore;
     //baizel// requires org.eclipse.aether;
     //baizel// requires org.eclipse.aether.connector.basic;
-    //baizel// requires org.eclipse.aether.impl; org.eclipse.aether.internal.impl;
+    //baizel// requires org.eclipse.aether.impl;
+    //baizel// requires org.eclipse.aether.internal.impl;
     //baizel// requires org.apache.maven.resolver.maven.resolver.named.locks;
     //baizel// requires org.eclipse.aether.spi;
     //baizel// requires org.apache.maven.resolver.maven.resolver.transport.file;

@@ -22,8 +22,8 @@ import java.util.regex.Pattern;
 
 /**
  * It's a Maven Client that can be compiled before Maven is available.
- * At runtime, it retrieves just the Maven client libraries (from Eclipse project)
- * from the repository configured at the root {@code build.gradle}.
+ * At runtime, it retrieves just the Maven client libraries (from Eclipse Aether project)
+ * from the repository configured at the root {@code project-info.java}.
  * Then, it loads these libraries into a child classloader, and reflectively calls into them.
  */
 public final class MavenClient {
@@ -67,9 +67,13 @@ public final class MavenClient {
             this.localRepository = localRepository;
         }
 
+        /**
+         * @return minimal set of jars required to use the Eclipse Aether Maven Client Library.
+         */
         @SuppressWarnings("unused")
         public static List<Path> resolveMavenClientLibDependencies(Path baizelRoot, String remoteRepositoryUrl, Map<String, Set<String>> moduleCoordinates) throws IOException {
             var moduleInfoFile = baizelRoot.resolve("internal/bootstrap/src/main/java/module-info.java");
+            // because it's a bootstrap module, for the IDE use some lines of module-info.java had to be commented out with prefix '//baizel//'
             var moduleInfoText = Files.readString(moduleInfoFile).replaceAll("//baizel//", "");
             var libraryModuleIds = new TreeSet<String>();
             var moduleInfo = new JavaDsl().read(moduleInfoText);
