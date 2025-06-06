@@ -141,10 +141,7 @@ function buildStage2IfCacheExpired() {
 	local stage2SourcePath="${sourcePathRoot}/$(echo "${stage2Class}" | tr '.' '/').java"
 	local compiledPath="${stage2Module}/.build/classes/java/main/$(echo "${stage2Class}" | tr '.' '/').class"
 	local bootstrapSubModules=(io java javadsl util)
-	local checksum="$(pathChecksum "${stage2Module}/src/main/java")"
-	for subModule in "${bootstrapSubModules[@]}"; do
-		checksum+="$(pathChecksum "${stage2Module}/${subModule}/src/main/java")"
-	done
+	local checksum="$(bootstrapModuleChecksum "${stage2Module}")"
 	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
 	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
 	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
@@ -203,7 +200,7 @@ function relativePath(){
 
 
 
-function pathChecksum() {
+function bootstrapModuleChecksum() {
 	local path=${1}
 
 	if [[ ! -e ${path} ]]; then
@@ -215,11 +212,7 @@ function pathChecksum() {
 	else # GNU/Linux (has -c parameter)
 		statArgs+=(-c "%n %s %Y")
 	fi
-	if [[ -d ${path} ]]; then # if it's a dir
-		find "${path}" -exec stat "${statArgs[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
-	else
-		stat "${statArgs[@]}" "${path}" 2>/dev/null | md5sum | sed -E 's/ .*//'
-	fi
+	find "${path}" -path '*/src/main/*' -exec stat "${statArgs[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
 }
 
 
