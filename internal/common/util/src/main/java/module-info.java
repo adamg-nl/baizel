@@ -7,4 +7,5 @@ module nl.adamg.baizel.internal.common.util {
     requires nl.adamg.baizel.internal.common.annotations;
     requires jsr305;
     requires java.compiler;
+    requires nl.adamg.baizel.internal.common.java;
 }

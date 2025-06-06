@@ -1,8 +1,8 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
 import nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction;
+import nl.adamg.baizel.internal.common.java.Types;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
-import nl.adamg.baizel.internal.common.util.java.Types;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
