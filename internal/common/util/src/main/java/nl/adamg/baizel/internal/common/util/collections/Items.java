@@ -123,6 +123,20 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return result;
     }
 
+    public static <T, E extends Exception> String toString(List<T> input, String separator, ThrowingFunction<T,String, E> toString) throws E {
+        var output = new StringBuilder();
+        var first = true;
+        for(var item : input) {
+            if (! first) {
+                output.append(separator);
+            } else {
+                first = false;
+            }
+            output.append(toString.apply(item));
+        }
+        return output.toString();
+    }
+
     public <T> T first(List<T> input) {
         if (input.isEmpty()) {
             throw new NoSuchElementException();

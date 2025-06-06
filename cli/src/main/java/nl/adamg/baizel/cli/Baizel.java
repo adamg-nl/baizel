@@ -1,15 +1,8 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
-import nl.adamg.baizel.internal.common.util.collections.Items;
 
-import javax.annotation.CheckForNull;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 /// # Baizel build system
