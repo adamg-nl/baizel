@@ -1,0 +1,109 @@
+package nl.adamg.baizel.internal.common.util;
+
+import javax.annotation.CheckForNull;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.regex.Pattern;
+import java.util.zip.Adler32;
+
+@SuppressWarnings("unused")
+public final class Text {
+    private Text() {}
+
+    public static String formatSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        var z = (63 - Long.numberOfLeadingZeros(bytes)) / 10;
+        return String.format("%.1f %sB", (double) bytes / (1L << (z * 10)), " KMGTPE".charAt(z));
+    }
+
+    public static String formatDuration(Duration duration) {
+        var ms = duration.toMillis();
+        if (ms < 1000) {
+            return ms + "ms";
+        }
+        if (ms < (60 * 1000)) {
+            return Text.roundDoubleString(ms / 1000d, 0) + "s";
+        }
+        if (ms < (60 * 60 * 1000)) {
+            return Text.roundDoubleString(ms / (1000d * 60), 0) + "m";
+        }
+        if (ms < (24 * 60 * 60 * 1000)) {
+            return Text.roundDoubleString(ms / (1000d * 60 * 60), 0) + "h";
+        }
+        return duration.toString();
+    }
+
+    /** Ignores letter case and non-alphanumeric characters. */
+    public static boolean equalsIgnoreFormat(String a, String b) {
+        return toFormatAgnostic(a).equals(toFormatAgnostic(b));
+    }
+
+    /** Ignores letter case and non-alphanumeric characters. */
+    public static String toFormatAgnostic(String string) {
+        return string.toLowerCase().replaceAll("[^a-z0-9]", "");
+    }
+
+    /** counts number of occurrences of the second string in the first string */
+    public static int count(String haystack, String needle) {
+        if (haystack.isEmpty() || needle.isEmpty()) {
+            return 0;
+        }
+        var count = 0;
+        for (var i = haystack.indexOf(needle); i >= 0; i = haystack.indexOf(needle, i + needle.length())) {
+            count++;
+        }
+        return count;
+    }
+
+    /** Adler32 of UTF-8 bytes. Faster than CRC32. */
+    public static long checksum(String text) {
+        var alg = new Adler32();
+        alg.update(text.getBytes(StandardCharsets.UTF_8));
+        return alg.getValue();
+    }
+
+    public static String roundDoubleString(double input, int maxDecimalDigits) {
+        var m = Math.pow(10, maxDecimalDigits);
+        var rounded = ((int) Math.round(input * m)) / m;
+        var string = "" + rounded;
+        if (maxDecimalDigits == 0) {
+            return string.replaceAll("\\..*", "");
+        }
+        return string;
+    }
+
+    public static String emptyIfNull(@CheckForNull String nullable) {
+        if (nullable == null) {
+            return "";
+        }
+        return nullable;
+    }
+
+    @CheckForNull
+    public static String find(String haystack, Pattern needle) {
+        var matcher = needle.matcher(haystack);
+        if (matcher.find()) {
+            return matcher.group();
+        }
+        return null;
+    }
+
+    public static URI uri(String uri) {
+        try {
+            return new URI(uri);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static URI uri(URL url) {
+        try {
+            return url.toURI();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
