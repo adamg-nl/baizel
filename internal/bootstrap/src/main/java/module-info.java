@@ -5,6 +5,7 @@ module nl.adamg.baizel.internal.bootstrap {
     requires nl.adamg.baizel.internal.bootstrap.util;
     requires java.compiler;
     requires java.logging;
+    requires jdk.compiler;
     //baizel// requires org.apache.httpcomponents.httpclient;
     //baizel// requires org.apache.httpcomponents.httpcore;
     //baizel// requires org.eclipse.aether;

@@ -1,23 +1,26 @@
 package nl.adamg.baizel.internal.bootstrap;
 
+import com.sun.source.util.JavacTask;
 import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
+import nl.adamg.baizel.internal.bootstrap.util.collections.Items;
 import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
 
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
+import javax.tools.StandardLocation;
 import javax.tools.ToolProvider;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static nl.adamg.baizel.internal.bootstrap.util.collections.Items.mapToList;
@@ -75,7 +78,7 @@ class BootstrapBuilder {
         Files.writeString(mavenClasspathFile, String.join(File.pathSeparator, mapToList(libraries, Path::toString)));
         var sourceRoots = new TreeSet<>(mapToList(modulePaths, p -> p.resolve("src/main/java")));
         Files.writeString(sourcePathFile, String.join(File.pathSeparator, mapToList(sourceRoots, Path::toString)));
-        return timed(LOG, () -> compile(sourceRoots, mavenClasspathFile, sourcePathFile, compiledClasspathRoot), "compiling", true);
+        return timed(LOG, () -> compile(sourceRoots, libraries, compiledClasspathRoot), "compiling", true);
     }
 
     private List<String> loadMavenDependencyCoordinates(ObjectTree projectInfo) {
@@ -111,19 +114,25 @@ class BootstrapBuilder {
         }
     }
 
-    private static boolean compile(Set<Path> sourceRoots, Path mavenClasspathFile, Path sourcePathFile, Path outputDir) throws IOException {
+    private static boolean compile(Set<Path> sourceRoots, Set<Path> artifactRoots, Path outputDir) throws IOException {
         var logStream = System.err;
         var compiler = ToolProvider.getSystemJavaCompiler();
         var diagnosticListener = (DiagnosticListener<JavaFileObject>)logStream::println;
         var fileManager = compiler.getStandardFileManager(diagnosticListener, null, null);
         var sourceFiles = mergeSet(mapToList(sourceRoots, BootstrapBuilder::findJavaSources));
         var compilationUnits = fileManager.getJavaFileObjectsFromFiles(sourceFiles.stream().map(Path::toFile).toList());
-        var javacArgs = List.of(
-                "--class-path", "@" + relativize(mavenClasspathFile),
-                "--source-path", "@" + relativize(sourcePathFile),
-                "-d", relativize(outputDir)
-        );
-        var task = compiler.getTask(
+        var javacArgs = new ArrayList<>(List.of(
+                "-d", relativize(outputDir), // output dir
+                "-g", "-parameters", // extended metadata
+                "-implicit:none"
+        ));
+        fileManager.setLocation(StandardLocation.CLASS_PATH, Items.mapToList(artifactRoots, Path::toFile));
+        if (System.getenv("BAIZEL_DEBUG") != null) {
+            LOG.info("artifactRoots -- { \"path\": \"" + artifactRoots + "\" }");
+            LOG.info("sourceFiles -- { \"path\": \"" + sourceFiles + "\" }");
+            LOG.info("$ javac " + String.join(" ", javacArgs) + " " + String.join(" ", mapToList(sourceFiles, BootstrapBuilder::relativize)));
+        }
+        var task = (JavacTask) compiler.getTask(
                 new PrintWriter(logStream),
                 fileManager,
                 diagnosticListener,
@@ -131,16 +140,6 @@ class BootstrapBuilder {
                 null,
                 compilationUnits
         );
-        if (LOG.isLoggable(Level.INFO)) {
-            // TODO make sure this doesn't run without --verbose
-            System.err.println("XXX LOG.isLoggable(Level.INFO)");
-            var mavenClasspath = Files.readString(mavenClasspathFile);
-            var sourcePath = Files.readString(sourcePathFile);
-            LOG.info("$ javac " + String.join(" ", javacArgs) + " " + String.join(" ", mapToList(sourceFiles, BootstrapBuilder::relativize)));
-            LOG.info("class-path -- { \"path\": \"" + mavenClasspath + "\" }");
-            LOG.info("source-path -- { \"path\": \"" + sourcePath + "\" }");
-            System.out.println("ZZZ LOG.isLoggable(Level.INFO)");
-        }
         return task.call();
     }
 
