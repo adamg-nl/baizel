@@ -138,10 +138,13 @@ function buildStage2IfCacheExpired() {
 	local stage2Class=${3}
 
 	local sourcePathRoot="${stage2Module}/src/main/java"
-	local sourcePaths=$(find "${stage2Module}" -name '*.java')
 	local stage2SourcePath="${sourcePathRoot}/$(echo "${stage2Class}" | tr '.' '/').java"
 	local compiledPath="${stage2Module}/.build/classes/java/main/$(echo "${stage2Class}" | tr '.' '/').class"
-	local checksum="$(pathChecksum "${stage2Module}")"
+	local bootstrapSubModules=(io java javadsl util)
+	local checksum="$(pathChecksum "${stage2Module}/src/main/java")"
+	for subModule in "${bootstrapSubModules[@]}"; do
+		checksum+="$(pathChecksum "${stage2Module}/${subModule}/src/main/java")"
+	done
 	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
 	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
 	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
@@ -149,12 +152,17 @@ function buildStage2IfCacheExpired() {
 		rm -rf "${stage2Module}/.build"
 		mkdir "${stage2Module}/.build"
 		local javacSourcePathArg="${sourcePathRoot}"
-		local bootstrapSubModules=(io java javadsl util)
+		local separator=':'
+        if [[ ${WINDIR:-} != "" ]]; then
+        	separator=';' # probably windows, use special separator
+		fi
+		local sourceRoots=( "${stage2Module}/src/main/java" )
 		for subModule in "${bootstrapSubModules[@]}"; do
-			javacSourcePathArg+=";${stage2Module}/${subModule}/src/main/java"
+			sourceRoots+=( "${stage2Module}/${subModule}/src/main/java" )
 		done
-		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters --source-path "${javacSourcePathArg}" )
-		compileCommand+=( "${stage2SourcePath}" )
+		local sourcePathsFile="${stage2Module}/.build/bootstrap.sourcepaths"
+		find "${sourceRoots[@]}" -name "*.java" -not -name "module-info.java" > "${sourcePathsFile}"
+		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters "@${sourcePathsFile}" )
 		IFS=' '; log INFO "$ ${compileCommand[*]}"
 		"${compileCommand[@]}"
 		echo "${checksum}" > "${checksumFile}"
