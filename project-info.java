@@ -2,7 +2,7 @@ project nl.adamg.baizel {
     repository https://repo1.maven.org/maven2/;
 
     dependencies {
-        com.google.code.findbugs:jsr305:3.0.2                           { javax.annotation; }
+        com.google.code.findbugs:jsr305:3.0.2                           { jsr305; }
         org.apache.httpcomponents:httpclient:4.5.14                     { org.apache.httpcomponents.httpclient; }
         org.apache.httpcomponents:httpcore:4.4.16                       { org.apache.httpcomponents.httpcore; }
         org.apache.maven.resolver:maven-resolver-api:1.9.20             { org.eclipse.aether; }

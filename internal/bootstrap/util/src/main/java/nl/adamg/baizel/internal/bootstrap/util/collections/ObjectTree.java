@@ -260,6 +260,18 @@ public class ObjectTree {
                     .map(Map.Entry::getKey)
                     .toList();
         }
+        if (value instanceof List<?> list) {
+            var keys = new ArrayList<String>();
+            for(var item : list) {
+                if (item instanceof List<?> subList && ! subList.isEmpty()) {
+                    var key = subList.get(0);
+                    if (key instanceof String || Primitives.isPrimitiveOrBoxed(key.getClass())) {
+                        keys.add(String.valueOf(key));
+                    }
+                }
+            }
+            return keys;
+        }
         return List.of();
     }
 

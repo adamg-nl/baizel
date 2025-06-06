@@ -79,7 +79,7 @@ class BootstrapBuilder {
     }
 
     private List<String> loadMavenDependencyCoordinates(ObjectTree projectInfo) {
-        return projectInfo.body().get("dependsOn").list();
+        return projectInfo.body().get("dependencies").body().keys();
     }
 
     private static List<String> getRepositories(ObjectTree projectInfo) {
@@ -107,7 +107,7 @@ class BootstrapBuilder {
 
     private static List<Path> findJavaSources(Path directory) throws IOException {
         try(var stream = Files.walk(directory)) {
-            return stream.filter(p -> p.toString().endsWith(".java")).toList();
+            return stream.filter(p -> p.toString().endsWith(".java") && ! p.getFileName().toString().equals("module-info.java")).toList();
         }
     }
 
