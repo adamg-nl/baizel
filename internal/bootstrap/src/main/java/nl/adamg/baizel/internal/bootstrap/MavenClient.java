@@ -2,6 +2,7 @@ package nl.adamg.baizel.internal.bootstrap;
 
 import nl.adamg.baizel.internal.bootstrap.java.DynamicClassLoader;
 import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
+import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,7 +15,6 @@ import java.net.URLClassLoader;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -31,8 +31,8 @@ public final class MavenClient {
     private final AfterClientLib libClient;
     private final Map<String, Path> cache = new ConcurrentHashMap<>();
 
-    public static MavenClient loadClient(List<String> repositories, Path baizelRoot) throws IOException {
-        var mavenClientLibDependencies = BeforeClientLib.resolveMavenClientLibDependencies(baizelRoot, repositories.get(0));
+    public static MavenClient loadClient(List<String> repositories, Map<String, Set<String>> moduleCoordinates, Path baizelRoot) throws IOException {
+        var mavenClientLibDependencies = BeforeClientLib.resolveMavenClientLibDependencies(baizelRoot, repositories.get(0), moduleCoordinates);
         var dynamicLibs = DynamicClassLoader.forPaths(mavenClientLibDependencies, MavenClient.class);
         var libClient = AfterClientLib.load(repositories.stream().map(BeforeClientLib::url).toList(), dynamicLibs);
         return new MavenClient(libClient);
@@ -68,33 +68,28 @@ public final class MavenClient {
         }
 
         @SuppressWarnings("unused")
-        public static List<Path> resolveMavenClientLibDependencies(Path baizelRoot, String remoteRepositoryUrl) throws IOException {
+        public static List<Path> resolveMavenClientLibDependencies(Path baizelRoot, String remoteRepositoryUrl, Map<String, Set<String>> moduleCoordinates) throws IOException {
             var moduleInfoFile = baizelRoot.resolve("internal/bootstrap/src/main/java/module-info.java");
             var moduleInfoText = Files.readString(moduleInfoFile).replaceAll("//baizel//", "");
             var libraryModuleIds = new TreeSet<String>();
             var moduleInfo = new JavaDsl().read(moduleInfoText);
             var respository = new BeforeClientLib(remoteRepositoryUrl);
             var classpath = new ArrayList<Path>();
-//            var moduleConfig = BootstrapBuilder.readGradleConfig(moduleInfoFile);
-//            for (var configuration : List.of("implementation", "runtimeOnly")) {
-//                var dependencies = moduleConfig.get(configuration);
-//                if (dependencies == null) {
-//                    continue;
-//                }
-//                for (var dependency : dependencies) {
-//                    var localPath = respository.resolve(dependency);
-//                    if (localPath != null) {
-//                        classpath.add(localPath);
-//                    }
-//                }
-//            }
+            var moduleConfig = ObjectTree.of(new JavaDsl().read(moduleInfoText));
+            List<String> requiredModuleNames = moduleConfig.body().get("requires").list();
+            for (var moduleName : requiredModuleNames) {
+                var dependencyCoordinates = moduleCoordinates.get(moduleName);
+                if (dependencyCoordinates == null) {
+                    continue; // not a maven dependency
+                }
+                for (var coordinate : dependencyCoordinates) {
+                    var localPath = respository.resolve(coordinate);
+                    if (localPath != null) {
+                        classpath.add(localPath);
+                    }
+                }
+            }
             return classpath;
-        }
-
-        public static List<String> getRepositories(Path baizelRoot) throws IOException {
-
-            throw null;
-//            return BootstrapBuilder.readGradleConfig(baizelRoot.resolve("build.gradle")).get("url");
         }
 
         /*@CheckForNull*/

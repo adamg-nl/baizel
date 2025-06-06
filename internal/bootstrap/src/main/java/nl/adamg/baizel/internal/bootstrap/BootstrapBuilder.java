@@ -13,7 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,7 +70,7 @@ class BootstrapBuilder {
         var modulePaths = timed(LOG, () -> ModuleFinder.findModules(baizelRoot), "finding modules");
         var projectInfo = timed(LOG, () -> loadProjectInfo(baizelRoot.resolve("project-info.java")), "reading project-info.java");
         var mavenDependencyCoordinates = timed(LOG, () -> loadMavenDependencyCoordinates(projectInfo), "reading bootstra/module-info.java");
-        var mavenClient = timed(LOG, () -> MavenClient.loadClient(getRepositories(projectInfo), baizelRoot), "loading Maven client");
+        var mavenClient = timed(LOG, () -> MavenClient.loadClient(getRepositories(projectInfo), getModuleCoordinates(projectInfo), baizelRoot), "loading Maven client");
         timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies", true);
         Files.writeString(mavenClasspathFile, String.join(File.pathSeparator, mapToList(libraries, Path::toString)));
         var sourceRoots = new TreeSet<>(mapToList(modulePaths, p -> p.resolve("src/main/java")));
@@ -82,6 +84,21 @@ class BootstrapBuilder {
 
     private static List<String> getRepositories(ObjectTree projectInfo) {
         return projectInfo.body().get("repository").list();
+    }
+
+    private static Map<String, Set<String>> getModuleCoordinates(ObjectTree projectInfo) {
+        List<List<?>> definitions = projectInfo.body().get("dependencies").body().list();
+        var moduleNameToCoordinateMap = new TreeMap<String, Set<String>>();
+        // definitions is a list of entries, each entry is a two element list. [0] is coordinate, [1] is a sub-list of all module names included
+        for(var definition : definitions) {
+            var coordinate = (String)definition.get(0);
+            @SuppressWarnings("unchecked")
+            var moduleNames = (List<List<String>>) definition.get(1);
+            for(var moduleName : moduleNames) {
+                moduleNameToCoordinateMap.computeIfAbsent(moduleName.get(0), k -> new TreeSet<>()).add(coordinate);
+            }
+        }
+        return moduleNameToCoordinateMap;
     }
 
     private static ObjectTree loadProjectInfo(Path path) throws IOException {
