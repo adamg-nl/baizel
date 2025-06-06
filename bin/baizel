@@ -210,9 +210,9 @@ function pathChecksum() {
 		return
 	fi
 	local statArgs=()
-	if stat -f '' . 2>/dev/null; then # BSD/macOS (uses -f format)
+	if stat -f '' . &>/dev/null; then # detects BSD/macOS (has -f parameter)
 	  	statArgs+=(-f "%N %z %m")
-	else # GNU/Linux (uses -c format)
+	else # GNU/Linux (has -c parameter)
 		statArgs+=(-c "%n %s %Y")
 	fi
 	if [[ -d ${path} ]]; then # if it's a dir
