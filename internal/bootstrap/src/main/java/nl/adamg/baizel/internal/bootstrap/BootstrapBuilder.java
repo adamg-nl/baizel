@@ -77,11 +77,11 @@ class BootstrapBuilder {
     }
 
     private List<String> loadMavenDependencyCoordinates(ObjectTree projectInfo) {
-        return projectInfo.getMap().getList("dependsOn");
+        return projectInfo.body().get("dependsOn").list();
     }
 
     private static List<String> getRepositories(ObjectTree projectInfo) {
-        return projectInfo.getMap().getList("repository");
+        return projectInfo.body().get("repository").list();
     }
 
     private static ObjectTree loadProjectInfo(Path path) throws IOException {

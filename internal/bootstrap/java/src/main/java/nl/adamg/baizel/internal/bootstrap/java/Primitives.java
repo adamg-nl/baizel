@@ -1,18 +1,14 @@
-package nl.adamg.baizel.internal.common.util.java;
+package nl.adamg.baizel.internal.bootstrap.java;
 
 import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Primitives {
+public class Primitives {
     /** lazily populated, non-exhaustive, includes non-boxing-non-primitive types ("normal types") mapped to nulls */
     private static final Map<Class<?>, Class<?>> BOXED_AND_PRIMITIVE_TYPES = new ConcurrentHashMap<>();
     /** lazily populated, non-exhaustive */
     private static final Map<Class<?>, Object> DEFAULT_PRIMITIVES = new ConcurrentHashMap<>();
-
-    public static boolean isPrimitiveOrBoxed(Class<?> type) {
-        return unbox(type).isPrimitive();
-    }
 
     /**
      * @return null if type is not primitive
@@ -61,5 +57,10 @@ public final class Primitives {
         return cached;
     }
 
-    private Primitives(){}
+    public static boolean isPrimitiveOrBoxed(Class<?> type) {
+        return unbox(type).isPrimitive();
+    }
+
+
+    protected Primitives() {}
 }

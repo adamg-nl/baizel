@@ -3,9 +3,12 @@ package nl.adamg.baizel.internal.bootstrap.java;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class TypesUtil {
+public class Types {
+    /** lazily populated, non-exhaustive */
+    private static final Map<Class<?>, Object> DEFAULT_OBJECTS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Class<?>, Class<?>> BOXED_TYPES = new ConcurrentHashMap<>();
 
     public static List<Class<?>> inheritanceChain(Class<?> descendant) {
@@ -42,13 +45,36 @@ public final class TypesUtil {
         return boxed;
     }
 
-    private TypesUtil() {
-    }
-
     public static boolean isAssignable(Class<?> type, /*@CheckForNull*/ Object value) {
         if (value == null) {
             return !type.isPrimitive();
         }
         return isAssignableFrom(type, value.getClass());
     }
+
+    public static <T> T defaultValue(Class<? extends T> type) {
+        var missingCacheMarker = (Integer)(-1); // this is not a default object, so it can't normally appear in this map
+        var noDefaultMarker = (Integer)(-2); // this is not a default value, so it can't normally appear in this map
+        var cached = DEFAULT_OBJECTS.getOrDefault(type, missingCacheMarker);
+        if (noDefaultMarker.equals(cached)) {
+            return null;
+        }
+        if (missingCacheMarker.equals(cached)) {
+            cached = null; // by default assume no default value
+            var primitiveValue = Primitives.defaultValue(type);
+            if (primitiveValue != null) {
+                cached = primitiveValue;
+            } else {
+                try {
+                    cached = type.getConstructor().newInstance();
+                } catch (ReflectiveOperationException ignored) {
+                    cached = noDefaultMarker;
+                }
+            }
+            DEFAULT_OBJECTS.put(type, cached);
+        }
+        return cached == noDefaultMarker ? null : type.cast(cached);
+    }
+
+    protected Types() {}
 }
