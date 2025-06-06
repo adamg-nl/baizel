@@ -13,8 +13,8 @@ import java.util.Objects;
 /**
  * Utility for performing operations on objects of types unknown at build time.
  */
-public final class DynamicClassLoader<T extends ClassLoader & Closeable> implements AutoCloseable {
-    private final T classLoader;
+public final class DynamicClassLoader<C extends ClassLoader & Closeable> implements AutoCloseable {
+    private final C classLoader;
 
     public static DynamicClassLoader<URLClassLoader> forPaths(List<Path> paths, Class<?> owner) {
         var urls = paths.stream().map(DynamicClassLoader::url).toArray(URL[]::new);
@@ -23,19 +23,24 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
     }
 
     public <T> T requireConstruct(String className, Object... args) {
-        return Objects.requireNonNull(construct(className, args));
+        return Objects.requireNonNull(construct(className, true, args));
     }
 
     public <T> T requireGet(Object subject, String fieldName) {
-        return Objects.requireNonNull(get(subject, fieldName));
+        return Objects.requireNonNull(get(subject, fieldName, true));
     }
 
     public <T> T requireInvoke(Object subject, String methodName, Object... args) {
-        return Objects.requireNonNull(invoke(subject, methodName, args));
+        return Objects.requireNonNull(invoke(subject, methodName, true, args));
     }
 
     /*@CheckForNull*/
     public <T> T construct(String className, Object... args) {
+        return construct(className, false, args);
+    }
+
+    /*@CheckForNull*/
+    public <T> T construct(String className, boolean require, Object... args) {
         try {
             for (var constructor : classLoader.loadClass(className).getConstructors()) {
                 if (isParameterMatch(constructor.getParameterTypes(), args)) {
@@ -46,18 +51,31 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
             }
             return null;
         } catch (ReflectiveOperationException e) {
+            if (require) {
+                throw new RuntimeException(e);
+            }
             return null;
         }
     }
 
+
     /*@CheckForNull*/
     @SuppressWarnings("unchecked")
     public <T> T get(Object subject, String fieldName) {
+        return get(subject, fieldName, false);
+    }
+
+    /*@CheckForNull*/
+    @SuppressWarnings("unchecked")
+    public <T> T get(Object subject, String fieldName, boolean require) {
         try {
             if (subject instanceof String className) {
                 subject = classLoader.loadClass(className);
             }
         } catch (ReflectiveOperationException e) {
+            if (require) {
+                throw new RuntimeException(e);
+            }
             return null;
         }
         if (subject instanceof Class<?> class_ && class_.isEnum()) {
@@ -68,7 +86,7 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
             }
         }
         var exactType = (subject instanceof Class<?> clazz) ? clazz : subject.getClass();
-        for (var type : TypesUtil.inheritanceChain(exactType)) {
+        for (var type : Types.inheritanceChain(exactType)) {
             try {
                 for (var field : type.getFields()) {
                     if (!field.getName().equals(fieldName)) {
@@ -79,8 +97,10 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
                     }
                     return (T) field.get((exactType == subject) ? null : subject);
                 }
-            } catch (ReflectiveOperationException ignored) {
-                throw new RuntimeException(ignored);
+            } catch (ReflectiveOperationException e) {
+                if (require) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return null;
@@ -91,15 +111,27 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
      */
     /*@CheckForNull*/
     public <T> T invoke(Object subject, String methodName, Object... args) {
+        return invoke(subject, methodName, false, args);
+    }
+
+
+    /**
+     * @param subject object, or class, or class name
+     */
+    /*@CheckForNull*/
+    public <T> T invoke(Object subject, String methodName, boolean required, Object... args) {
         try {
             if (subject instanceof String className) {
                 subject = classLoader.loadClass(className);
             }
         } catch (ReflectiveOperationException e) {
+            if(required) {
+                throw new RuntimeException(e);
+            }
             return null;
         }
         var exactType = (subject instanceof Class<?> clazz) ? clazz : subject.getClass();
-        for (var type : TypesUtil.inheritanceChain(exactType)) {
+        for (var type : Types.inheritanceChain(exactType)) {
             try {
                 for (var method : type.getMethods()) {
                     if (!method.getName().equals(methodName)) {
@@ -114,23 +146,32 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
                         return result;
                     }
                 }
-            } catch (ReflectiveOperationException ignored) {
-                throw new RuntimeException(ignored);
+            } catch (ReflectiveOperationException e) {
+                if(required) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return null;
     }
 
     public void set(Object subject, String fieldName, /*@CheckForNull*/ Object value) {
+        set(subject, fieldName, false, value);
+    }
+
+    public void set(Object subject, String fieldName, boolean required, /*@CheckForNull*/ Object value) {
         try {
             if (subject instanceof String className) {
                 subject = classLoader.loadClass(className);
             }
         } catch (ReflectiveOperationException e) {
+            if(required) {
+                throw new RuntimeException(e);
+            }
             return;
         }
         var exactType = (subject instanceof Class<?> clazz) ? clazz : subject.getClass();
-        for (var type : TypesUtil.inheritanceChain(exactType)) {
+        for (var type : Types.inheritanceChain(exactType)) {
             try {
                 for (var field : type.getFields()) {
                     if (!field.getName().equals(fieldName)) {
@@ -139,12 +180,14 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
                     if ((exactType == subject) != Modifier.isStatic(field.getModifiers())) {
                         continue;
                     }
-                    if (TypesUtil.isAssignable(field.getType(), value)) {
+                    if (Types.isAssignable(field.getType(), value)) {
                         field.set((exactType == subject) ? null : subject, value);
                     }
                 }
-            } catch (ReflectiveOperationException ignored) {
-                throw new RuntimeException(ignored);
+            } catch (ReflectiveOperationException e) {
+                if(required) {
+                    throw new RuntimeException(e);
+                }
             }
         }
     }
@@ -171,7 +214,7 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
             return false;
         }
         for (var i = 0; i < args.length; i++) {
-            if (!TypesUtil.isAssignable(paramTypes[i], args[i])) {
+            if (!Types.isAssignable(paramTypes[i], args[i])) {
                 return false;
             }
         }
@@ -188,7 +231,7 @@ public final class DynamicClassLoader<T extends ClassLoader & Closeable> impleme
     // endregion
 
     //region generated code
-    public DynamicClassLoader(T classLoader) {
+    public DynamicClassLoader(C classLoader) {
         this.classLoader = classLoader;
     }
     //endregion
