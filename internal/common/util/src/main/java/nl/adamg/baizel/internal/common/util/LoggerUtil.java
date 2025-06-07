@@ -1,7 +1,5 @@
 package nl.adamg.baizel.internal.common.util;
 
-import nl.adamg.baizel.internal.common.java.Methods;
-
 public class LoggerUtil extends nl.adamg.baizel.internal.bootstrap.util.logging.LoggerUtil {
     private static final Lazy.NonNull.Safe<Boolean> IS_VERBOSE = Lazy.safeNonNull(() -> {
         String variable = System.getenv("BAIZEL_VERBOSE");
@@ -16,6 +14,6 @@ public class LoggerUtil extends nl.adamg.baizel.internal.bootstrap.util.logging.
         if (! isVerbose()) {
             return;
         }
-        System.err.println(Methods.getStackTrace());
+        new RuntimeException().printStackTrace(System.err);
     }
 }

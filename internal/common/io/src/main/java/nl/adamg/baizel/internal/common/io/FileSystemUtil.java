@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.common.io;
 
-import nl.adamg.baizel.internal.common.util.Exceptions;
+ import nl.adamg.baizel.internal.common.java.Exceptions;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingFunction;
 
 import java.io.IOException;

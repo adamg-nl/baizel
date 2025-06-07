@@ -1,4 +1,4 @@
-package nl.adamg.baizel.internal.common.util;
+package nl.adamg.baizel.internal.common.java;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

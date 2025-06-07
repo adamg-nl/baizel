@@ -1,7 +1,6 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
 import nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction;
-import nl.adamg.baizel.internal.common.java.Types;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
 
 import java.lang.reflect.Array;
@@ -60,12 +59,25 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return mapToArray(Arrays.asList(input), mapping);
     }
 
-    /** @return read-only array */
+    /**
+     * @return read-only array
+     * not safe for writing, because it might have been dynamically constructed with more specific runtime type than declared one
+     */
     public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
         var output = mapToList(input, mapping);
-        var type = Types.findCommonSuperClass(output);
+        if (output.isEmpty()) {
+            @SuppressWarnings("unchecked") // empty array is immutable by nature, so safe
+            var emptyArray = (O[]) new Object[0];
+            return emptyArray;
+        }
+        var superclass = output.getFirst().getClass();
+        for(var object : output) {
+            while (! superclass.isAssignableFrom(object.getClass()) && ! superclass.equals(Object.class)) {
+                superclass = superclass.getSuperclass();
+            }
+        }
         @SuppressWarnings("unchecked") // safe for read-only use
-        var array = (O[]) Array.newInstance(type, output.size());
+        var array = (O[]) Array.newInstance(superclass, output.size());
         for (var i = 0; i < output.size(); i++) {
             array[i] = output.get(i);
         }

@@ -5,5 +5,4 @@ plugins {
 dependencies {
     api(project(":internal:bootstrap:util"))
     api(project(":internal:common:annotations"))
-    api(project(":internal:common:java"))
 }

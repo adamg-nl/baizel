@@ -5,6 +5,5 @@ module nl.adamg.baizel.internal.common.util {
 
     requires nl.adamg.baizel.internal.bootstrap.util;
     requires nl.adamg.baizel.internal.common.annotations;
-    requires nl.adamg.baizel.internal.common.java;
     requires transitive java.logging;
 }

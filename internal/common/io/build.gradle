@@ -4,5 +4,6 @@ plugins {
 
 dependencies {
     api(project(":internal:common:annotations"))
+    api(project(":internal:common:java"))
     api(project(":internal:common:util"))
 }
