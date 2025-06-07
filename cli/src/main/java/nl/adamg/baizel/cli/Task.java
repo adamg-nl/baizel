@@ -5,7 +5,7 @@ import nl.adamg.baizel.core.entities.Target;
 
 import java.util.List;
 
-public interface Command {
+public interface Task {
     void run(Project project, List<Target> targets, List<String> args);
-    String getName();
+    String getTaskId();
 }

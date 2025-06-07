@@ -3,11 +3,13 @@ package nl.adamg.baizel.cli;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
+@SuppressWarnings("unused")
 public enum CliErrors {
     JDK_NOT_FOUND(201),
     PROJECT_ROOT_NOT_FOUND(202),
-    COMMAND_NOT_SELECTED(203, "command not selected", true),
-    UNKNOWN_COMMAND(204, "unknown command ${1}", true);
+    TASK_NOT_SELECTED(203, "task not selected", true),
+    UNKNOWN_TASK(204, "unknown task ${1}", true),
+    ;
     private final int exitCode;
     private final String message;
     private final boolean printUsage;

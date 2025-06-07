@@ -1,0 +1,3 @@
+nl.adamg.baizel.cli.tasks.Build
+nl.adamg.baizel.cli.tasks.Compile
+nl.adamg.baizel.cli.tasks.Jar

@@ -1,7 +1,7 @@
 @ParametersAreNonnullByDefault
 @ReturnValuesAreNonnullByDefault
 @FieldsAreNonnullByDefault
-package nl.adamg.baizel.cli.internal.commands;
+package nl.adamg.baizel.cli.tasks;
 
 import nl.adamg.baizel.internal.common.annotations.FieldsAreNonnullByDefault;
 import nl.adamg.baizel.internal.common.annotations.ParametersAreNonnullByDefault;

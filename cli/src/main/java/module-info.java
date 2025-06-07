@@ -1,9 +1,9 @@
 module nl.adamg.baizel.cli {
     exports nl.adamg.baizel.cli;
 
-    uses nl.adamg.baizel.cli.Command;
+    uses nl.adamg.baizel.cli.Task;
 
-    provides nl.adamg.baizel.cli.Command with nl.adamg.baizel.cli.commands.Build;
+    provides nl.adamg.baizel.cli.Task with nl.adamg.baizel.cli.tasks.Build, nl.adamg.baizel.cli.tasks.Compile, nl.adamg.baizel.cli.tasks.Jar;
 
     requires transitive nl.adamg.baizel.internal.common.annotations;
     requires transitive nl.adamg.baizel.core;

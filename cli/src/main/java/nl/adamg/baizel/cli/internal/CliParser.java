@@ -9,32 +9,32 @@ import java.util.*;
 public class CliParser {
     /// Format:
     /// ```
-    /// baizel [<BAIZEL_OPTION>...] [<COMMAND>...] [<COMMAND_ARG>...] [-- <TARGET>...]
+    /// baizel [<BAIZEL_OPTION>...] [<TASK>...] [<TASK_ARG>...] [-- <TARGET>...]
     /// ```
     public static Baizel.Args parse(String... args) {
         var options = new TreeSet<String>();
-        var command = new TreeSet<String>();
-        var commandArgs = new TreeSet<String>();
+        var tasks = new TreeSet<String>();
+        var taskArgs = new TreeSet<String>();
         var targets = new TreeSet<>(Comparator.comparing(Target::toString));
 
         if (args.length == 0) {
-            return new Baizel.Args(options, command, commandArgs, targets);
+            return new Baizel.Args(options, tasks, taskArgs, targets);
         }
         var remainingArgs = (Queue<String>)new LinkedList<>(Arrays.asList(args));
         while (! remainingArgs.isEmpty() && remainingArgs.peek().startsWith("-")) {
             options.add(remainingArgs.poll());
         }
         while (! remainingArgs.isEmpty() && ! remainingArgs.peek().startsWith("-")) {
-            command.add(remainingArgs.poll());
+            tasks.add(remainingArgs.poll());
         }
-        var hasCommandArgs = false;
+        var hasTaskArgs = false;
         while (! remainingArgs.isEmpty()) {
             var nextArg = remainingArgs.peek();
             var isOptionLikeTarget = nextArg.startsWith("-:") || nextArg.startsWith("-//");
             boolean isOption = nextArg.startsWith("-") && ! isOptionLikeTarget;
-            if ((hasCommandArgs || isOption) && ! nextArg.equals("--")) {
-                hasCommandArgs = true;
-                commandArgs.add(remainingArgs.poll());
+            if ((hasTaskArgs || isOption) && ! nextArg.equals("--")) {
+                hasTaskArgs = true;
+                taskArgs.add(remainingArgs.poll());
             } else {
                 break;
             }
@@ -46,18 +46,17 @@ public class CliParser {
             var next = remainingArgs.poll();
             var targetPrefixes = Set.of("//", ":", "-:", "-//");
             if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, p -> remainingArgs.peek().startsWith(p))) {
-                commandArgs.add(next);
+                taskArgs.add(next);
             } else {
                 targets.add(parseTarget(next));
             }
         }
-        return new Baizel.Args(options, command, commandArgs, targets);
+        return new Baizel.Args(options, tasks, taskArgs, targets);
     }
 
     public static Target parseTarget(String input) {
         var org = (String)null;
         var mod = (String)null;
-        String path;
         var name = (String)null;
 
         var at = input.indexOf('@');
@@ -74,7 +73,7 @@ public class CliParser {
 
         var pathStart = slashSlash + 2;
         var pathEnd = colon != -1 ? colon : input.length();
-        path = input.substring(pathStart, pathEnd);
+        var path = input.substring(pathStart, pathEnd);
 
         if (colon != -1) {
             name = input.substring(colon + 1);

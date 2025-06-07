@@ -4,9 +4,8 @@ import javax.annotation.CheckForNull;
 import java.io.Serializable;
 
 /// Format: `[@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]`
-/// Example: `@foo/bar//baz/qux:qux`
+/// Example: `@foo/bar//baz/qux:main`
 /// Example: `//baz/qux`
-/// Either path or target name is mandatory, and both can be present.
 public class Target implements Serializable {
     @CheckForNull public String organization;
     @CheckForNull public String module;
