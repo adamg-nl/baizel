@@ -12,10 +12,10 @@ public class CliParser {
     /// baizel [<BAIZEL_OPTION>...] [<COMMAND>...] [<COMMAND_ARG>...] [-- <TARGET>...]
     /// ```
     public static Baizel.Args parse(String... args) {
-        var options = new ArrayList<String>();
-        var command = new ArrayList<String>();
-        var commandArgs = new ArrayList<String>();
-        var targets = new ArrayList<Target>();
+        var options = new TreeSet<String>();
+        var command = new TreeSet<String>();
+        var commandArgs = new TreeSet<String>();
+        var targets = new TreeSet<>(Comparator.comparing(Target::toString));
 
         if (args.length == 0) {
             return new Baizel.Args(options, command, commandArgs, targets);
@@ -39,15 +39,49 @@ public class CliParser {
                 break;
             }
         }
+        if ("--".equals(remainingArgs.peek())) {
+            remainingArgs.remove();
+        }
         while (! remainingArgs.isEmpty()) {
             var next = remainingArgs.poll();
             var targetPrefixes = Set.of("//", ":", "-:", "-//");
-            if (Items.noneMatch(targetPrefixes, p -> remainingArgs.peek().startsWith(p))) {
+            if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, p -> remainingArgs.peek().startsWith(p))) {
                 commandArgs.add(next);
             } else {
-                targets.add(Target.parse(next));
+                targets.add(parseTarget(next));
             }
         }
         return new Baizel.Args(options, command, commandArgs, targets);
+    }
+
+    public static Target parseTarget(String input) {
+        var org = (String)null;
+        var mod = (String)null;
+        String path;
+        var name = (String)null;
+
+        var at = input.indexOf('@');
+        var slashSlash = input.indexOf("//");
+        var colon = input.indexOf(':');
+
+        if (at != -1 && at < slashSlash) {
+            var orgMod = input.substring(at + 1, slashSlash).split("/", 2);
+            org = orgMod[0];
+            if (orgMod.length > 1) {
+                mod = orgMod[1];
+            }
+        }
+
+        var pathStart = slashSlash + 2;
+        var pathEnd = colon != -1 ? colon : input.length();
+        path = input.substring(pathStart, pathEnd);
+
+        if (colon != -1) {
+            name = input.substring(colon + 1);
+        } else if (!path.isEmpty()) {
+            name = path.substring(path.lastIndexOf('/') + 1);
+        }
+
+        return new Target(org, mod, path, name);
     }
 }

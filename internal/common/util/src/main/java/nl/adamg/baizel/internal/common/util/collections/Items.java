@@ -5,23 +5,30 @@ import nl.adamg.baizel.internal.common.java.Types;
 import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * @see nl.adamg.baizel.internal.bootstrap.util.collections.Items
  */
 @SuppressWarnings("unused")
 public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.Items {
+    private static final Map<Class<?>, Supplier<?>> COMMON_COLLECTION_CONSTRUCTORS = Map.of(
+            ArrayList.class, ArrayList::new,
+            LinkedList.class, LinkedList::new,
+            HashSet.class, HashSet::new,
+            LinkedHashSet.class, LinkedHashSet::new,
+            TreeSet.class, TreeSet::new,
+            HashMap.class, HashMap::new,
+            LinkedHashMap.class, LinkedHashMap::new,
+            TreeMap.class, TreeMap::new
+    );
+    private static final Map<Class<?>, Class<?>> COMMON_COLLECTION_TYPES = Map.of(
+            List.class, ArrayList.class,
+            Set.class, HashSet.class,
+            Map.class, HashMap.class
+    );
+
     public static <C extends Collection<O>, I, O, E extends Exception> C map(Collection<I> input, ThrowingFunction<I,O,E> mapping, C output) throws E {
         for(var i : input) {
             output.add(mapping.apply(i));
@@ -149,5 +156,61 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
             throw new NoSuchElementException();
         }
         return input.get(input.size()-1);
+    }
+
+    public static <T, E extends Exception> T[] filter(T[] input, ThrowingPredicate<T, E> predicate) throws E {
+        var result = filter(Arrays.asList(input), predicate);
+        @SuppressWarnings("unchecked")
+        var output = (T[]) Array.newInstance(input.getClass().getComponentType(), result.size());
+        return result.toArray(output);
+    }
+
+    public static <L extends List<T>, T, E extends Exception> L filter(L input, ThrowingPredicate<T, E> predicate) throws E {
+        return filter(input, predicate, newOfType(input));
+    }
+
+    public static <L extends List<T>, T, E extends Exception> L filter(L input, ThrowingPredicate<T, E> predicate, L output) throws E {
+        for (var element : input) {
+            if (predicate.test(element)) {
+                output.add(element);
+            }
+        }
+        return output;
+    }
+
+    public static <S extends Set<T>, T, E extends Exception> S filter(S input, ThrowingPredicate<T, E> predicate) throws E {
+        return filter(input, predicate, newOfType(input));
+    }
+
+    public static <S extends Set<T>, T, E extends Exception> S filter(S input, ThrowingPredicate<T, E> predicate, S output) throws E {
+        for (var element : input) {
+            if (predicate.test(element)) {
+                output.add(element);
+            }
+        }
+        return output;
+    }
+
+    /**
+     * @return a new collection of the same type as input (e.g. TreeSet -> TreeSet)
+     * Uses non-reflective O(1) constructor lookup for common collections, and reflective instantiation for others.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T newOfType(T input) {
+        var knownConstructor = COMMON_COLLECTION_CONSTRUCTORS.get(input.getClass());
+        if (knownConstructor != null) {
+            return (T) input.getClass().cast(knownConstructor.get());
+        }
+        for(var commonCollectionType : COMMON_COLLECTION_TYPES.keySet()) {
+            if (commonCollectionType.isInstance(input)) {
+                return (T) COMMON_COLLECTION_CONSTRUCTORS.get(COMMON_COLLECTION_TYPES.get(commonCollectionType)).get();
+            }
+        }
+        try {
+            return (T) input.getClass().getConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+
+            throw new IllegalArgumentException("unsupported collection type: " + input.getClass().getCanonicalName());
+        }
     }
 }
