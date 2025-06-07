@@ -1,9 +1,11 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
+import nl.adamg.baizel.core.entities.Target;
 import nl.adamg.baizel.internal.common.java.Services;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
+import java.util.ArrayList;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -32,7 +34,7 @@ public class Baizel {
               <PATH>           can end with ... to match all targets within a package and its subpackages.
               <PATH>           can contain ** to match any number of intermediate directories and files.
               <TARGET_NAME>    equal to * means all the targets directly within package.
-              <TARGET_NAME>    missing means the main target.
+              <TARGET_NAME>    missing means the "main" target.
               <PATH>           missing means the current package.
               <ORG>/<MODULE>   when defined mean running a task from remote package.
               -<TARGET>        means excluding that target.
@@ -61,6 +63,9 @@ public class Baizel {
         }
         var allCommands = Services.get(Command.class);
         var missingCommands = Items.filter(args.commands, c -> Items.noneMatch(allCommands, ec -> ec.getName().equals(c)));
+        if (! missingCommands.isEmpty()) {
+            throw CliErrors.UNKNOWN_COMMAND.exit(String.join(", ", missingCommands));
+        }
         var matchingCommands = Items.filter(allCommands, c -> args.commands.contains(c.getName()));
         for(var command : matchingCommands) {
 

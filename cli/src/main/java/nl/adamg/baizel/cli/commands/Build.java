@@ -1,8 +1,8 @@
 package nl.adamg.baizel.cli.commands;
 
 import nl.adamg.baizel.cli.Command;
-import nl.adamg.baizel.cli.Target;
-import nl.adamg.baizel.core.Project;
+import nl.adamg.baizel.core.entities.Target;
+import nl.adamg.baizel.core.entities.Project;
 
 import java.util.List;
 import java.util.logging.Logger;

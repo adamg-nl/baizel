@@ -1,7 +1,7 @@
 package nl.adamg.baizel.cli.internal;
 
 import nl.adamg.baizel.cli.Baizel;
-import nl.adamg.baizel.cli.Target;
+import nl.adamg.baizel.core.entities.Target;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import java.util.*;
