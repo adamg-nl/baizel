@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.bootstrap.util.collections;
 
-import nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction;
+import nl.adamg.baizel.internal.bootstrap.util.functions.Function;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +12,7 @@ import java.util.TreeSet;
  * Bootstrap part of {@code nl.adamg.baizel.internal.common.util.collections.Items}
  */
 public class Items {
-    public static <I, O, E extends Exception> List<O> mapToList(Collection<I> input, ThrowingFunction<I, O, E> mapping) throws E {
+    public static <I, O, E extends Exception> List<O> mapToList(Collection<I> input, Function<I, O, E> mapping) throws E {
         var output = new ArrayList<O>(input.size());
         for (var i : input) {
             output.add(mapping.apply(i));

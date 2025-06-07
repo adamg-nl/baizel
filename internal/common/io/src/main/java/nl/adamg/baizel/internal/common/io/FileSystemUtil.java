@@ -1,7 +1,7 @@
 package nl.adamg.baizel.internal.common.io;
 
  import nl.adamg.baizel.internal.common.java.Exceptions;
-import nl.adamg.baizel.internal.common.util.functions.ThrowingFunction;
+import nl.adamg.baizel.internal.common.util.functions.Function;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -36,7 +36,7 @@ public final class FileSystemUtil {
 
     /** wrapper for {@link Files#walkFileTree} that supports checked exceptions */
     public static <T extends Exception> void visitDirsRecursively(
-            Path root, Class<T> exceptionType, ThrowingFunction<Path, FileVisitResult, T> visitor)
+            Path root, Class<T> exceptionType, Function<Path, FileVisitResult, T> visitor)
             throws IOException, T {
         var exception = new AtomicReference<Exception>();
         Files.walkFileTree(

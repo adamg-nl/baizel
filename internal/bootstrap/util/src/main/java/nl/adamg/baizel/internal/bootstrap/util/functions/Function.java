@@ -5,6 +5,6 @@ package nl.adamg.baizel.internal.bootstrap.util.functions;
  */
 @SuppressWarnings("unused")
 @FunctionalInterface
-public interface ThrowingFunction<T, R, E extends Exception> {
+public interface Function<T, R, E extends Exception> {
     R apply(T t) throws E;
 }

@@ -1,7 +1,7 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
-import nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction;
-import nl.adamg.baizel.internal.common.util.functions.ThrowingPredicate;
+import nl.adamg.baizel.internal.bootstrap.util.functions.Function;
+import nl.adamg.baizel.internal.common.util.functions.Predicate;
 
 import java.lang.reflect.Array;
 import java.util.*;
@@ -28,34 +28,34 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
             Map.class, HashMap.class
     );
 
-    public static <C extends Collection<O>, I, O, E extends Exception> C map(Collection<I> input, ThrowingFunction<I,O,E> mapping, C output) throws E {
+    public static <C extends Collection<O>, I, O, E extends Exception> C map(Collection<I> input, Function<I,O,E> mapping, C output) throws E {
         for(var i : input) {
             output.add(mapping.apply(i));
         }
         return output;
     }
 
-    public static <I, O, E extends Exception> List<O> mapToList(I[] input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O, E extends Exception> List<O> mapToList(I[] input, Function<I,O,E> mapping) throws E {
         return mapToList(Arrays.asList(input), mapping);
     }
 
-    public static <I, O, E extends Exception> Set<O> mapToSet(I[] input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O, E extends Exception> Set<O> mapToSet(I[] input, Function<I,O,E> mapping) throws E {
         return mapToSet(Arrays.asList(input), mapping);
     }
 
-    public static <I, O, E extends Exception> Set<O> mapToSet(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O, E extends Exception> Set<O> mapToSet(Collection<I> input, Function<I,O,E> mapping) throws E {
         return map(input, mapping, new HashSet<>());
     }
 
-    public static <I, O extends Comparable<O>, E extends Exception> SortedSet<O> mapToSortedSet(I[] input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O extends Comparable<O>, E extends Exception> SortedSet<O> mapToSortedSet(I[] input, Function<I,O,E> mapping) throws E {
         return mapToSortedSet(Arrays.asList(input), mapping);
     }
 
-    public static <I, O extends Comparable<O>, E extends Exception> SortedSet<O> mapToSortedSet(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O extends Comparable<O>, E extends Exception> SortedSet<O> mapToSortedSet(Collection<I> input, Function<I,O,E> mapping) throws E {
         return map(input, mapping, new TreeSet<>());
     }
 
-    public static <I, O, E extends Exception> O[] mapToArray(I[] input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O, E extends Exception> O[] mapToArray(I[] input, Function<I,O,E> mapping) throws E {
         return mapToArray(Arrays.asList(input), mapping);
     }
 
@@ -63,7 +63,7 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
      * @return read-only array
      * not safe for writing, because it might have been dynamically constructed with more specific runtime type than declared one
      */
-    public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, ThrowingFunction<I,O,E> mapping) throws E {
+    public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, Function<I,O,E> mapping) throws E {
         var output = mapToList(input, mapping);
         if (output.isEmpty()) {
             @SuppressWarnings("unchecked") // empty array is immutable by nature, so safe
@@ -84,11 +84,11 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return array;
     }
 
-    public static <I, O, E extends Exception> O[] mapToArray(I[] input, ThrowingFunction<I,O,E> mapping, ThrowingFunction<Integer, O[], E> outputFactory) throws E {
+    public static <I, O, E extends Exception> O[] mapToArray(I[] input, Function<I,O,E> mapping, Function<Integer, O[], E> outputFactory) throws E {
         return mapToArray(Arrays.asList(input), mapping, outputFactory);
     }
 
-    public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, ThrowingFunction<I,O,E> mapping, ThrowingFunction<Integer, O[], E> outputFactory) throws E {
+    public static <I, O, E extends Exception> O[] mapToArray(Collection<I> input, Function<I,O,E> mapping, Function<Integer, O[], E> outputFactory) throws E {
         var array = outputFactory.apply(input.size());
         var i = 0;
         for(var item : input) {
@@ -98,11 +98,11 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return array;
     }
 
-    public static <T, E extends Exception> boolean allMatch(T[] input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean allMatch(T[] input, Predicate<T, E> predicate) throws E {
         return allMatch(Arrays.asList(input), predicate);
     }
 
-    public static <T, E extends Exception> boolean allMatch(Collection<T> input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean allMatch(Collection<T> input, Predicate<T, E> predicate) throws E {
         for(var i : input) {
             if (! predicate.test(i)) {
                 return false;
@@ -111,11 +111,11 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return true;
     }
 
-    public static <T, E extends Exception> boolean anyMatch(T[] input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean anyMatch(T[] input, Predicate<T, E> predicate) throws E {
         return anyMatch(Arrays.asList(input), predicate);
     }
 
-    public static <T, E extends Exception> boolean anyMatch(Collection<T> input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean anyMatch(Collection<T> input, Predicate<T, E> predicate) throws E {
         for(var i : input) {
             if (predicate.test(i)) {
                 return true;
@@ -124,11 +124,11 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return false;
     }
 
-    public static <T, E extends Exception> boolean noneMatch(T[] input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean noneMatch(T[] input, Predicate<T, E> predicate) throws E {
         return noneMatch(Arrays.asList(input), predicate);
     }
 
-    public static <T, E extends Exception> boolean noneMatch(Collection<T> input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> boolean noneMatch(Collection<T> input, Predicate<T, E> predicate) throws E {
         return ! anyMatch(input, predicate);
     }
 
@@ -142,7 +142,7 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return result;
     }
 
-    public static <T, E extends Exception> String toString(List<T> input, String separator, ThrowingFunction<T,String, E> toString) throws E {
+    public static <T, E extends Exception> String toString(List<T> input, String separator, Function<T,String, E> toString) throws E {
         var output = new StringBuilder();
         var first = true;
         for(var item : input) {
@@ -170,18 +170,18 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return input.get(input.size()-1);
     }
 
-    public static <T, E extends Exception> T[] filter(T[] input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <T, E extends Exception> T[] filter(T[] input, Predicate<T, E> predicate) throws E {
         var result = filter(Arrays.asList(input), predicate);
         @SuppressWarnings("unchecked")
         var output = (T[]) Array.newInstance(input.getClass().getComponentType(), result.size());
         return result.toArray(output);
     }
 
-    public static <L extends List<T>, T, E extends Exception> L filter(L input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <L extends List<T>, T, E extends Exception> L filter(L input, Predicate<T, E> predicate) throws E {
         return filter(input, predicate, newOfType(input));
     }
 
-    public static <L extends List<T>, T, E extends Exception> L filter(L input, ThrowingPredicate<T, E> predicate, L output) throws E {
+    public static <L extends List<T>, T, E extends Exception> L filter(L input, Predicate<T, E> predicate, L output) throws E {
         for (var element : input) {
             if (predicate.test(element)) {
                 output.add(element);
@@ -190,11 +190,11 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return output;
     }
 
-    public static <S extends Set<T>, T, E extends Exception> S filter(S input, ThrowingPredicate<T, E> predicate) throws E {
+    public static <S extends Set<T>, T, E extends Exception> S filter(S input, Predicate<T, E> predicate) throws E {
         return filter(input, predicate, newOfType(input));
     }
 
-    public static <S extends Set<T>, T, E extends Exception> S filter(S input, ThrowingPredicate<T, E> predicate, S output) throws E {
+    public static <S extends Set<T>, T, E extends Exception> S filter(S input, Predicate<T, E> predicate, S output) throws E {
         for (var element : input) {
             if (predicate.test(element)) {
                 output.add(element);

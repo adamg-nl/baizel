@@ -1,10 +1,10 @@
 package nl.adamg.baizel.internal.common.util.functions;
 
 /**
- * @see nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction
+ * @see nl.adamg.baizel.internal.bootstrap.util.functions.Function
  */
 @SuppressWarnings("unused")
-public interface ThrowingFunction<T, R, E extends Exception> extends nl.adamg.baizel.internal.bootstrap.util.functions.ThrowingFunction<T, R, E> {
+public interface Function<T, R, E extends Exception> extends nl.adamg.baizel.internal.bootstrap.util.functions.Function<T, R, E> {
     @FunctionalInterface
     interface Nullable<T, R, E extends Exception> {
         @javax.annotation.CheckForNull

@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.common.io;
 
-import nl.adamg.baizel.internal.common.util.Exceptions;
+import nl.adamg.baizel.internal.common.java.Exceptions;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.logging.Logger;
 
 /**
  * Can be used to subscribe to changes in files or directories.

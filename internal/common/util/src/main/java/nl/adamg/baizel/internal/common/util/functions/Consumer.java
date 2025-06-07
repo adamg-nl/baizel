@@ -2,7 +2,7 @@ package nl.adamg.baizel.internal.common.util.functions;
 
 @SuppressWarnings("unused")
 @FunctionalInterface
-public interface ThrowingConsumer<T, E extends Exception> {
+public interface Consumer<T, E extends Exception> {
     void accept(T t) throws E;
 
     @FunctionalInterface
