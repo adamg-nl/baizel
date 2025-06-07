@@ -11,7 +11,7 @@ public class CliParser {
     /// ```
     /// baizel [<BAIZEL_OPTION>...] [<TASK>...] [<TASK_ARG>...] [-- <TARGET>...]
     /// ```
-    public static Baizel.Args parse(String... args) {
+    public static Baizel.Args parseCliArgs(String... args) {
         var options = new TreeSet<String>();
         var tasks = new TreeSet<String>();
         var taskArgs = new TreeSet<String>();
@@ -45,7 +45,7 @@ public class CliParser {
         while (! remainingArgs.isEmpty()) {
             var next = remainingArgs.poll();
             var targetPrefixes = Set.of("//", ":", "-:", "-//");
-            if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, p -> remainingArgs.peek().startsWith(p))) {
+            if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, next::startsWith)) {
                 taskArgs.add(next);
             } else {
                 targets.add(parseTarget(next));

@@ -1,6 +1,7 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
+import nl.adamg.baizel.cli.internal.Task;
 import nl.adamg.baizel.core.entities.Target;
 import nl.adamg.baizel.internal.common.java.Services;
 import nl.adamg.baizel.internal.common.util.collections.Items;
@@ -54,7 +55,7 @@ public class Baizel {
 
     public static void main(String... args) {
         LOG.info("Hello Baizel");
-        main(CliParser.parse(args));
+        main(CliParser.parseCliArgs(args));
     }
 
     public static void main(Args args) {

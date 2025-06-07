@@ -1,6 +1,6 @@
 package nl.adamg.baizel.cli.tasks;
 
-import nl.adamg.baizel.cli.Task;
+import nl.adamg.baizel.cli.internal.Task;
 import nl.adamg.baizel.core.entities.Project;
 import nl.adamg.baizel.core.entities.Target;
 

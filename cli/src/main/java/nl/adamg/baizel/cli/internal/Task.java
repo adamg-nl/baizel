@@ -1,4 +1,4 @@
-package nl.adamg.baizel.cli;
+package nl.adamg.baizel.cli.internal;
 
 import nl.adamg.baizel.core.entities.Project;
 import nl.adamg.baizel.core.entities.Target;
