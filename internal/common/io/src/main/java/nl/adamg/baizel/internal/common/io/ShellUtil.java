@@ -65,7 +65,7 @@ public final class ShellUtil {
     }
 
     public static String joinArgs(List<String> args) {
-        return Items.collectionToString(args, " ", a -> "'" + a.replace("'", "\\'") + "'");
+        return Items.toString(args, " ", a -> "'" + a.replace("'", "\\'") + "'");
     }
 
     public enum LogLevel {
