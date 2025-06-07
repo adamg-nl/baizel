@@ -44,7 +44,7 @@ public final class Bootstrap {
         if (! isBaizelUpToDate) {
             var compilationSucceeded = builder.build();
             if (!compilationSucceeded) {
-                System.exit(201);
+                System.exit(202); // CliErrors.BOOTSTRAP_COMPILATION_FAILED
                 return;
             }
             builder.writeCurrentBaizelChecksum(currentBaizelChecksum);

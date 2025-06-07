@@ -64,6 +64,7 @@ function main() {
 	local stage2Module=$(relativePath "$(dirname "${currentScriptPath}")/../internal/bootstrap")
 	local compiledClassPathRoot="${stage2Module}/.build/classes/java/main"
 	local stage2Class="nl.adamg.baizel.internal.bootstrap.Bootstrap"
+	configureShell
 	configureJavaPath
 	buildStage2IfCacheExpired "${stage2Module}" "${compiledClassPathRoot}" "${stage2Class}"
 	startJvmWithStage2Class "${compiledClassPathRoot}" "${stage2Class}" "${args[@]}"
@@ -105,6 +106,18 @@ function handleSourcingIntoTerminal() {
 
 
 
+function configureShell() {
+    case "$(uname -s | tr '[:upper:]' '[:lower:]')" in
+      msys* | mingw*) # Windows + MSYS/Git-Bash
+    	# required to read arguments that start with '//'
+        export MSYS_NO_PATHCONV=1
+        export MSYS2_ARG_CONV_EXCL="*"
+        ;;
+    esac
+}
+
+
+
 function configureJavaPath() {
 	if [[ $(which java) == "" || $(which javac) == "" ]]; then
 		# if Java cannot be found, do best effort at auto-detecting
@@ -114,11 +127,11 @@ function configureJavaPath() {
 		export PATH="${PATH}:$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${windowsStandardJava}"
 		if [[ $(which java) == "" ]]; then
 			log ERROR "Java Development Kit not found (try setting \$JAVA_HOME)"
-			exit 201 # JDK_NOT_FOUND
+			exit 201 # CliErrors.JDK_NOT_FOUND
 		fi
 		if [[ $(which javac) == "" ]]; then
 			log ERROR "Java Development Kit not found (only JRE found, JDK required) (try setting \$JAVA_HOME)"
-			exit 201 # JDK_NOT_FOUND
+			exit 201 # CliErrors.JDK_NOT_FOUND
 		fi
 	fi
 
