@@ -3,12 +3,13 @@ package nl.adamg.baizel.cli;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
-@SuppressWarnings("unused")
 public enum CliErrors {
+    @SuppressWarnings("unused") // used in bin/bazik
     JDK_NOT_FOUND(201),
-    PROJECT_ROOT_NOT_FOUND(202),
+    @SuppressWarnings("unused") // used in Bootstrap.java
+    BOOTSTRAP_COMPILATION_FAILED(202),
     TASK_NOT_SELECTED(203, "task not selected", true),
-    UNKNOWN_TASK(204, "unknown task ${1}", true),
+    UNKNOWN_TASK(204, "unknown task ${1}, available tasks: ${2}", true),
     ;
     private final int exitCode;
     private final String message;
@@ -19,11 +20,14 @@ public enum CliErrors {
         System.err.println(processMessage(details));
         if (printUsage) {
             var usage = String.join("\n", Items.filter(Baizel.HELP.split("\n"), l -> l.startsWith("Usage: ")));
+            for(var i=0; i<details.length; i++) {
+                usage = usage.replace("${" + (i+1) + "}", details[i]);
+            }
             System.err.println(usage);
         }
         LoggerUtil.logStackTrace();
         System.exit(exitCode);
-        throw new RuntimeException("System.exit failed");
+        throw new RuntimeException("System.exit failed"); // should never happen
     }
 
     private String processMessage(String[] details) {
