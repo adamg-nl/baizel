@@ -1,5 +1,6 @@
 rootProject.name = "baizel"
 
+include(":buildsystem")
 include(":cli")
 include(":core")
 include(":internal:bazel")
@@ -13,3 +14,4 @@ include(":internal:common:io")
 include(":internal:common:java")
 include(":internal:common:util")
 include(":internal:database")
+include(":internal:jar")

@@ -3,9 +3,10 @@ package nl.adamg.baizel.cli.internal;
 import nl.adamg.baizel.core.entities.Project;
 import nl.adamg.baizel.core.entities.Target;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface Task {
-    void run(Project project, List<Target> targets, List<String> args);
+    void run(Project project, List<Target> targets, List<String> args) throws IOException;
     String getTaskId();
 }

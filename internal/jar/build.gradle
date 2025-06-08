@@ -1,0 +1,18 @@
+plugins {
+    id("java-library")
+}
+
+dependencies {
+    api(project(":internal:common:annotations"))
+    api(project(":internal:common:util"))
+    api(project(":internal:common:io"))
+
+    implementation 'net.java.truevfs:truevfs-access:0.14.0'
+    implementation 'net.java.truevfs:truevfs-comp-zipdriver:0.14.0'
+    implementation 'net.java.truevfs:truevfs-kernel-spec:0.14.0'
+    runtimeOnly 'net.java.truecommons:truecommons-key-default:2.5.0'
+    runtimeOnly 'net.java.truevfs:truevfs-driver-zip:0.14.0'
+    runtimeOnly 'net.java.truevfs:truevfs-kernel-spec:0.14.0'
+}
+
+
