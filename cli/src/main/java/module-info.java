@@ -13,4 +13,5 @@ module nl.adamg.baizel.cli {
     requires nl.adamg.baizel.internal.common.io;
     requires nl.adamg.baizel.internal.bootstrap.util;
     requires nl.adamg.baizel.internal.common.java;
+    requires nl.adamg.baizel.internal.jar;
 }
