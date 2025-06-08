@@ -23,5 +23,6 @@ project nl.adamg.baizel {
         org.slf4j:jcl-over-slf4j:1.7.36                                 { org.slf4j.jcl.over.slf4j; }
         org.slf4j:slf4j-api:1.7.36                                      { org.slf4j.slf4j.api; }
         org.slf4j:slf4j-simple:1.7.36                                   { org.slf4j.slf4j.simple; }
+        org.xerial:sqlite-jdbc:3.49.1.0                                 { org.xerial.sqlitejdbc; }
     }
 }
