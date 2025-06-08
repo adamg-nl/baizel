@@ -6,7 +6,7 @@ import nl.adamg.baizel.core.entities.Target;
 import nl.adamg.baizel.internal.common.java.Services;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -53,24 +53,24 @@ public class Baizel {
               BAIZEL_JVM_OPTS  Additional JVM arguments, space-separated
             """;
 
-    public static void main(String... args) {
-        LOG.info("Hello Baizel");
+    public static void main(String... args) throws Exception {
+        LOG.info("main(" + String.join(", ", args) + ")");
         main(CliParser.parseCliArgs(args));
     }
 
-    public static void main(Args args) {
+    public static void main(Args args) throws Exception {
         if (args.tasks().isEmpty()) {
             throw CliErrors.TASK_NOT_SELECTED.exit();
         }
         var allTasks = Services.get(Task.class);
         var missingTasks = Items.filter(args.tasks, c -> Items.noneMatch(allTasks, ec -> ec.getTaskId().equals(c)));
         if (! missingTasks.isEmpty()) {
-            throw CliErrors.UNKNOWN_TASK.exit(String.join(", ", missingTasks));
+            var taskNames = Items.mapToList(allTasks, Task::getTaskId);
+            throw CliErrors.UNKNOWN_TASK.exit(String.join(", ", missingTasks), String.join(", ", taskNames));
         }
         var matchingTasks = Items.filter(allTasks, c -> args.tasks.contains(c.getTaskId()));
-        var tasks = new ArrayList<Task>();
-        for(var command : matchingTasks) {
-
+        for(var task : matchingTasks) {
+            task.run(null, List.of(), List.of());
         }
     }
 }

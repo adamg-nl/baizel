@@ -24,7 +24,10 @@ public class CliParser {
         while (! remainingArgs.isEmpty() && remainingArgs.peek().startsWith("-")) {
             options.add(remainingArgs.poll());
         }
-        while (! remainingArgs.isEmpty() && ! remainingArgs.peek().startsWith("-")) {
+        var targetPrefixes = Set.of("//", ":", "-:", "-//");
+        while (! remainingArgs.isEmpty() &&
+                ! remainingArgs.peek().startsWith("-") &&
+                Items.noneMatch(targetPrefixes, remainingArgs.peek()::startsWith)) {
             tasks.add(remainingArgs.poll());
         }
         var hasTaskArgs = false;
@@ -44,7 +47,6 @@ public class CliParser {
         }
         while (! remainingArgs.isEmpty()) {
             var next = remainingArgs.poll();
-            var targetPrefixes = Set.of("//", ":", "-:", "-//");
             if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, next::startsWith)) {
                 taskArgs.add(next);
             } else {
@@ -77,8 +79,6 @@ public class CliParser {
 
         if (colon != -1) {
             name = input.substring(colon + 1);
-        } else if (!path.isEmpty()) {
-            name = path.substring(path.lastIndexOf('/') + 1);
         }
 
         return new Target(org, mod, path, name);
