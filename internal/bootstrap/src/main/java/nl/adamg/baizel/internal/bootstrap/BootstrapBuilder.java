@@ -30,20 +30,19 @@ import static nl.adamg.baizel.internal.bootstrap.util.logging.Timer.timed;
 class BootstrapBuilder {
     private static final Logger LOG = Logger.getLogger(BootstrapBuilder.class.getName());
     private final Path baizelRoot;
-    private final Path bootstrapDir;
-    private final Path bootstrapBuildDir;
     private final Path mavenClasspathFile;
-    private final Path sourcePathFile;
+    private final Path resourceRootsFile;
     private final Path compiledClasspathRoot;
     private final Path baizelChecksumFile;
     private final Set<Path> libraries = new TreeSet<>();
+    private final Set<Path> resourceRoots = new TreeSet<>();
 
     static BootstrapBuilder makeBuilder(Path baizelRoot) throws IOException {
         var bootstrapDir = baizelRoot.resolve("internal/bootstrap");
         var bootstrapBuildDir = bootstrapDir.resolve(".build");
         var bootstrapCompileRoot = bootstrapBuildDir.resolve("classes/java/main");
         var mavenClasspathFile = bootstrapBuildDir.resolve("maven.classpath");
-        var sourcePathFile = bootstrapBuildDir.resolve("src.classpath");
+        var resourceRootsFile = bootstrapBuildDir.resolve("resources.classpath");
         var baizelChecksumFile = bootstrapBuildDir.resolve("baizel.checksum");
         Files.createDirectories(bootstrapBuildDir);
         Files.createDirectories(bootstrapCompileRoot);
@@ -52,13 +51,17 @@ class BootstrapBuilder {
                 bootstrapDir,
                 bootstrapBuildDir,
                 mavenClasspathFile,
-                sourcePathFile,
+                resourceRootsFile,
                 bootstrapCompileRoot,
                 baizelChecksumFile);
     }
 
     List<Path> readCachedMavenClasspath() throws IOException {
         return mapToList(Arrays.asList(Files.readString(mavenClasspathFile).split(File.pathSeparator)), Path::of);
+    }
+
+    List<Path> readCachedResourceRoots() throws IOException {
+        return mapToList(Arrays.asList(Files.readString(resourceRootsFile).split(File.pathSeparator)), Path::of);
     }
 
     void writeCurrentBaizelChecksum(String currentBaizelChecksum) throws IOException {
@@ -77,8 +80,13 @@ class BootstrapBuilder {
         timed(LOG, () -> libraries.addAll(mapToList(mavenDependencyCoordinates, mavenClient::resolve)), "resolving Maven dependencies", true);
         Files.writeString(mavenClasspathFile, String.join(File.pathSeparator, mapToList(libraries, Path::toString)));
         var sourceRoots = new TreeSet<>(mapToList(modulePaths, p -> p.resolve("src/main/java")));
-        Files.writeString(sourcePathFile, String.join(File.pathSeparator, mapToList(sourceRoots, Path::toString)));
+        resourceRoots.addAll(mapToList(modulePaths, p -> p.resolve("src/main/resources")));
+        Files.writeString(resourceRootsFile, String.join(File.pathSeparator, mapToList(resourceRoots, Path::toString)));
         return timed(LOG, () -> compile(sourceRoots, libraries, compiledClasspathRoot), "compiling", true);
+    }
+
+    Set<Path> getResourceRootsOfBuiltModules() {
+        return resourceRoots;
     }
 
     private List<String> loadMavenDependencyCoordinates(ObjectTree projectInfo) {
@@ -128,9 +136,7 @@ class BootstrapBuilder {
         ));
         fileManager.setLocation(StandardLocation.CLASS_PATH, Items.mapToList(artifactRoots, Path::toFile));
         if (System.getenv("BAIZEL_DEBUG") != null) {
-            LOG.info("artifactRoots -- { \"path\": \"" + artifactRoots + "\" }");
-            LOG.info("sourceFiles -- { \"path\": \"" + sourceFiles + "\" }");
-            LOG.info("$ javac " + String.join(" ", javacArgs) + " " + String.join(" ", mapToList(sourceFiles, BootstrapBuilder::relativize)));
+            LOG.info("$ javac " + String.join(" ", javacArgs) + " ...");
         }
         var task = (JavacTask) compiler.getTask(
                 new PrintWriter(logStream),
@@ -160,12 +166,10 @@ class BootstrapBuilder {
         return libraries;
     }
 
-    BootstrapBuilder(Path baizelRoot, Path bootstrapDir, Path bootstrapBuildDir, Path mavenClasspathFile, Path sourcePathFile, Path compiledClasspathRoot, Path baizelChecksumFile) {
+    BootstrapBuilder(Path baizelRoot, Path bootstrapDir, Path bootstrapBuildDir, Path mavenClasspathFile, Path resourceRootsFile, Path compiledClasspathRoot, Path baizelChecksumFile) {
         this.baizelRoot = baizelRoot;
-        this.bootstrapDir = bootstrapDir;
-        this.bootstrapBuildDir = bootstrapBuildDir;
         this.mavenClasspathFile = mavenClasspathFile;
-        this.sourcePathFile = sourcePathFile;
+        this.resourceRootsFile = resourceRootsFile;
         this.compiledClasspathRoot = compiledClasspathRoot;
         this.baizelChecksumFile = baizelChecksumFile;
     }

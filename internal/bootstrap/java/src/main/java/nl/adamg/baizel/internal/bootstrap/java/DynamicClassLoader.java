@@ -7,7 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -16,7 +16,11 @@ import java.util.Objects;
 public final class DynamicClassLoader<C extends ClassLoader & Closeable> implements AutoCloseable {
     private final C classLoader;
 
-    public static DynamicClassLoader<URLClassLoader> forPaths(List<Path> paths, Class<?> owner) {
+    public void activate(Thread thread) {
+        thread.setContextClassLoader(classLoader);
+    }
+
+    public static DynamicClassLoader<URLClassLoader> forPaths(Collection<Path> paths, Class<?> owner) {
         var urls = paths.stream().map(DynamicClassLoader::url).toArray(URL[]::new);
         var urlLoader = new URLClassLoader(urls, owner.getClassLoader());
         return new DynamicClassLoader<>(urlLoader);

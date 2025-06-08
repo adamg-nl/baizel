@@ -9,7 +9,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -40,7 +39,7 @@ public final class Bootstrap {
         var isBaizelUpToDate = lastBaizelChecksum.equals(currentBaizelChecksum);
 
         // Step 2.3: if changes detected, rebuild everything
-        var libraries = new TreeSet<Path>();
+        var bootstrapClasspath = new TreeSet<Path>();
         if (! isBaizelUpToDate) {
             var compilationSucceeded = builder.build();
             if (!compilationSucceeded) {
@@ -48,16 +47,18 @@ public final class Bootstrap {
                 return;
             }
             builder.writeCurrentBaizelChecksum(currentBaizelChecksum);
-            libraries.addAll(builder.libraries());
+            bootstrapClasspath.addAll(builder.libraries());
+            bootstrapClasspath.addAll(builder.getResourceRootsOfBuiltModules());
         } else {
-            libraries.addAll(builder.readCachedMavenClasspath());
+            bootstrapClasspath.addAll(builder.readCachedMavenClasspath());
+            bootstrapClasspath.addAll(builder.readCachedResourceRoots());
         }
 
         // Step 2.4: load the compiled Baizel into a child classloader in the current JVM and call baizel.cli main
-        var bootstrapClasspath = new ArrayList<>(libraries);
         bootstrapClasspath.add(builder.compiledClasspathRoot());
         try(var bootstrapClassLoader = DynamicClassLoader.forPaths(bootstrapClasspath, Bootstrap.class)) {
             LOG.info("Stage 2 finished -- { \"durationMs\": " + Duration.between(START_TIMESTAMP, Instant.now()).toMillis() + " }");
+            bootstrapClassLoader.activate(Thread.currentThread());
             bootstrapClassLoader.invoke("nl.adamg.baizel.cli.Baizel", "main", (Object)args);
         }
     }
