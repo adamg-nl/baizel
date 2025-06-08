@@ -35,33 +35,31 @@ function main() {
 	# 'java .../baizel/internal/bootstrap/Bootstrap.java "${@}"'
 	# All further steps including the target tool/script will run in that JVM.
 
-	if [[ ${1:-} == "--debug" ]]; then
-		export BAIZEL_DEBUG=true
-		export BAIZEL_VERBOSE=true
-		shift
-	fi
-	if [[ ${BAIZEL_DEBUG:-} == true ]]; then
-		# log each executed line of this script (best we can do on shell layer)
-		set -o xtrace
-		set -o verbose
-	fi
-	if [[ ${1:-} == "--verbose" ]]; then
-		export BAIZEL_VERBOSE=true
-		shift
-	fi
+	 if [[ ${1:-} == "--debug" ]]; then
+	 	export BAIZEL_DEBUG=true
+	 	export BAIZEL_VERBOSE=true
+	 	shift
+	 fi
+	 if [[ ${BAIZEL_DEBUG:-} == true ]]; then
+	 	# log each executed line of this script (best we can do on shell layer)
+	 	set -o xtrace
+	 	set -o verbose
+	 fi
+	 if [[ ${1:-} == "--verbose" ]]; then
+	 	export BAIZEL_VERBOSE=true
+	 	shift
+	 fi
 	local args=("${@}")
-
-	log INFO "Bootstrap Stage 1"
 
 	if handleSourcingIntoTerminal; then
 		return
 	fi
-	# enable bash strict mode, since we're not sourced
+
+	log INFO "Bootstrap Stage 1"
 	set -o errexit
     set -o nounset
     set -o pipefail
-
-	local stage2Module=$(relativePath "$(dirname "${currentScriptPath}")/../internal/bootstrap")
+	local stage2Module="${currentScriptPath%/*}/../internal/bootstrap"
 	local compiledClassPathRoot="${stage2Module}/.build/classes/java/main"
 	local stage2Class="nl.adamg.baizel.internal.bootstrap.Bootstrap"
 	configureShell
@@ -75,14 +73,10 @@ function main() {
 ## Return true if the script was sourced and execution is already handled
 function handleSourcingIntoTerminal() {
 	local scriptPath=${BASH_SOURCE[${#BASH_SOURCE[@]}-1]:-${funcstack[-1]}}
-	if [[ $(basename "${scriptPath}") == "baizel" ]]; then
+	if [[ ${scriptPath##*/} == "baizel" ]]; then
 		scriptPath=""
 	fi
-	local sourceMode=false
-	if [[ ${ZSH_VERSION[*]:-} != "" || ${0} == "bash" ]]; then
-		sourceMode=true
-	fi
-	if [[ ${sourceMode} != true ]]; then
+	if [[ ${ZSH_VERSION[*]:-} == "" && ${0} != "bash" ]]; then
 		false; return
 	fi
 	if [[ ${scriptPath} == "" ]]; then
@@ -107,40 +101,41 @@ function handleSourcingIntoTerminal() {
 
 
 function configureShell() {
-    case "$(uname -s | tr '[:upper:]' '[:lower:]')" in
-      msys* | mingw*) # Windows + MSYS/Git-Bash
-    	# required to read arguments that start with '//'
+	if [[ ${MSYSTEM:-} == "MINGW64" ]]; then
+		# Windows + MSYS/Git-Bash requires this to read arguments that start with '//'
         export MSYS_NO_PATHCONV=1
         export MSYS2_ARG_CONV_EXCL="*"
-        ;;
-    esac
+    fi
 }
 
 
 
 function configureJavaPath() {
-	if [[ $(which java) == "" || $(which javac) == "" ]]; then
-		# if Java cannot be found, do best effort at auto-detecting
-		local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin/java"
-		local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
-		local windowsStandardJava="/c/Program Files/Common Files/Oracle/Java/javapath/java"
-		export PATH="${PATH}:$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${windowsStandardJava}"
-		if [[ $(which java) == "" ]]; then
-			log ERROR "Java Development Kit not found (try setting \$JAVA_HOME)"
-			exit 201 # CliErrors.JDK_NOT_FOUND
-		fi
-		if [[ $(which javac) == "" ]]; then
-			log ERROR "Java Development Kit not found (only JRE found, JDK required) (try setting \$JAVA_HOME)"
-			exit 201 # CliErrors.JDK_NOT_FOUND
-		fi
-	fi
-
-	# ensure that PATH selects javac matching JAVA_HOME, and fix JAVA_HOME if needed
-	if [[ ${JAVA_HOME:-} == "" || ! -e "${JAVA_HOME}/bin/javac" ]]; then
-		export JAVA_HOME="$(dirname "$(dirname "$(which javac)")")"
-	elif [[ ${JAVA_HOME:-} != "" && -e "${JAVA_HOME}/bin/javac" && $(which javac) != "${JAVA_HOME}/bin/javac" ]]; then
+	if [[ ${JAVA_HOME:-} != "" ]]; then
 		export PATH="${JAVA_HOME}/bin:${PATH}"
+		return
 	fi
+	local javacPath=$(which javac)
+	if [[ ${javacPath} != "" ]]; then
+		export JAVA_HOME="$(dirname "$(dirname "${javacPath}")")"
+		return
+	fi
+	log WARNING "Java not configured, trying to autodetect..."
+	local latestMacOsJava="$(/usr/libexec/java_home 2>/dev/null || true)/bin/java"
+	local cleanBashJava=$(env -C "${HOME}" -i USER="${USER}" HOME="${HOME}" PWD="${HOME}" bash -l -c "which java" 2>/dev/null || true)
+	local windowsStandardJava="/c/Program Files/Common Files/Oracle/Java/javapath/java"
+	local pathBackup=${PATH}
+	export PATH="${PATH}:$(dirname "${latestMacOsJava}"):$(dirname "${cleanBashJava}"):${windowsStandardJava}"
+	if [[ $(which java) == "" ]]; then
+		log ERROR "Java Development Kit not found (try setting \$JAVA_HOME)"
+		exit 201 # CliErrors.JDK_NOT_FOUND
+	fi
+	if [[ $(which javac) == "" ]]; then
+		log ERROR "Java Development Kit not found (only JRE found, JDK required) (try setting \$JAVA_HOME)"
+		exit 201 # CliErrors.JDK_NOT_FOUND
+	fi
+	export JAVA_HOME="$(dirname "$(dirname "${javacPath}")")"
+	export PATH="${JAVA_HOME}/bin:${pathBackup}"
 }
 
 
@@ -150,36 +145,36 @@ function buildStage2IfCacheExpired() {
 	local compiledClassPathRoot=${2}
 	local stage2Class=${3}
 
+	local className="${stage2Class//./\/}"
 	local sourcePathRoot="${stage2Module}/src/main/java"
-	local stage2SourcePath="${sourcePathRoot}/$(echo "${stage2Class}" | tr '.' '/').java"
-	local compiledPath="${stage2Module}/.build/classes/java/main/$(echo "${stage2Class}" | tr '.' '/').class"
+	local stage2SourcePath="${sourcePathRoot}/${className}.java"
+	local compiledPath="${stage2Module}/.build/classes/java/main/${className}.class"
 	local bootstrapSubModules=(io java javadsl util)
 	local checksum="$(bootstrapModuleChecksum "${stage2Module}")"
 	local checksumFile="${stage2Module}/.build/bootstrap.checksum"
 	local lastChecksum=$(cat "${checksumFile}" 2>/dev/null || true)
-	if [[ ${lastChecksum} != ${checksum} || ! -e "${compiledPath}" ]]; then
-		log INFO "stage 2 checksum changed or cache not found"
-		rm -rf "${stage2Module}/.build"
-		mkdir "${stage2Module}/.build"
-		local javacSourcePathArg="${sourcePathRoot}"
-		local separator=':'
-        if [[ ${WINDIR:-} != "" ]]; then
-        	separator=';' # probably windows, use special separator
-		fi
-		local sourceRoots=( "${stage2Module}/src/main/java" )
-		for subModule in "${bootstrapSubModules[@]}"; do
-			sourceRoots+=( "${stage2Module}/${subModule}/src/main/java" )
-		done
-		local sourcePathsFile="${stage2Module}/.build/bootstrap.sourcepaths"
-		find "${sourceRoots[@]}" -name "*.java" -not -name "module-info.java" > "${sourcePathsFile}"
-		local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters "@${sourcePathsFile}" )
-		IFS=' '; log INFO "$ ${compileCommand[*]}"
-		"${compileCommand[@]}"
-		echo "${checksum}" > "${checksumFile}"
-		log INFO "stage 2 compilation finished"
-	else
-		log INFO "stage 2 checksum matches, will run from cache"
+	if [[ ${lastChecksum} == ${checksum} && -e "${compiledPath}" ]]; then
+		return
 	fi
+	log INFO "stage 2 checksum changed or cache not found"
+	rm -rf "${stage2Module}/.build"
+	mkdir "${stage2Module}/.build"
+	local javacSourcePathArg="${sourcePathRoot}"
+	local separator=':'
+	if [[ ${WINDIR:-} != "" ]]; then
+		separator=';' # probably windows, use special separator
+	fi
+	local sourceRoots=( "${stage2Module}/src/main/java" )
+	for subModule in "${bootstrapSubModules[@]}"; do
+		sourceRoots+=( "${stage2Module}/${subModule}/src/main/java" )
+	done
+	local sourcePathsFile="${stage2Module}/.build/bootstrap.sourcepaths"
+	find "${sourceRoots[@]}" -name "*.java" -not -name "module-info.java" > "${sourcePathsFile}"
+	local compileCommand=( javac -d "${compiledClassPathRoot}" -parameters "@${sourcePathsFile}" )
+	IFS=' '; log INFO "$ ${compileCommand[*]}"
+	"${compileCommand[@]}"
+	echo "${checksum}" > "${checksumFile}"
+	log INFO "stage 2 compilation finished"
 }
 
 
@@ -191,24 +186,6 @@ function log() {
 		return
 	fi
 	echo "$(date '+%H:%M:%S.%N' | cut -c 1-12) ${level} .(baizel:${BASH_LINENO[0]}) ${line}" >&2
-}
-
-
-
-function realPath(){
-	(cd -- "${1%/*}" && echo "$PWD/${1##*/}")
-}
-
-
-function relativePath(){
-	local a=$(realPath "${1}")
-	local p=${PWD}
-	local up=""
-	while [[ ${a#$p/} == "$a" ]]; do
-		p=${p%/*}
-		up="../${up}"
-	done
-	echo "${up}${a#$p/}"
 }
 
 
@@ -225,7 +202,7 @@ function bootstrapModuleChecksum() {
 	else # GNU/Linux (has -c parameter)
 		statArgs+=(-c "%n %s %Y")
 	fi
-	find "${path}" -path '*/src/main/*' -exec stat "${statArgs[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
+	find "${path}" -path '*/build/*' -o -path '*/.build/*' -prune -o -path '*/src/main/*' -exec stat "${statArgs[@]}" {} + 2>/dev/null | md5sum | sed -E 's/ .*//'
 }
 
 
@@ -254,6 +231,7 @@ function startJvmWithStage2Class() {
 	log INFO "Stage 1 finished -- { \"durationMs\": $(( ( $(date '+%s%N') - ${START_TIMESTAMP} ) / 1000000 )) }"
 	IFS=' '; log INFO "$ ${command[*]}"
 	exec "${command[@]}" # starts bootstrap stage 2
+	echo -n "269" && date '+%H:%M:%S.%N'
 }
 
 
