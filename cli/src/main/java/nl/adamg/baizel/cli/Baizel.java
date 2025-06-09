@@ -14,15 +14,17 @@ public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
     public record Args(Set<String> options, Set<String> tasks, Set<String> taskArgs, Set<Target> targets) {}
     public static String HELP = """
-            Baizel build system
+            Baizel build system for Java™
            
-            Usage: baizel [<BAIZEL_OPTION>...] <TASK>... [<TASK_ARG>...] [-- <TARGET>...]
-            Usage: baizel <SOURCE_FILE_TARGET> <ENTRY_POINT_ARGS>...
-            Usage: baizel ( <JSON_ARGS_OBJECT> | <BASE_64_JSON_ARGS_OBJECT> )
+            Usage:
+              baizel [<BAIZEL_OPTION>...] <TASK>... [<TASK_ARG>...] [-- <TARGET>...]
+              baizel <SOURCE_FILE_TARGET> <ENTRY_POINT_ARGS>...
+              baizel ( <JSON_ARGS_OBJECT> | <BASE_64_JSON_ARGS_OBJECT> )
             
-            Example: baizel --verbose build --no-cache //internal/common/util
-            Example: baizel //src/main/java/Hello.java "world" "42"
-            Example: baizel '{ "tasks": [ "build" ], "targets": [ "//bootstrap" ] }'
+            Usage examples:
+              baizel --verbose build --no-cache //internal/common/util
+              baizel //src/main/java/Hello.java "world" "42"
+              baizel '{ "tasks": [ "build" ], "targets": [ "//bootstrap" ] }'
            
             To get detailed information about a particular task, use baizel <TASK> --help.
             
@@ -30,8 +32,15 @@ public class Baizel {
             will be in format of newline-separated JSON object(s), and the command may accept input event objects
             via stdin in the same format.
            
+            Tasks:
+              build            Builds the specified targets.
+              test             Runs the specified test targets.
+              run              Runs the specified executable targets.
+              clean            Removes Baizel's output files and invalidates local cache.
+              shell            Opens jshell session with given target's classpath.
+           
             Target syntax:
-              <TARGET>         is in format [@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>] .
+              <TARGET>         is in format [-][@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>] .
               <PATH>           can end with ... to match all targets within a package and its subpackages.
               <PATH>           can contain ** to match any number of intermediate directories and files.
               <TARGET_NAME>    equal to * means all the targets directly within package.
@@ -39,13 +48,14 @@ public class Baizel {
               <PATH>           missing means the current package.
               <ORG>/<MODULE>   when defined mean running a task from remote package.
               -<TARGET>        means excluding that target.
-           
-            Tasks:
-              build            Builds the specified targets.
-              test             Runs the specified test targets.
-              run              Runs the specified executable targets.
-              clean            Removes Baizel's output files and invalidates local cache.
-              shell            Opens jshell session with given target's classpath.
+            
+            Target syntax examples:
+              //pkg:target     a specific target within a package
+              //pa/cka/ge      the main target within a package
+              //pa/cka/ge/...  all targets within a package and its subpackages
+              //pa/cka/ge:*    targets directly within a package
+              :target          a shorthand for a target in the current package
+              -//pkg:target    excludes a specific target within a package
            
             Environment variables used:
               BAIZEL_DEBUG     Enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
