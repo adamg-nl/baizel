@@ -49,10 +49,10 @@ currentScriptPath="${BASH_SOURCE[0]:-${(%):-%x}}" # on zsh this has to be on the
 ###   :target          a shorthand for a target in the current package
 ###   -//pkg:target    excludes a specific target within a package
 ###
+### Baizel options:
+###   --worker-count=<N> (optional, default: number of CPU cores)
 ### Environment variables used:
 ###   BAIZEL_DEBUG     enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
-###   BAIZEL_VERBOSE   enables verbose logging. Values: true, false
-###   BAIZEL_JVM_OPTS  additional JVM arguments, space-separated
 function main() {
 	# Bootstrap Stage 1: a thin shell script ('baizel/bin/baizel') will invoke JVM in the "single-source-file-program" mode:
 	# 'java .../baizel/internal/bootstrap/Bootstrap.java "${@}"'
