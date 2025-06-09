@@ -1,6 +1,6 @@
 package nl.adamg.baizel.cli.internal;
 
-import nl.adamg.baizel.cli.Baizel;
+import nl.adamg.baizel.cli.Arguments;
 import nl.adamg.baizel.core.entities.Target;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
@@ -11,14 +11,14 @@ public class CliParser {
     /// ```
     /// baizel [<BAIZEL_OPTION>...] [<TASK>...] [<TASK_ARG>...] [-- <TARGET>...]
     /// ```
-    public static Baizel.Args parseCliArgs(String... args) {
+    public static Arguments parseCliArgs(String... args) {
         var options = new TreeSet<String>();
         var tasks = new TreeSet<String>();
         var taskArgs = new TreeSet<String>();
         var targets = new TreeSet<>(Comparator.comparing(Target::toString));
 
         if (args.length == 0) {
-            return new Baizel.Args(options, tasks, taskArgs, targets);
+            return new Arguments(options, tasks, taskArgs, targets);
         }
         var remainingArgs = (Queue<String>)new LinkedList<>(Arrays.asList(args));
         while (! remainingArgs.isEmpty() && remainingArgs.peek().startsWith("-")) {
@@ -53,7 +53,7 @@ public class CliParser {
                 targets.add(parseTarget(next));
             }
         }
-        return new Baizel.Args(options, tasks, taskArgs, targets);
+        return new Arguments(options, tasks, taskArgs, targets);
     }
 
     public static Target parseTarget(String input) {

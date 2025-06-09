@@ -2,17 +2,18 @@ package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
 import nl.adamg.baizel.cli.internal.Task;
-import nl.adamg.baizel.core.entities.Target;
-import nl.adamg.baizel.internal.common.java.Services;
-import nl.adamg.baizel.internal.common.util.collections.Items;
+import nl.adamg.baizel.core.Project;
+import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.internal.common.util.concurrent.Executor;
 
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.logging.Logger;
 
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
-    public record Args(Set<String> options, Set<String> tasks, Set<String> taskArgs, Set<Target> targets) {}
+
     public static String HELP = """
             Baizel build system for Java™
            
@@ -40,7 +41,7 @@ public class Baizel {
               shell            opens jshell session with given target's classpath
            
             Target syntax:
-              <TARGET>         is in format [-][@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>] 
+              <TARGET>         is in format [-][@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]
                                means either a source set name (as in "<MODULE>/src/<SOURCE_SET_NAME>/java"),
                                or a custom target defined by an extension
               <PATH>           can end with ... to match all targets within a package and its subpackages
@@ -59,6 +60,9 @@ public class Baizel {
               :target          a shorthand for a target in the current package
               -//pkg:target    excludes a specific target within a package
            
+            Baizel options:
+              --worker-count=<N> (optional, default: number of CPU cores)
+           
             Environment variables used:
               BAIZEL_DEBUG     enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
               BAIZEL_VERBOSE   enables verbose logging. Values: true, false
@@ -67,22 +71,48 @@ public class Baizel {
 
     public static void main(String... args) throws Exception {
         LOG.info("main(" + String.join(", ", args) + ")");
-        main(CliParser.parseCliArgs(args));
+        new Baizel().main(CliParser.parseCliArgs(args));
     }
 
-    public static void main(Args args) throws Exception {
-        if (args.tasks().isEmpty()) {
+    public void main(Arguments arguments) throws Exception {
+        if (arguments.tasks.isEmpty()) {
             throw CliErrors.TASK_NOT_SELECTED.exit();
         }
-        var allTasks = Services.get(Task.class);
-        var missingTasks = Items.filter(args.tasks, c -> Items.noneMatch(allTasks, ec -> ec.getTaskId().equals(c)));
-        if (! missingTasks.isEmpty()) {
-            var taskNames = Items.mapToList(allTasks, Task::getTaskId);
-            throw CliErrors.UNKNOWN_TASK.exit(String.join(", ", missingTasks), String.join(", ", taskNames));
+        var project = Project.findAndLoad(Paths.get("."));
+        var taskDependencies = collectTaskDependencies(arguments.tasks, arguments.taskArgs, arguments.targets, project);
+        var finishedTasks = new TreeSet<Task.Request>();
+        try(var executor = Executor.create(arguments.options.workerCount, IOException.class)) {
+            for (var taskRequest : taskDependencies.keySet()) {
+                Task.get(taskRequest.taskId()).run(taskRequest.target(), arguments.taskArgs, List.of(), project);
+            }
         }
-        var matchingTasks = Items.filter(allTasks, c -> args.tasks.contains(c.getTaskId()));
-        for(var task : matchingTasks) {
-            task.run(null, List.of(), List.of());
+    }
+
+    private Map<Task.Request, List<Task.Request>> collectTaskDependencies(Set<String> tasks, List<String> taskArgs, Set<Target> targets, Project project) {
+        var allDependencies = new TreeMap<Task.Request, List<Task.Request>>();
+        var requestQueue = (Queue<Task.Request>) new LinkedList<Task.Request>();
+        for(var task : tasks) {
+            if (Task.get(task) == null) {
+                throw CliErrors.UNKNOWN_TASK.exit(String.join(", ", task), String.join(", ", Task.getTasks()));
+            }
+            for (var target : targets) {
+                requestQueue.add(new Task.Request(target, task));
+            }
         }
+        while (! requestQueue.isEmpty()) {
+            var request = requestQueue.poll();
+            if (allDependencies.containsKey(request)) {
+                continue; // already processed
+            }
+            var task = Task.get(request.taskId());
+            Objects.requireNonNull(task, "task " + request.taskId() + " not found");
+            if (! task.isApplicable(project, request.target())) {
+                continue;
+            }
+            var dependencies = task.findDependencies(project, request.target(), taskArgs);
+            allDependencies.put(request, dependencies);
+            requestQueue.addAll(dependencies);
+        }
+        return allDependencies;
     }
 }

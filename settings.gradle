@@ -1,6 +1,5 @@
 rootProject.name = "baizel"
 
-include(":buildsystem")
 include(":cli")
 include(":core")
 include(":internal:bazel")
