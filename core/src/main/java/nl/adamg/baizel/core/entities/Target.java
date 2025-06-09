@@ -3,9 +3,9 @@ package nl.adamg.baizel.core.entities;
 import javax.annotation.CheckForNull;
 import java.io.Serializable;
 
-/// Format: `[@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]`
-/// Example: `@foo/bar//baz/qux:main`
-/// Example: `//baz/qux`
+/**
+ * @see nl.adamg.baizel.core.Target
+ */
 public class Target implements Serializable {
     @CheckForNull public String organization;
     @CheckForNull public String module;
