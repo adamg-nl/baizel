@@ -1,4 +1,4 @@
-package nl.adamg.baizel.internal.common.java;
+package nl.adamg.baizel.internal.common.util;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -24,6 +24,15 @@ public final class Exceptions {
             throw (Error) throwable;
         }
         throw new RuntimeException(throwable);
+    }
+
+    public static <E extends Throwable> void rethrowIfIs(@CheckForNull Throwable throwable, Class<E> ofType) throws E {
+        if (ofType.isInstance(throwable)) {
+            if (throwable instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            throw ofType.cast(throwable);
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.common.io;
 
-import nl.adamg.baizel.internal.common.java.Exceptions;
+import nl.adamg.baizel.internal.common.util.Exceptions;
 
 import java.io.Closeable;
 import java.io.IOException;
