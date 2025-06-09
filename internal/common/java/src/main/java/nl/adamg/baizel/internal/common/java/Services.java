@@ -2,13 +2,23 @@ package nl.adamg.baizel.internal.common.java;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class Services {
+    private static final Map<String, List<?>> SERVICES = new ConcurrentHashMap<>();
+
     public static <T> List<T> get(Class<T> serviceInterface) {
-        var services = new ArrayList<T>();
-        for (var service : ServiceLoader.load(serviceInterface)) {
-            services.add(service);
+        @SuppressWarnings("unchecked")
+        var services = (List<T>)SERVICES.get(serviceInterface.getCanonicalName());
+        if (services == null) {
+            services = new ArrayList<>();
+            for (var service : ServiceLoader.load(serviceInterface)) {
+                services.add(service);
+            }
+            ((ArrayList<T>)services).trimToSize();
+            SERVICES.put(serviceInterface.getCanonicalName(), services);
         }
         return services;
     }
