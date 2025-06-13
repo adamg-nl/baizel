@@ -1,6 +1,7 @@
 package nl.adamg.baizel.internal.common.util.concurrent;
 
-import nl.adamg.baizel.internal.common.util.functions.Callable;
+import nl.adamg.baizel.internal.common.util.Exceptions;
+import nl.adamg.baizel.internal.common.util.functions.Runnable;
 
 import javax.annotation.CheckForNull;
 import java.time.Duration;
@@ -11,7 +12,7 @@ import java.time.Instant;
  * @param <TException> checked exception that is allowed to be thrown from tasks.
  * @see Executor#create public factory method
  */
-public class CurrentThreadExecutor<TException extends Exception> extends Executor<TException> {
+public class CurrentThreadExecutor<TException extends Exception> implements Executor<TException> {
     private final Class<TException> exceptionType;
     private final Duration timeLimit;
     private final Instant startTime;
@@ -28,7 +29,7 @@ public class CurrentThreadExecutor<TException extends Exception> extends Executo
      * If the task crashes with exception, remaining tasks will be ignored.
      */
     @Override
-    public void run(@CheckForNull String threadName, Callable<Void, TException> task) {
+    public void run(@CheckForNull String threadName, Runnable<TException> task) {
         if (taskException != null) {
             return;
         }
@@ -42,7 +43,7 @@ public class CurrentThreadExecutor<TException extends Exception> extends Executo
             thread.setName(threadName + "[" + originalName + "]");
         }
         try {
-            task.call();
+            task.run();
         } catch (Throwable e) {
             this.taskException = e;
         } finally {
@@ -64,12 +65,7 @@ public class CurrentThreadExecutor<TException extends Exception> extends Executo
     @Override
     public void close() throws TException, InterruptedException {
         if (taskException != null) {
-            rethrow(taskException);
+            throw Exceptions.rethrow(taskException, exceptionType, InterruptedException.class);
         }
-    }
-
-    @Override
-    protected Class<TException> getExceptionType() {
-        return exceptionType;
     }
 }

@@ -10,22 +10,33 @@ public final class Exceptions {
      * RuntimeException} nor {@link Error}. Usage: {@code throw rethrow(e);}
      */
     public static RuntimeException rethrow(Throwable throwable) {
-        return rethrow(throwable, RuntimeException.class);
+        throw rethrow(throwable, RuntimeException.class);
     }
 
-    public static <T extends Exception> RuntimeException rethrow(Throwable throwable, Class<T> allowedType) throws T {
-        if (allowedType.isInstance(throwable)) {
-            throw allowedType.cast(throwable);
-        }
-        if (throwable instanceof RuntimeException) {
-            throw (RuntimeException) throwable;
-        }
-        if (throwable instanceof Error) {
-            throw (Error) throwable;
-        }
+    /**
+     * Rethrows exception of unknown type without wrapping in RuntimeException.
+     */
+    public static <TException extends Exception> RuntimeException rethrow(@CheckForNull Throwable throwable, Class<TException> expectedType) throws TException {
+        rethrowIfIs(throwable, expectedType);
+        rethrowIfIs(throwable, RuntimeException.class);
+        rethrowIfIs(throwable, Error.class);
         throw new RuntimeException(throwable);
     }
 
+    public static <TException1 extends Exception, TException2 extends Exception> RuntimeException rethrow(@CheckForNull Throwable throwable, Class<TException1> expectedType1, Class<TException2> expectedType2) throws TException1, TException2 {
+        rethrowIfIs(throwable, expectedType1);
+        throw rethrow(throwable, expectedType2);
+    }
+
+    public static <TException1 extends Exception, TException2 extends Exception, TException3 extends Exception> RuntimeException rethrow(@CheckForNull Throwable throwable, Class<TException1> expectedType1, Class<TException2> expectedType2, Class<TException3> expectedType3) throws TException1, TException2, TException3 {
+        rethrowIfIs(throwable, expectedType1);
+        rethrowIfIs(throwable, expectedType2);
+        throw rethrow(throwable, expectedType3);
+    }
+
+    /**
+     * Rethrows given exception if it belongs to the specified type.
+     */
     public static <E extends Throwable> void rethrowIfIs(@CheckForNull Throwable throwable, Class<E> ofType) throws E {
         if (ofType.isInstance(throwable)) {
             if (throwable instanceof InterruptedException) {

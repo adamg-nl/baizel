@@ -1,6 +1,6 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
-import nl.adamg.baizel.internal.bootstrap.util.functions.Function;
+import nl.adamg.baizel.internal.common.util.functions.Function;
 import nl.adamg.baizel.internal.common.util.functions.Predicate;
 
 import java.lang.reflect.Array;
@@ -142,7 +142,18 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return result;
     }
 
-    public static <T, E extends Exception> String toString(List<T> input, String separator, Function<T,String, E> toString) throws E {
+    public static <K, V> Map<K, List<V>> invertMapOfLists(Map<V, List<K>> input) {
+        @SuppressWarnings("unchecked")
+        var inverted = Items.newOfType((Map<K, List<V>>)(Object)input);
+        for (var entry : input.entrySet()) {
+            for (var value : entry.getValue()) {
+                inverted.computeIfAbsent(value, k -> new ArrayList<>()).add(entry.getKey());
+            }
+        }
+        return inverted;
+    }
+
+    public static <T, E extends Exception> String toString(Iterable<T> input, String separator, Function<T,String, E> toString) throws E {
         var output = new StringBuilder();
         var first = true;
         for(var item : input) {
@@ -154,6 +165,22 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
             output.append(toString.apply(item));
         }
         return output.toString();
+    }
+
+    public static <I, K2 extends Comparable<K2>, V2, E extends Exception> Map<K2, V2> mapToSortedMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
+        return mapToMap(input, keySelector, valueSelector, new TreeMap<>());
+    }
+
+    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
+        return mapToMap(input, keySelector, valueSelector, new HashMap<>());
+    }
+
+    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector, Map<K2, V2> output) throws E {
+        output.clear();
+        for(var i : input) {
+            output.put(keySelector.apply(i), valueSelector.apply(i));
+        }
+        return output;
     }
 
     public <T> T first(List<T> input) {

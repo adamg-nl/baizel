@@ -1,6 +1,7 @@
 package nl.adamg.baizel.internal.common.util.concurrent;
 
-import nl.adamg.baizel.internal.common.util.functions.Callable;
+import nl.adamg.baizel.internal.common.util.Exceptions;
+import nl.adamg.baizel.internal.common.util.functions.Runnable;
 
 import javax.annotation.CheckForNull;
 import java.time.Duration;
@@ -18,20 +19,22 @@ import java.util.concurrent.TimeUnit;
  * @param <TException> checked exception that is allowed to be thrown from tasks
  * @see Executor#create public factory method
  */
-public class ThreadPoolExecutor<TException extends Exception> extends Executor<TException> {
+public class ThreadPoolExecutor<TException extends Exception> implements Executor<TException> {
+    private final List<Future<Void>> futures = new ArrayList<>();
+    private final Instant startTime = Instant.now();
     private final ExecutorService executorService;
-    private final List<Future<Void>> futures;
     private final Class<TException> exceptionType;
     private final Duration timeLimit;
-    private final Instant startTime;
     @CheckForNull private volatile Throwable taskException;
 
     public ThreadPoolExecutor(int threadCount, Class<TException> exceptionType, Duration timeLimit) {
-        this.executorService = Executors.newFixedThreadPool(threadCount);
+        this(Executors.newFixedThreadPool(threadCount), exceptionType, timeLimit);
+    }
+
+    protected ThreadPoolExecutor(ExecutorService executorService, Class<TException> exceptionType, Duration timeLimit) {
+        this.executorService = executorService;
         this.exceptionType = exceptionType;
         this.timeLimit = timeLimit;
-        this.futures = new ArrayList<>();
-        this.startTime = Instant.now();
     }
 
     /**
@@ -39,7 +42,7 @@ public class ThreadPoolExecutor<TException extends Exception> extends Executor<T
      * If the task crashes with exception, best effort is made to stop processing of remaining tasks.
      */
     @Override
-    public void run(@CheckForNull String threadName, Callable<Void, TException> task) {
+    public void run(@CheckForNull String threadName, Runnable<TException> task) {
         if (taskException != null) {
             return;
         }
@@ -53,7 +56,7 @@ public class ThreadPoolExecutor<TException extends Exception> extends Executor<T
                 thread.setName(threadName + "[" + originalName + "]");
             }
             try {
-                task.call();
+                task.run();
             } catch (Throwable e) {
                 synchronized (this) {
                     if (taskException == null) {
@@ -81,20 +84,15 @@ public class ThreadPoolExecutor<TException extends Exception> extends Executor<T
             throw new InterruptedException("timed out after " + timeLimit);
         }
         if (taskException != null) {
-            rethrow(taskException);
+            throw Exceptions.rethrow(taskException, exceptionType, InterruptedException.class);
         }
         for (var future : futures) {
             try {
                 future.get();
             } catch (ExecutionException e) {
                 var cause = e.getCause();
-                rethrow(cause != null ? cause : e);
+                throw Exceptions.rethrow(cause != null ? cause : e, exceptionType, InterruptedException.class);
             }
         }
-    }
-
-    @Override
-    protected Class<TException> getExceptionType() {
-        return exceptionType;
     }
 }
