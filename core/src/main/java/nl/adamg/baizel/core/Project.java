@@ -5,7 +5,7 @@ import java.nio.file.Path;
 public class Project {
     private final nl.adamg.baizel.core.entities.Project entity;
 
-    public static Project findAndLoad(Path path) {
+    public static Project findAndLoadProjectRoot(Path path) {
         return new Project(new nl.adamg.baizel.core.entities.Project());
     }
 

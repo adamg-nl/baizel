@@ -10,7 +10,7 @@ public enum CliErrors {
     BOOTSTRAP_COMPILATION_FAILED(202),
     TASK_NOT_SELECTED(203, "task not selected", true),
     UNKNOWN_TASK(204, "unknown task ${1}, available tasks: ${2}", true),
-    ;
+    UNRESOLVED_DEPENDENCIES(205, "unable to resolve dependencies: ${1}", false);
     private final int exitCode;
     private final String message;
     private final boolean printUsage;
@@ -19,7 +19,7 @@ public enum CliErrors {
     public RuntimeException exit(String... details) {
         System.err.println(processMessage(details));
         if (printUsage) {
-            var usage = String.join("\n", Items.filter(Baizel.HELP.split("\n"), l -> l.startsWith("Usage: ")));
+            var usage = "baizel [<BAIZEL_OPTION>...] <TASK>... [<TASK_ARG>...] [-- <TARGET>...]";
             for(var i=0; i<details.length; i++) {
                 usage = usage.replace("${" + (i+1) + "}", details[i]);
             }

@@ -1,11 +1,14 @@
 package nl.adamg.baizel.cli.tasks;
 
-import nl.adamg.baizel.cli.internal.Task;
+import nl.adamg.baizel.core.tasks.Task;
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.core.tasks.TaskInput;
+import nl.adamg.baizel.core.tasks.TaskRequest;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 public class Compile implements Task {
@@ -18,13 +21,13 @@ public class Compile implements Task {
     }
 
     @Override
-    public List<Request> findDependencies(Project project, Target target, List<String> args) {
-        return List.of();
+    public Set<TaskRequest> findDependencies(Project project, Target target, List<String> args) {
+        return Set.of();
     }
 
     @Override
-    public List<Path> run(Target target, List<String> args, List<Input> inputs, Project project) {
+    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Project project) {
         LOG.warning("COMPILING");
-        return List.of();
+        return Set.of();
     }
 }

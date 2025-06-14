@@ -1,20 +1,25 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.cli.internal.CliParser;
-import nl.adamg.baizel.cli.internal.Task;
+import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
-import nl.adamg.baizel.internal.common.util.concurrent.Executor;
+import nl.adamg.baizel.core.tasks.TaskRequest;
+import nl.adamg.baizel.core.tasks.Tasks;
 
-import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
-
-    public static String HELP = """
+    private static final String HELP = """
             Baizel build system for Java™
            
             Usage:
@@ -74,29 +79,34 @@ public class Baizel {
         new Baizel().main(CliParser.parseCliArgs(args));
     }
 
+    public static String getHelp() {
+        return HELP;
+    }
+
     public void main(Arguments arguments) throws Exception {
         if (arguments.tasks.isEmpty()) {
             throw CliErrors.TASK_NOT_SELECTED.exit();
         }
-        var project = Project.findAndLoad(Paths.get("."));
+        var project = Project.findAndLoadProjectRoot(Paths.get("."));
         var taskDependencies = collectTaskDependencies(arguments.tasks, arguments.taskArgs, arguments.targets, project);
-        var finishedTasks = new TreeSet<Task.Request>();
-        try(var executor = Executor.create(arguments.options.workerCount, IOException.class)) {
-            for (var taskRequest : taskDependencies.keySet()) {
-                Task.get(taskRequest.taskId()).run(taskRequest.target(), arguments.taskArgs, List.of(), project);
-            }
-        }
+        TaskScheduler.schedule(taskDependencies, arguments.options.workerCount, getRunner(arguments, project));
     }
 
-    private Map<Task.Request, List<Task.Request>> collectTaskDependencies(Set<String> tasks, List<String> taskArgs, Set<Target> targets, Project project) {
-        var allDependencies = new TreeMap<Task.Request, List<Task.Request>>();
-        var requestQueue = (Queue<Task.Request>) new LinkedList<Task.Request>();
+    private static TaskScheduler.Runner getRunner(Arguments arguments, Project project) {
+        return (task, inputs) -> Tasks.get(task.taskId).run(task.target, arguments.taskArgs, inputs, project);
+    }
+
+    /// Collect transitive task dependency graph for given entry tasks.
+    /// Each task computes own direct dependencies in [#findDependencies].
+    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, List<String> taskArgs, Set<Target> targets, Project project) {
+        var allDependencies = new TreeMap<TaskRequest, Set<TaskRequest>>();
+        var requestQueue = (Queue<TaskRequest>) new LinkedList<TaskRequest>();
         for(var task : tasks) {
-            if (Task.get(task) == null) {
-                throw CliErrors.UNKNOWN_TASK.exit(String.join(", ", task), String.join(", ", Task.getTasks()));
+            if (! Tasks.getTasks().contains(task)) {
+                throw CliErrors.UNKNOWN_TASK.exit(task, String.join(", ", Tasks.getTasks()));
             }
             for (var target : targets) {
-                requestQueue.add(new Task.Request(target, task));
+                requestQueue.add(new TaskRequest(target, task));
             }
         }
         while (! requestQueue.isEmpty()) {
@@ -104,12 +114,12 @@ public class Baizel {
             if (allDependencies.containsKey(request)) {
                 continue; // already processed
             }
-            var task = Task.get(request.taskId());
-            Objects.requireNonNull(task, "task " + request.taskId() + " not found");
-            if (! task.isApplicable(project, request.target())) {
+            var task = Tasks.get(request.taskId);
+            Objects.requireNonNull(task, "task " + request.taskId + " not found");
+            if (! task.isApplicable(project, request.target)) {
                 continue;
             }
-            var dependencies = task.findDependencies(project, request.target(), taskArgs);
+            var dependencies = task.findDependencies(project, request.target, taskArgs);
             allDependencies.put(request, dependencies);
             requestQueue.addAll(dependencies);
         }

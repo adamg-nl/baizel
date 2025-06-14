@@ -3,6 +3,8 @@ package nl.adamg.baizel.core;
 import nl.adamg.baizel.internal.common.util.collections.EntityComparator;
 
 import javax.annotation.CheckForNull;
+import java.util.List;
+import java.util.function.Function;
 
 /// Format: `[@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]`
 /// Example: `@foo/bar//baz/qux:main`
@@ -27,16 +29,30 @@ public class Target implements Comparable<Target> {
         return sb.toString();
     }
 
-    @Override
-    public int compareTo(Target that) {
-        return EntityComparator.compareBy(
-                this, that,
+    private List<Function<Target, ?>> fields() {
+        return List.of(
                 Target::organization,
                 Target::module,
                 Target::path,
                 Target::targetName
         );
     }
+
+    @Override
+    public int compareTo(Target that) {
+        return EntityComparator.compareBy(this, that, fields());
+    }
+
+    @Override
+    public int hashCode() {
+        return EntityComparator.hashCode(this, fields());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return EntityComparator.equals(this, obj, fields());
+    }
+
     //endregion
 
     //region getters

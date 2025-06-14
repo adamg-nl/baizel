@@ -4,7 +4,23 @@ import nl.adamg.baizel.internal.common.util.functions.Function;
 import nl.adamg.baizel.internal.common.util.functions.Predicate;
 
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
@@ -70,7 +86,7 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
             var emptyArray = (O[]) new Object[0];
             return emptyArray;
         }
-        var superclass = output.getFirst().getClass();
+        var superclass = output.get(0).getClass();
         for(var object : output) {
             while (! superclass.isAssignableFrom(object.getClass()) && ! superclass.equals(Object.class)) {
                 superclass = superclass.getSuperclass();
@@ -181,6 +197,10 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
             output.put(keySelector.apply(i), valueSelector.apply(i));
         }
         return output;
+    }
+
+    public static <T> Set<T> newConcurrentSet() {
+        return Collections.newSetFromMap(new ConcurrentHashMap<>());
     }
 
     public <T> T first(List<T> input) {
