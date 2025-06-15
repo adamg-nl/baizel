@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Base64;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.zip.Adler32;
 
@@ -105,5 +107,61 @@ public final class Text {
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * @return null if not base-64 utf-8-encoded string of printable characters.
+     */
+    @CheckForNull
+    public static String tryDecodeBase64(String input) {
+        if(input.isEmpty()) {
+            return "";
+        }
+        if (input.length() % 4 != 0) {
+            return null;
+        }
+        if (input.matches(".*[^A-Za-z0-9+/=].*")) {
+            return null;
+        }
+        try {
+            var decoded = Base64.getDecoder().decode(input);
+            var result = new String(decoded);
+            if (isPrintableUtf8(result)) {
+                return result;
+            }
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+        return null;
+    }
+
+    public static boolean isPrintableUtf8(String s) {
+        return s.codePoints().allMatch(Text::isPrintableCodePoint);
+    }
+
+    public static boolean isPrintableCodePoint(int cp) {
+        var asciiPrintableStart = 0x20;
+        var asciiPrintableEnd = 0x7E;
+        var noncharStart = 0xFDD0;
+        var noncharEnd = 0xFDEF;
+        var noncharMask  = 0xFFFE;
+        var nonPrintableCategories = Set.of(
+                Character.CONTROL,
+                Character.FORMAT,
+                Character.PRIVATE_USE,
+                Character.SURROGATE,
+                Character.UNASSIGNED,
+                Character.LINE_SEPARATOR,
+                Character.PARAGRAPH_SEPARATOR
+        );
+        if ((cp >= asciiPrintableStart && cp <= asciiPrintableEnd) || cp == '\t' || cp == '\n' || cp == '\r') {
+            return true;
+        }
+        var category = (byte)Character.getType(cp);
+        if (nonPrintableCategories.contains(category)) {
+            return false;
+        }
+        var isNonPrintable = (cp >= noncharStart && cp <= noncharEnd) || (cp & noncharMask) == noncharMask;
+        return !isNonPrintable;
     }
 }

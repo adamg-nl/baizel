@@ -1,10 +1,19 @@
 package nl.adamg.baizel.cli.internal;
 
 import nl.adamg.baizel.cli.Arguments;
-import nl.adamg.baizel.core.entities.Target;
+import nl.adamg.baizel.cli.Options;
+import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.internal.common.serialization.JsonUtil;
+import nl.adamg.baizel.internal.common.util.Text;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class CliParser {
     /// Format:
@@ -12,9 +21,19 @@ public class CliParser {
     /// baizel [<BAIZEL_OPTION>...] [<TASK>...] [<TASK_ARG>...] [-- <TARGET>...]
     /// ```
     public static Arguments parseCliArgs(String... args) {
-        var options = new TreeSet<String>();
+        if (args.length == 1) {
+            var argsString = args[0];
+            var base64Decoded = Text.tryDecodeBase64(argsString);
+            if (base64Decoded != null && base64Decoded.startsWith("{") && base64Decoded.endsWith("}")) {
+                argsString = base64Decoded;
+            }
+            if (argsString.startsWith("{") && argsString.endsWith("}")) {
+                return JsonUtil.fromJson(argsString, Arguments.class);
+            }
+        }
+        var options = new Options();
         var tasks = new TreeSet<String>();
-        var taskArgs = new TreeSet<String>();
+        var taskArgs = new ArrayList<String>();
         var targets = new TreeSet<>(Comparator.comparing(Target::toString));
 
         if (args.length == 0) {
@@ -22,7 +41,7 @@ public class CliParser {
         }
         var remainingArgs = (Queue<String>)new LinkedList<>(Arrays.asList(args));
         while (! remainingArgs.isEmpty() && remainingArgs.peek().startsWith("-")) {
-            options.add(remainingArgs.poll());
+            parseOption(options, remainingArgs.poll());
         }
         var targetPrefixes = Set.of("//", ":", "-:", "-//");
         while (! remainingArgs.isEmpty() &&
@@ -56,6 +75,14 @@ public class CliParser {
         return new Arguments(options, tasks, taskArgs, targets);
     }
 
+    private static void parseOption(Options options, String option) {
+        var watcherCount = "--watcher-count=";
+        if (option.startsWith(watcherCount)) {
+            options.workerCount = Integer.parseInt(option.substring(watcherCount.length()));
+            return;
+        }
+    }
+
     public static Target parseTarget(String input) {
         var org = (String)null;
         var mod = (String)null;
@@ -81,6 +108,6 @@ public class CliParser {
             name = input.substring(colon + 1);
         }
 
-        return new Target(org, mod, path, name);
+        return new Target(new nl.adamg.baizel.core.entities.Target(org, mod, path, name));
     }
 }
