@@ -16,7 +16,7 @@ public class TaskRequest extends EntityModel<TaskRequest, TaskRequest> {
     //region entity model
     @Override
     public String toString() {
-        return target + "." + taskId;
+        return target + ":" + taskId;
     }
 
     @Override

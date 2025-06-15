@@ -10,34 +10,38 @@ import java.util.function.Function;
 /// Example: `@foo/bar//baz/qux:main`
 /// Example: `//baz/qux`
 public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Target> {
+    public static Target module(String path) {
+        return new Target(new nl.adamg.baizel.core.entities.Target("", "", path, ""));
+    }
+
+    public static Target artifact(String organization, String artifact) {
+        return new Target(new nl.adamg.baizel.core.entities.Target(organization, artifact, "", ""));
+    }
+
     /**
      * @return null if this target is not a project module (e.g. it's an artifact)
      */
     @CheckForNull
     public Module getModule(Project project) {
-        if (artifact() != null || entity.path == null) {
+        if (!artifact().isEmpty() || entity.path.isEmpty()) {
             return null;
         }
         return project.getModuleOf(project.root().resolve(entity.path));
     }
 
-    //region getters
-    @CheckForNull
+    //region get
     public String organization() {
         return entity.organization;
     }
 
-    @CheckForNull
     public String artifact() {
         return entity.artifact;
     }
 
-    @CheckForNull
     public String path() {
         return entity.path;
     }
 
-    @CheckForNull
     public String targetName() {
         return entity.targetName;
     }
@@ -47,14 +51,14 @@ public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Ta
     @Override
     public String toString() {
         var sb = new StringBuilder();
-        if (entity.organization != null) {
+        if (!entity.organization.isEmpty()) {
             sb.append('@').append(entity.organization);
-            if (entity.artifact != null) {
+            if (!entity.artifact.isEmpty()) {
                 sb.append('/').append(entity.artifact);
             }
         }
         sb.append("//").append(entity.path);
-        if (entity.targetName != null) {
+        if (!entity.targetName.isEmpty()) {
             sb.append(':').append(entity.targetName);
         }
         return sb.toString();

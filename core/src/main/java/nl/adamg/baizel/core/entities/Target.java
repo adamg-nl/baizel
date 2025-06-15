@@ -1,19 +1,18 @@
 package nl.adamg.baizel.core.entities;
 
-import javax.annotation.CheckForNull;
 import java.io.Serializable;
 
 /**
  * @see nl.adamg.baizel.core.Target
  */
 public class Target implements Serializable {
-    @CheckForNull public String organization;
-    @CheckForNull public String artifact;
-    @CheckForNull public String path;
-    @CheckForNull public String targetName;
+    public String organization;
+    public String artifact;
+    public String path;
+    public String targetName;
 
     //region generated code
-    public Target(@CheckForNull String organization, @CheckForNull String artifact, String path, @CheckForNull String targetName) {
+    public Target(String organization, String artifact, String path, String targetName) {
         this.organization = organization;
         this.artifact = artifact;
         this.path = path;

@@ -8,7 +8,7 @@ module nl.adamg.baizel.cli {
 
     requires transitive nl.adamg.baizel.internal.common.annotations;
     requires transitive nl.adamg.baizel.core;
-     requires java.logging;
+    requires java.logging;
     requires nl.adamg.baizel.internal.common.util;
     requires nl.adamg.baizel.internal.common.io;
     requires nl.adamg.baizel.internal.bootstrap.util;

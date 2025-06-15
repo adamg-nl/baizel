@@ -90,9 +90,9 @@ public class CliParser {
     }
 
     public static Target parseTarget(String input) {
-        var org = (String)null;
-        var mod = (String)null;
-        var name = (String)null;
+        var org = "";
+        var mod = "";
+        var name = "";
 
         var at = input.indexOf('@');
         var slashSlash = input.indexOf("//");

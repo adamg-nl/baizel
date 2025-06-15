@@ -347,9 +347,19 @@ public class ObjectTree {
         if (value instanceof List<?> list) {
            @SuppressWarnings("unchecked")
            var cast = (List<T>) Collections.unmodifiableList(list);
-            return cast;
+           return cast;
         }
         return List.of();
+    }
+
+    public <T> List<T> list(Class<T> itemType) {
+        var list = new ArrayList<T>();
+        for(var item : list()) {
+            if (itemType.isInstance(item)) {
+                list.add(itemType.cast(item));
+            }
+        }
+        return list;
     }
 
     public Map<String, Object> map() {

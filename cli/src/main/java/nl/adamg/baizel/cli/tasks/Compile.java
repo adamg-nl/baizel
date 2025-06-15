@@ -1,5 +1,7 @@
 package nl.adamg.baizel.cli.tasks;
 
+import nl.adamg.baizel.core.entities.Issue;
+import nl.adamg.baizel.core.tasks.Resolve;
 import nl.adamg.baizel.core.tasks.Task;
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
@@ -9,7 +11,9 @@ import nl.adamg.baizel.core.tasks.TaskRequest;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 public class Compile implements Task {
@@ -27,10 +31,24 @@ public class Compile implements Task {
         if (module == null) {
             return Set.of();
         }
-        for (var require : module.requirements()) {
-            System.out.println(require);
+        var dependencies = new TreeSet<TaskRequest>();
+        for (var requirement : module.requirements()) {
+            if (requirement.isSdkRequirement()) {
+                continue;
+            }
+            var requiredModule = project.getModuleById(requirement.moduleId());
+            if (requiredModule != null) {
+                dependencies.add(new TaskRequest(Target.module(requiredModule.path()), TASK_ID));
+                continue;
+            }
+            var requiredArtifact = project.getArtifactCoordinates(requirement.moduleId());
+            if (requiredArtifact != null) {
+                dependencies.add(new TaskRequest(Target.artifact(requiredArtifact.organization(), requiredArtifact.artifact()), Resolve.TASK_ID));
+                continue;
+            }
+            project.reporter().accept(new Issue("UNRESOLVED_DEPENDENCY", Map.of("moduleId", requirement.moduleId())));
         }
-        return Set.of();
+        return dependencies;
     }
 
     @Override

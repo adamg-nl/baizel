@@ -35,10 +35,13 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
         var moduleEntity = new nl.adamg.baizel.core.entities.Module(path, classEntities, new ArrayList<>(), new ArrayList<>());
         return new Module(project, moduleEntity, reporter);
     }
+    public Path fullPath() {
+        return project.root().resolve(path());
+    }
 
     //region getters
-    public Path path() {
-        return project.root().resolve(entity.path);
+    public String path() {
+        return entity.path;
     }
 
     public Map<String, Class> classes() {
@@ -70,7 +73,7 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
     }
 
     private void loadModuleDefFile() throws IOException {
-        var moduleDefPath = getModuleDefinitionFile(path());
+        var moduleDefPath = getModuleDefinitionFile(fullPath());
         if (moduleDefPath == null) {
             return; // nothing to load
         }
@@ -86,6 +89,7 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
                 continue;
             }
             entity.requirements.add(requirement);
+            requirements.add(new Requirement(requirement));
         }
         entity.exports.addAll(moduleDef.body().get("exports").list());
     }
