@@ -154,6 +154,13 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                 if(required) {
                     throw new RuntimeException(e);
                 }
+                if (System.getenv("BAIZEL_VERBOSE") == "true") {
+                    Throwable cause = e;
+                    while (cause.getCause() != cause && cause.getCause() != null) {
+                        cause = cause.getCause();
+                    }
+                    cause.printStackTrace(System.err);
+                }
             }
         }
         return null;

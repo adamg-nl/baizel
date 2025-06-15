@@ -59,7 +59,7 @@ public final class Bootstrap {
         try(var bootstrapClassLoader = DynamicClassLoader.forPaths(bootstrapClasspath, Bootstrap.class)) {
             LOG.info("Stage 2 finished -- { \"durationMs\": " + Duration.between(START_TIMESTAMP, Instant.now()).toMillis() + " }");
             bootstrapClassLoader.activate(Thread.currentThread());
-            bootstrapClassLoader.invoke("nl.adamg.baizel.cli.Baizel", "main", (Object)args);
+            bootstrapClassLoader.invoke("nl.adamg.baizel.cli.Baizel", "main", true, new Object[]{args});
         }
     }
 
