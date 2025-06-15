@@ -76,5 +76,11 @@ public final class Exceptions {
         return writer.toString();
     }
 
+    public static class Wrapper extends RuntimeException {
+        public Wrapper(Exception cause) {
+            super(cause);
+        }
+    }
+
     private Exceptions() {}
 }

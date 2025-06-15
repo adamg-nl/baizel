@@ -6,6 +6,7 @@ import nl.adamg.baizel.core.Target;
 import nl.adamg.baizel.core.tasks.TaskInput;
 import nl.adamg.baizel.core.tasks.TaskRequest;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -21,7 +22,14 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<TaskRequest> findDependencies(Project project, Target target) {
+    public Set<TaskRequest> findDependencies(Project project, Target target) throws IOException {
+        var module = target.getModule(project);
+        if (module == null) {
+            return Set.of();
+        }
+        for (var require : module.requirements()) {
+            System.out.println(require);
+        }
         return Set.of();
     }
 

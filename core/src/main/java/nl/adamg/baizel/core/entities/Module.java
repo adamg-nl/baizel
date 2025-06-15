@@ -1,26 +1,26 @@
 package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class Module implements Serializable {
     public String path;
     public Map<String, Class> classes;
-    public Set<String> exports;
-    public Set<String> requires;
+    public List<String> exports;
+    public List<Requirement> requirements;
 
     //region generated code
     public Module(
             String path,
             Map<String, Class> classes,
-            Set<String> exports,
-            Set<String> requires
+            List<String> exports,
+            List<Requirement> requires
     ) {
         this.path = path;
         this.classes = classes;
         this.exports = exports;
-        this.requires = requires;
+        this.requirements = requires;
     }
     //endregion
 }

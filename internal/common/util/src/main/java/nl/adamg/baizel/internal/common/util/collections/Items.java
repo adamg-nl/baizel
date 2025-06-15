@@ -1,26 +1,14 @@
 package nl.adamg.baizel.internal.common.util.collections;
 
+import nl.adamg.baizel.internal.common.util.Exceptions;
 import nl.adamg.baizel.internal.common.util.functions.Function;
 import nl.adamg.baizel.internal.common.util.functions.Predicate;
+import nl.adamg.baizel.internal.common.util.java.typeref.TypeRef2;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 /**
@@ -201,6 +189,37 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
 
     public static <T> Set<T> newConcurrentSet() {
         return Collections.newSetFromMap(new ConcurrentHashMap<>());
+    }
+
+    /// Wrapper for [Map#computeIfAbsent] that supports checked exceptions.
+    public static <K, V, E extends Exception> V computeIfAbsent(Map<K, V> map, K key, Function<K, V, E> mapping, Class<E> exceptionType) throws E {
+        var exception = new AtomicReference<Exception>();
+        var value = map.computeIfAbsent(key, k -> {
+            try {
+                return mapping.apply(k);
+            } catch (Exception e) {
+                exception.set(e);
+                return null;
+            }
+        });
+        Exceptions.rethrowIfAny(exception.get(), exceptionType);
+        return Objects.requireNonNull(value);
+    }
+
+
+    @SafeVarargs
+    public static <T, K extends T, V extends T> Map<K, V> map(Map<K, V> output, TypeRef2<K, V> typeRef, T... keyValuePairs) {
+        for(var i=0; i<keyValuePairs.length-1; i+=2) {
+            var keyCast = typeRef.t1().cast(keyValuePairs[i]);
+            var valueCast = typeRef.t2().cast(keyValuePairs[i+1]);
+            output.put(keyCast, valueCast);
+        }
+        return output;
+    }
+
+    @SafeVarargs
+    public static <T, K extends T, V extends T> Map<K, V> map(TypeRef2<K, V> typeRef, T... keyValuePairs) {
+        return map(new HashMap<>(), typeRef, keyValuePairs);
     }
 
     public <T> T first(List<T> input) {

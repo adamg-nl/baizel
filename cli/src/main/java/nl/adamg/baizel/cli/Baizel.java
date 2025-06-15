@@ -4,15 +4,21 @@ import nl.adamg.baizel.cli.internal.CliParser;
 import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.core.entities.Issue;
+import nl.adamg.baizel.core.tasks.Task;
 import nl.adamg.baizel.core.tasks.TaskRequest;
 import nl.adamg.baizel.core.tasks.Tasks;
+import nl.adamg.baizel.internal.common.util.LoggerUtil;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class Baizel {
@@ -66,6 +72,7 @@ public class Baizel {
             Baizel options:
               --worker-count=<N>  (optional, default: number of CPU cores)
               --project=<PATH>    (optional, default: innermost project containing $PWD, or $PWD if none found)
+              --debug             (optional) listen for debugger on port 5005 and enable verbose logging
            
             Environment variables used:
               BAIZEL_DEBUG     enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
@@ -74,6 +81,7 @@ public class Baizel {
             """;
     private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache = new ConcurrentHashMap<>();
     private final Project project;
+    private final Consumer<Issue> reporter;
 
     /// CLI entry point to the Baizel build system for Java™
     public static void main(String... rawArgs) throws Exception {
@@ -83,7 +91,8 @@ public class Baizel {
             return;
         }
         var args = CliParser.parseCliArgs(rawArgs);
-        new Baizel(Project.load(args.options.projectRoot)).run(args);
+        var reporter = (Consumer<Issue>) i -> LOG.warning(i.id + LoggerUtil.with(i.details));
+        new Baizel(Project.load(args.options.projectRoot, reporter), reporter).run(args);
     }
 
     /// Run specified tasks and their transitive dependencies on the Baizel worker pool
@@ -100,8 +109,8 @@ public class Baizel {
     }
 
     /// Collect transitive task dependency graph for given entry tasks.
-    /// Each task computes own direct dependencies in [#findDependencies].
-    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, Set<Target> targets) {
+    /// Each task computes own direct dependencies in [Task#findDependencies].
+    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, Set<Target> targets) throws IOException {
         var allDependencies = new TreeMap<TaskRequest, Set<TaskRequest>>();
         var requestQueue = (Queue<TaskRequest>) new LinkedList<TaskRequest>();
         for(var task : tasks) {
@@ -121,7 +130,7 @@ public class Baizel {
             if (! task.isApplicable(project, request.target)) {
                 continue;
             }
-            var dependencies = taskDependencyCache.computeIfAbsent(request, r -> task.findDependencies(project, r.target));
+            var dependencies = Items.computeIfAbsent(taskDependencyCache, request, r -> task.findDependencies(project, r.target), IOException.class);
             allDependencies.put(request, dependencies);
             requestQueue.addAll(dependencies);
         }
@@ -129,8 +138,12 @@ public class Baizel {
     }
 
     //region generated code
-    public Baizel(Project project) {
+    public Baizel(
+            Project project,
+            Consumer<Issue> reporter
+    ) {
         this.project = project;
+        this.reporter = reporter;
     }
     //endregion
 }
