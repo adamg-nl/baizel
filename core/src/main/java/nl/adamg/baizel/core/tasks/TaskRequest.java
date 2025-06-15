@@ -1,38 +1,31 @@
 package nl.adamg.baizel.core.tasks;
 
 import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.collections.EntityComparator;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
-public class TaskRequest implements Comparable<TaskRequest> {
+public class TaskRequest extends EntityModel<TaskRequest, TaskRequest> {
     public Target target;
     public String taskId;
 
-    //region value-like type
-    @Override
-    public int compareTo(TaskRequest other) {
-        return EntityComparator.compareBy(this, other, tr -> tr.target, tr -> tr.taskId);
-    }
-
+    //region entity model
     @Override
     public String toString() {
         return target + "." + taskId;
     }
 
     @Override
-    public int hashCode() {
-        return Arrays.hashCode(new Object[]{target, taskId});
+    protected List<Function<TaskRequest, ?>> fields() {
+        return List.of(
+                tr -> tr.target,
+                tr -> tr.taskId
+        );
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof TaskRequest other &&
-                Objects.equals(this.target, other.target) &&
-                Objects.equals(this.taskId, other.taskId);
-    }
-
     //endregion
 
     //region generated code

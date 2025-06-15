@@ -1,6 +1,6 @@
 package nl.adamg.baizel.core;
 
-import nl.adamg.baizel.internal.common.util.collections.EntityComparator;
+import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import javax.annotation.CheckForNull;
 import java.util.List;
@@ -9,51 +9,17 @@ import java.util.function.Function;
 /// Format: `[@[<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]`
 /// Example: `@foo/bar//baz/qux:main`
 /// Example: `//baz/qux`
-public class Target implements Comparable<Target> {
-    private final nl.adamg.baizel.core.entities.Target entity;
-
-    //region value-like type
-    @Override
-    public String toString() {
-        var sb = new StringBuilder();
-        if (entity.organization != null) {
-            sb.append('@').append(entity.organization);
-            if (entity.artifact != null) {
-                sb.append('/').append(entity.artifact);
-            }
+public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Target> {
+    /**
+     * @return null if this target is not a project module (e.g. it's an artifact)
+     */
+    @CheckForNull
+    public Module getModule(Project project) {
+        if (artifact() != null || entity.path == null) {
+            return null;
         }
-        sb.append("//").append(entity.path);
-        if (entity.targetName != null) {
-            sb.append(':').append(entity.targetName);
-        }
-        return sb.toString();
+        return project.getModuleOf(project.root().resolve(entity.path));
     }
-
-    private List<Function<Target, ?>> fields() {
-        return List.of(
-                Target::organization,
-                Target::artifact,
-                Target::path,
-                Target::targetName
-        );
-    }
-
-    @Override
-    public int compareTo(Target that) {
-        return EntityComparator.compareBy(this, that, fields());
-    }
-
-    @Override
-    public int hashCode() {
-        return EntityComparator.hashCode(this, fields());
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return EntityComparator.equals(this, obj, fields());
-    }
-
-    //endregion
 
     //region getters
     @CheckForNull
@@ -77,9 +43,37 @@ public class Target implements Comparable<Target> {
     }
     //endregion
 
+    //region entity model
+    @Override
+    public String toString() {
+        var sb = new StringBuilder();
+        if (entity.organization != null) {
+            sb.append('@').append(entity.organization);
+            if (entity.artifact != null) {
+                sb.append('/').append(entity.artifact);
+            }
+        }
+        sb.append("//").append(entity.path);
+        if (entity.targetName != null) {
+            sb.append(':').append(entity.targetName);
+        }
+        return sb.toString();
+    }
+
+    @Override
+    protected List<Function<nl.adamg.baizel.core.entities.Target, ?>> fields() {
+        return List.of(
+                t -> t.organization,
+                t -> t.artifact,
+                t -> t.path,
+                t -> t.targetName
+        );
+    }
+    //endregion
+
     //region generated code
     public Target(nl.adamg.baizel.core.entities.Target entity) {
-        this.entity = entity;
+        super(entity);
     }
     //endregion
 }

@@ -14,7 +14,7 @@ public class EntityComparator {
     private static final Map<Class<?>, Comparator<?>> COMPARATORS = new ConcurrentHashMap<>();
 
     @SafeVarargs
-    public static <T> boolean equals(@CheckForNull T a, @CheckForNull Object b, Function<T, Object>... fields) {
+    public static <T> boolean equals(@CheckForNull T a, @CheckForNull Object b, Function<T, ?>... fields) {
         return equals(a, b, Arrays.asList(fields));
     }
 
@@ -39,15 +39,15 @@ public class EntityComparator {
     }
 
     @SafeVarargs
-    public static <T extends Comparable<T>> int compareBy(T left, T right, Function<T,?>... fields) {
+    public static <T> int compareBy(T left, T right, Function<T,?>... fields) {
         return compareBy(left, right, Arrays.asList(fields));
     }
 
-    public static <T extends Comparable<T>> int compareBy(T left, T right, List<Function<T,?>> fields) {
+    public static <T> int compareBy(T left, T right, List<Function<T,?>> fields) {
         return comparator(left.getClass(), fields).compare(left, right);
     }
 
-    public static <T extends Comparable<T>> Comparator<T> comparator(Class<?> type, List<Function<T, ?>> fields) {
+    public static <T> Comparator<T> comparator(Class<?> type, List<Function<T, ?>> fields) {
         if (fields.isEmpty()) {
             return (a, b) -> 0;
         }
@@ -78,7 +78,7 @@ public class EntityComparator {
         return Arrays.hashCode(values);
     }
 
-    private static <T extends Comparable<T>> Function<T, Comparable<Object>> castField(Function<T, ?> fields) {
+    private static <T> Function<T, Comparable<Object>> castField(Function<T, ?> fields) {
         return t -> {
             @SuppressWarnings("unchecked")
             var cast = (Comparable<Object>) fields.apply(t);
