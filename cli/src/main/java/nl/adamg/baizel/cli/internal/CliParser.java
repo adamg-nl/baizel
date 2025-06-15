@@ -7,6 +7,7 @@ import nl.adamg.baizel.internal.common.serialization.JsonUtil;
 import nl.adamg.baizel.internal.common.util.Text;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -79,6 +80,11 @@ public class CliParser {
         var watcherCount = "--watcher-count=";
         if (option.startsWith(watcherCount)) {
             options.workerCount = Integer.parseInt(option.substring(watcherCount.length()));
+            return;
+        }
+        var project = "--project=";
+        if (option.startsWith(project)) {
+            options.projectRoot = Path.of(option.substring(project.length()));
             return;
         }
     }

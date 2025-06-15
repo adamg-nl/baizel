@@ -10,7 +10,7 @@ public class LoggerUtil extends nl.adamg.baizel.internal.bootstrap.util.logging.
         return IS_VERBOSE.get();
     }
 
-    public static void logStackTrace() {
+    public static void logStackTraceIfVerbose() {
         if (! isVerbose()) {
             return;
         }

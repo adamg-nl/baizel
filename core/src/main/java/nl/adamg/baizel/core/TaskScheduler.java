@@ -35,7 +35,7 @@ public class TaskScheduler implements AutoCloseable {
     }
 
     /// Blocks until all the tasks are executed.
-    public static void schedule(Map<TaskRequest, Set<TaskRequest>> dependencies, int workerCount, Runner runner) throws IOException, InterruptedException {
+    public static void scheduleAndWait(Map<TaskRequest, Set<TaskRequest>> dependencies, int workerCount, Runner runner) throws IOException, InterruptedException {
         try(var scheduler = TaskScheduler.create(workerCount, runner)) {
             for(var dependency : dependencies.entrySet()) {
                 scheduler.schedule(dependency.getKey(), dependency.getValue());

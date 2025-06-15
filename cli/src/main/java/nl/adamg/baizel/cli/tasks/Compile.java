@@ -21,7 +21,7 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<TaskRequest> findDependencies(Project project, Target target, List<String> args) {
+    public Set<TaskRequest> findDependencies(Project project, Target target) {
         return Set.of();
     }
 

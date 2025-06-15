@@ -1,7 +1,6 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
-import nl.adamg.baizel.internal.common.util.collections.Items;
 
 public enum CliErrors {
     @SuppressWarnings("unused") // used in bin/bazik
@@ -25,7 +24,7 @@ public enum CliErrors {
             }
             System.err.println(usage);
         }
-        LoggerUtil.logStackTrace();
+        LoggerUtil.logStackTraceIfVerbose();
         System.exit(exitCode);
         throw new RuntimeException("System.exit failed"); // should never happen
     }

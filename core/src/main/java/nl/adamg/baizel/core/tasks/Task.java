@@ -21,7 +21,7 @@ public interface Task {
     /**
      * @return pairs of target and task id
      */
-    default Set<TaskRequest> findDependencies(Project project, Target target, List<String> args) {
+    default Set<TaskRequest> findDependencies(Project project, Target target) {
         return Set.of();
     }
 

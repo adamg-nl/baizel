@@ -7,14 +7,12 @@ import nl.adamg.baizel.core.Target;
 import nl.adamg.baizel.core.tasks.TaskRequest;
 import nl.adamg.baizel.core.tasks.Tasks;
 
-import java.nio.file.Paths;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 public class Baizel {
@@ -66,39 +64,44 @@ public class Baizel {
               -//pkg:target    excludes a specific target within a package
            
             Baizel options:
-              --worker-count=<N> (optional, default: number of CPU cores)
+              --worker-count=<N>  (optional, default: number of CPU cores)
+              --project=<PATH>    (optional, default: innermost project containing $PWD, or $PWD if none found)
            
             Environment variables used:
               BAIZEL_DEBUG     enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)
               BAIZEL_VERBOSE   enables verbose logging. Values: true, false
               BAIZEL_JVM_OPTS  additional JVM arguments, space-separated
             """;
+    private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache = new ConcurrentHashMap<>();
+    private final Project project;
 
-    public static void main(String... args) throws Exception {
-        LOG.info("main(" + String.join(", ", args) + ")");
-        new Baizel().main(CliParser.parseCliArgs(args));
+    /// CLI entry point to the Baizel build system for Java™
+    public static void main(String... rawArgs) throws Exception {
+        LOG.info("main(" + String.join(", ", rawArgs) + ")");
+        if (rawArgs.length == 1 && "--help".equals(rawArgs[0])) {
+            System.err.println(HELP);
+            return;
+        }
+        var args = CliParser.parseCliArgs(rawArgs);
+        new Baizel(Project.load(args.options.projectRoot)).run(args);
     }
 
-    public static String getHelp() {
-        return HELP;
-    }
-
-    public void main(Arguments arguments) throws Exception {
+    /// Run specified tasks and their transitive dependencies on the Baizel worker pool
+    public void run(Arguments arguments) throws Exception {
         if (arguments.tasks.isEmpty()) {
             throw CliErrors.TASK_NOT_SELECTED.exit();
         }
-        var project = Project.findAndLoadProjectRoot(Paths.get("."));
-        var taskDependencies = collectTaskDependencies(arguments.tasks, arguments.taskArgs, arguments.targets, project);
-        TaskScheduler.schedule(taskDependencies, arguments.options.workerCount, getRunner(arguments, project));
+        var taskDependencies = collectTaskDependencies(arguments.tasks, arguments.targets);
+        TaskScheduler.scheduleAndWait(taskDependencies, arguments.options.workerCount, getRunner(arguments));
     }
 
-    private static TaskScheduler.Runner getRunner(Arguments arguments, Project project) {
+    private TaskScheduler.Runner getRunner(Arguments arguments) {
         return (task, inputs) -> Tasks.get(task.taskId).run(task.target, arguments.taskArgs, inputs, project);
     }
 
     /// Collect transitive task dependency graph for given entry tasks.
     /// Each task computes own direct dependencies in [#findDependencies].
-    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, List<String> taskArgs, Set<Target> targets, Project project) {
+    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, Set<Target> targets) {
         var allDependencies = new TreeMap<TaskRequest, Set<TaskRequest>>();
         var requestQueue = (Queue<TaskRequest>) new LinkedList<TaskRequest>();
         for(var task : tasks) {
@@ -115,14 +118,19 @@ public class Baizel {
                 continue; // already processed
             }
             var task = Tasks.get(request.taskId);
-            Objects.requireNonNull(task, "task " + request.taskId + " not found");
             if (! task.isApplicable(project, request.target)) {
                 continue;
             }
-            var dependencies = task.findDependencies(project, request.target, taskArgs);
+            var dependencies = taskDependencyCache.computeIfAbsent(request, r -> task.findDependencies(project, r.target));
             allDependencies.put(request, dependencies);
             requestQueue.addAll(dependencies);
         }
         return allDependencies;
     }
+
+    //region generated code
+    public Baizel(Project project) {
+        this.project = project;
+    }
+    //endregion
 }
