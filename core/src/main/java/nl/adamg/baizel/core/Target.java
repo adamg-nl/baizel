@@ -6,7 +6,7 @@ import javax.annotation.CheckForNull;
 import java.util.List;
 import java.util.function.Function;
 
-/// Format: `[@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]`
+/// Format: `[@[<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]`
 /// Example: `@foo/bar//baz/qux:main`
 /// Example: `//baz/qux`
 public class Target implements Comparable<Target> {
@@ -18,8 +18,8 @@ public class Target implements Comparable<Target> {
         var sb = new StringBuilder();
         if (entity.organization != null) {
             sb.append('@').append(entity.organization);
-            if (entity.module != null) {
-                sb.append('/').append(entity.module);
+            if (entity.artifact != null) {
+                sb.append('/').append(entity.artifact);
             }
         }
         sb.append("//").append(entity.path);
@@ -32,7 +32,7 @@ public class Target implements Comparable<Target> {
     private List<Function<Target, ?>> fields() {
         return List.of(
                 Target::organization,
-                Target::module,
+                Target::artifact,
                 Target::path,
                 Target::targetName
         );
@@ -62,8 +62,8 @@ public class Target implements Comparable<Target> {
     }
 
     @CheckForNull
-    public String module() {
-        return entity.module;
+    public String artifact() {
+        return entity.artifact;
     }
 
     @CheckForNull

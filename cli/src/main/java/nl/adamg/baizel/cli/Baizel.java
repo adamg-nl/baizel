@@ -44,7 +44,7 @@ public class Baizel {
               shell            opens jshell session with given target's classpath
            
             Target syntax:
-              <TARGET>         is in format [-][@[<ORG>/]<MODULE>][//<PATH>][:<TARGET_NAME>]
+              <TARGET>         is in format [-][@[<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]
                                means either a source set name (as in "<MODULE>/src/<SOURCE_SET_NAME>/java"),
                                or a custom target defined by an extension
               <PATH>           can end with ... to match all targets within a package and its subpackages
