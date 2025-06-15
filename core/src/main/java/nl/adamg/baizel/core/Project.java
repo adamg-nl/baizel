@@ -45,12 +45,14 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
         var projectId = projectDef.get(1).string();
         var dependenciesEntity = new TreeMap<String, nl.adamg.baizel.core.entities.ArtifactCoordinates>();
         var dependencies = new TreeMap<String, ArtifactCoordinates>();
-        for(var coordinatesString : projectDef.body().keys()) {
-            for(var moduleId : projectDef.body().get(coordinatesString).list(String.class)) {
+        var rawDependencies = projectDef.body().get("dependencies").body();
+        for(var coordinatesString : rawDependencies.keys()) {
+            var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
+            for(var moduleId : modulesForCoordinate) {
                 var dependencyEntity = ArtifactCoordinates.parse(coordinatesString);
-                dependencyEntity.moduleId = moduleId;
-                dependenciesEntity.put(moduleId, dependencyEntity);
-                dependencies.put(moduleId, new ArtifactCoordinates(dependencyEntity));
+                dependencyEntity.moduleId = String.valueOf(moduleId.get(0));
+                dependenciesEntity.put(dependencyEntity.moduleId, dependencyEntity);
+                dependencies.put(dependencyEntity.moduleId, new ArtifactCoordinates(dependencyEntity));
             }
         }
         var entity = new nl.adamg.baizel.core.entities.Project(

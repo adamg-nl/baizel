@@ -243,8 +243,8 @@ public class ObjectTree {
     /**
      * @throws IllegalArgumentException if type is not primitive
      */
-    public <T> T getPrimitive(String key, Class<T> type) throws IllegalArgumentException {
-        if (! Primitives.isPrimitiveOrBoxed(type)) {
+    public <T> T getLeaf(String key, Class<T> type) throws IllegalArgumentException {
+        if (! Primitives.isPrimitiveOrBoxed(type) && type != String.class) {
             throw new IllegalArgumentException("not primitive: " + type.getCanonicalName());
         }
         return Objects.requireNonNull(get(key).as(type));
@@ -386,6 +386,17 @@ public class ObjectTree {
             return Types.defaultValue(type);
         }
         return null;
+    }
+
+    /// Unwraps all the outer layers of singleton lists, if there are any
+    public ObjectTree unwrap() {
+        if (!(value instanceof List<?> list)) {
+            return this;
+        }
+        if (list.size() != 1) {
+            return this;
+        }
+        return ObjectTree.of(list.get(0));
     }
 
     /**

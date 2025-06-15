@@ -43,7 +43,8 @@ public class Compile implements Task {
             }
             var requiredArtifact = project.getArtifactCoordinates(requirement.moduleId());
             if (requiredArtifact != null) {
-                dependencies.add(new TaskRequest(Target.artifact(requiredArtifact.organization(), requiredArtifact.artifact()), Resolve.TASK_ID));
+                var artifactTarget = Target.artifact(requiredArtifact.organization(), requiredArtifact.artifact());
+                dependencies.add(new TaskRequest(artifactTarget, Resolve.TASK_ID));
                 continue;
             }
             project.reporter().accept(new Issue("UNRESOLVED_DEPENDENCY", Map.of("moduleId", requirement.moduleId())));
