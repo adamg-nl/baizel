@@ -11,14 +11,20 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Module> {
-    private static final String MODULE_FILE_PATH = "src/main/java/module-info.java";
+    private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private final Project project;
     private final Map<String, Class> classes = new TreeMap<>();
 
     @CheckForNull
-    public static Path getModuleFile(Path module) {
-        var file = module.resolve(MODULE_FILE_PATH);
+    public static Path getModuleDefinitionFile(Path module) {
+        var file = module.resolve(MODULE_DEF_FILE_PATH);
         return Files.exists(file) ? file : null;
+    }
+
+    public static Module load(Project project, String path) {
+        var classEntities = new TreeMap<String, nl.adamg.baizel.core.entities.Class>();
+        var moduleEntity = new nl.adamg.baizel.core.entities.Module(path, classEntities);
+        return new Module(project, moduleEntity);
     }
 
     //region getters

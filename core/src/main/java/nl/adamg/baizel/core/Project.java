@@ -12,11 +12,12 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, Project> {
+    private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
     private final Map<String, Module> modules = new TreeMap<>();
 
     public static Path findProjectRoot(Path path) {
         var root = path;
-        while (root != null && !Files.exists(root.resolve("project-info.java"))) {
+        while (root != null && !Files.exists(root.resolve(PROJECT_DEF_FILE_NAME))) {
             root = root.getParent();
         }
         // fall back to considering given directory as implicit project root
@@ -36,7 +37,7 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
             return null;
         }
         var modulePath = path;
-        while (Module.getModuleFile(modulePath) != null) {
+        while (Module.getModuleDefinitionFile(modulePath) != null) {
             modulePath = modulePath.getParent();
             if (! modulePath.startsWith(root())) {
                 return null;
@@ -46,13 +47,16 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
     }
 
     public Module getModule(Path path) {
-        var relativePath = root().relativize(path).toString();
-        return modules.computeIfAbsent(relativePath, p -> loadModule(p));
+        return modules.computeIfAbsent(root().relativize(path).toString(), this::loadModule);
     }
 
+    //region implementation internals
     private Module loadModule(String path) {
-        return null;
+        var module = Module.load(this, path);
+        modules.put(path, module);
+        return module;
     }
+    //endregion
 
     //region getters
     public Path root() {
