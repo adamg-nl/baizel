@@ -1,5 +1,6 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
+import nl.adamg.baizel.core.api.Invocation;
 import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.collections.Items;
@@ -18,17 +19,17 @@ import java.util.function.Function;
 ///
 /// - API:    [nl.adamg.baizel.core.api.Invocation]
 /// - Entity: [nl.adamg.baizel.core.entities.Invocation]
-/// - Model:  [nl.adamg.baizel.core.model.Invocation]
-public class Invocation
-        extends EntityModel<nl.adamg.baizel.core.api.Invocation, nl.adamg.baizel.core.entities.Invocation, Invocation>
-        implements nl.adamg.baizel.core.api.Invocation {
+/// - Model:  [nl.adamg.baizel.core.impl.InvocationImpl]
+public class InvocationImpl
+        extends EntityModel<Invocation, nl.adamg.baizel.core.entities.Invocation, InvocationImpl>
+        implements Invocation {
     //region factory
-    public nl.adamg.baizel.core.api.Invocation of(
+    public Invocation of(
             List<String> tasks,
             List<String> taskArgs,
             List<nl.adamg.baizel.core.entities.Target> targets
     ) {
-        return new Invocation(
+        return new InvocationImpl(
                 new nl.adamg.baizel.core.entities.Invocation(
                         tasks,
                         taskArgs,
@@ -69,7 +70,7 @@ public class Invocation
             if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, next::startsWith)) {
                 taskArgs.add(next);
             } else {
-                targets.add(nl.adamg.baizel.core.model.Target.parseTarget(next));
+                targets.add(TargetImpl.parseTarget(next));
             }
         }
         return invocation;
@@ -89,7 +90,7 @@ public class Invocation
 
     @Override
     public Set<Target> targets() {
-        return Items.mapToSet(entity.targets, nl.adamg.baizel.core.model.Target::new);
+        return Items.mapToSet(entity.targets, TargetImpl::new);
     }
     //endregion
 
@@ -112,7 +113,7 @@ public class Invocation
     //endregion
 
     //region generated code
-    public Invocation(nl.adamg.baizel.core.entities.Invocation entity) {
+    public InvocationImpl(nl.adamg.baizel.core.entities.Invocation entity) {
         super(entity);
     }
     //endregion

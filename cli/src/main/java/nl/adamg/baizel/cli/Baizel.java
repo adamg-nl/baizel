@@ -3,7 +3,9 @@ package nl.adamg.baizel.cli;
 import nl.adamg.baizel.core.api.BaizelArguments;
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.entities.Issue;
-import nl.adamg.baizel.core.model.Project;
+import nl.adamg.baizel.core.impl.BaizelArgumentsImpl;
+import nl.adamg.baizel.core.impl.BaizelImpl;
+import nl.adamg.baizel.core.impl.ProjectImpl;
 import nl.adamg.baizel.internal.bootstrap.Bootstrap;
 import nl.adamg.baizel.internal.common.io.LocalFileSystem;
 import nl.adamg.baizel.internal.common.io.SystemShell;
@@ -17,7 +19,7 @@ import java.util.logging.Logger;
 /// CLI entry point to the Baizel build system for Java™
 ///
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
-/// - Model:  [nl.adamg.baizel.core.model.Baizel]
+/// - Model: [nl.adamg.baizel.core.impl.BaizelImpl]
 /// - CLI:    [nl.adamg.baizel.cli.Baizel]
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
@@ -28,12 +30,12 @@ public class Baizel {
             System.err.println(Files.readString(Bootstrap.findBaizelDir().resolve("README")));
             return;
         }
-        var args = nl.adamg.baizel.core.model.BaizelArguments.parse(rawArgs);
+        var args = BaizelArgumentsImpl.parse(rawArgs);
         var projectRoot = getProjectRoot(args);
         try(var shell = SystemShell.load(projectRoot)) {
             var reporter = (Consumer<Issue>) i -> LOG.warning(i.id + LoggerUtil.with(i.details));
             var fileSystem = new LocalFileSystem();
-            var baizel = nl.adamg.baizel.core.model.Baizel.start(args.options(), projectRoot, shell, fileSystem, reporter);
+            var baizel = BaizelImpl.start(args.options(), projectRoot, shell, fileSystem, reporter);
             baizel.run(args.invocation());
         } catch (BaizelException e) {
             throw e.exit();
@@ -44,7 +46,7 @@ public class Baizel {
     private static Path getProjectRoot(BaizelArguments args) {
         var projectRoot = args.options().projectRoot();
         if (projectRoot.toString().isEmpty()) {
-            return Project.findProjectRoot(Path.of("."));
+            return ProjectImpl.findProjectRoot(Path.of("."));
         }
         return projectRoot;
     }

@@ -1,6 +1,7 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TaskInput;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
@@ -11,19 +12,19 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
-/// - Model:  [nl.adamg.baizel.core.model.TaskInput]
-public class TaskInput
-        extends EntityModel<nl.adamg.baizel.core.api.TaskInput, nl.adamg.baizel.core.entities.TaskInput, TaskInput>
-        implements nl.adamg.baizel.core.api.TaskInput {
+/// - Model:  [nl.adamg.baizel.core.impl.TaskInputImpl]
+public class TaskInputImpl
+        extends EntityModel<TaskInput, nl.adamg.baizel.core.entities.TaskInput, TaskInputImpl>
+        implements TaskInput {
     //region factory
-    public static TaskInput of(
+    public static TaskInputImpl of(
             Target origin,
             String originTaskId,
             Set<Path> paths
     ) {
-        return new TaskInput(
+        return new TaskInputImpl(
                 new nl.adamg.baizel.core.entities.TaskInput(
-                        ((nl.adamg.baizel.core.model.Target)origin).entity(),
+                        ((TargetImpl)origin).entity(),
                         originTaskId,
                         Items.mapToList(paths, Path::toString)
                 )
@@ -34,7 +35,7 @@ public class TaskInput
     //region getters
     @Override
     public Target origin() {
-        return new nl.adamg.baizel.core.model.Target(entity.origin);
+        return new TargetImpl(entity.origin);
     }
 
     @Override
@@ -65,7 +66,7 @@ public class TaskInput
     //endregion
 
     //region generated code
-    public TaskInput(nl.adamg.baizel.core.entities.TaskInput entity) {
+    public TaskInputImpl(nl.adamg.baizel.core.entities.TaskInput entity) {
         super(entity);
     }
     //endregion

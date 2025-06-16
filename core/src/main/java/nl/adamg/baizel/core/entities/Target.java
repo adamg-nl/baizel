@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Model:  [nl.adamg.baizel.core.model.Target]
+/// - Model: [nl.adamg.baizel.core.impl.TargetImpl]
 public class Target implements Serializable {
     public String organization;
     public String artifact;

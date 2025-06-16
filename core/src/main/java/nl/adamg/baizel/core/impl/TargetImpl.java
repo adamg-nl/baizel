@@ -1,10 +1,11 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.SourceSets;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.SourceSet;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
@@ -13,18 +14,18 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Model:  [nl.adamg.baizel.core.model.Target]
-public class Target
-        extends EntityModel<nl.adamg.baizel.core.api.Target, nl.adamg.baizel.core.entities.Target, Target>
-        implements nl.adamg.baizel.core.api.Target {
+/// - Model: [nl.adamg.baizel.core.impl.TargetImpl]
+public class TargetImpl
+        extends EntityModel<Target, nl.adamg.baizel.core.entities.Target, TargetImpl>
+        implements Target {
     //region factory
-    public static nl.adamg.baizel.core.api.Target of(
+    public static Target of(
             String org, 
             String artifact, 
             String path, 
             String name
     ) {
-        return new Target(
+        return new TargetImpl(
                 new nl.adamg.baizel.core.entities.Target(
                         org,
                         artifact,
@@ -34,12 +35,12 @@ public class Target
         );
     }
 
-    public static Target module(String path) {
-        return new Target(new nl.adamg.baizel.core.entities.Target("", "", path, ""));
+    public static TargetImpl module(String path) {
+        return new TargetImpl(new nl.adamg.baizel.core.entities.Target("", "", path, ""));
     }
 
-    public static Target artifact(String organization, String artifact) {
-        return new Target(new nl.adamg.baizel.core.entities.Target(organization, artifact, "", ""));
+    public static TargetImpl artifact(String organization, String artifact) {
+        return new TargetImpl(new nl.adamg.baizel.core.entities.Target(organization, artifact, "", ""));
     }
 
     public static nl.adamg.baizel.core.entities.Target parseTarget(String input) {
@@ -135,7 +136,7 @@ public class Target
     //endregion
 
     //region generated code
-    public Target(nl.adamg.baizel.core.entities.Target entity) {
+    public TargetImpl(nl.adamg.baizel.core.entities.Target entity) {
         super(entity);
     }
     //endregion

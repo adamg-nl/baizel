@@ -1,5 +1,6 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
+import nl.adamg.baizel.core.api.BaizelOptions;
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
@@ -16,19 +17,19 @@ import java.util.function.Function;
 ///
 /// - API:    [nl.adamg.baizel.core.api.BaizelOptions]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelOptions]
-/// - Model:  [nl.adamg.baizel.core.model.BaizelOptions]
-public class BaizelOptions
-        extends EntityModel<nl.adamg.baizel.core.api.BaizelOptions, nl.adamg.baizel.core.entities.BaizelOptions, BaizelOptions>
-        implements nl.adamg.baizel.core.api.BaizelOptions {
+/// - Model:  [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
+public class BaizelOptionsImpl
+        extends EntityModel<BaizelOptions, nl.adamg.baizel.core.entities.BaizelOptions, BaizelOptionsImpl>
+        implements BaizelOptions {
     private static final String WORKER_COUNT = "--worker-count=";
     private static final String PROJECT_ROOT = "--project-root=";
 
     //region factory
-    public static nl.adamg.baizel.core.api.BaizelOptions of(
+    public static BaizelOptions of(
             int workerCount,
             String projectRoot
     ) {
-        return new BaizelOptions(
+        return new BaizelOptionsImpl(
                 new nl.adamg.baizel.core.entities.BaizelOptions(
                         workerCount,
                         projectRoot
@@ -89,7 +90,7 @@ public class BaizelOptions
     //endregion
 
     //region generated code
-    public BaizelOptions(nl.adamg.baizel.core.entities.BaizelOptions entity) {
+    public BaizelOptionsImpl(nl.adamg.baizel.core.entities.BaizelOptions entity) {
         super(entity);
     }
     //endregion

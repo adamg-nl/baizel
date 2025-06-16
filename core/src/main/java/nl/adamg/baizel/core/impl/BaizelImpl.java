@@ -1,13 +1,14 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.core.Tasks;
-import nl.adamg.baizel.core.api.*;
+import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.BaizelOptions;
 import nl.adamg.baizel.core.api.Invocation;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
@@ -36,10 +37,10 @@ import java.util.logging.Logger;
 /// Invocations are processed sequentially, but each of them may involve highly concurrent tasks.
 ///
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
-/// - Model:  [nl.adamg.baizel.core.model.Baizel]
+/// - Model:  [nl.adamg.baizel.core.impl.BaizelImpl]
 /// - CLI:    `nl.adamg.baizel.cli.Baizel`
-public class Baizel implements nl.adamg.baizel.core.api.Baizel {
-    private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
+public class BaizelImpl implements Baizel {
+    private static final Logger LOG = Logger.getLogger(BaizelImpl.class.getName());
     /// When Baizel instance is reused to run the same or overlapping set of tasks later,
     /// thanks to this map their task dependencies will not need to be recomputed.
     private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache;
@@ -51,10 +52,10 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
     private final Map<Invocation, TaskScheduler> runningInvocations = Collections.synchronizedMap(new TreeMap<>());
 
     //region factory
-    public static nl.adamg.baizel.core.api.Baizel start(BaizelOptions options, Path projectRoot, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
-        return new Baizel(
+    public static Baizel start(BaizelOptions options, Path projectRoot, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
+        return new BaizelImpl(
                 new ConcurrentHashMap<>(),
-                nl.adamg.baizel.core.model.Project.load(projectRoot, reporter),
+                ProjectImpl.load(projectRoot, reporter),
                 reporter,
                 fileSystem,
                 shell,
@@ -101,7 +102,7 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
         if (target.path().isEmpty()) {
             return Target.Type.MODULE;
         }
-        var moduleDefFile = nl.adamg.baizel.core.model.Module.getModuleDefinitionFile(project.path(target.path()));
+        var moduleDefFile = ModuleImpl.getModuleDefinitionFile(project.path(target.path()));
         if(moduleDefFile != null) {
             return Target.Type.MODULE;
         }
@@ -126,7 +127,7 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
                 throw new BaizelException(BaizelErrors.UNKNOWN_TASK, task, String.join(", ", Tasks.getTasks()));
             }
             for (var target : targets) {
-                requestQueue.add(nl.adamg.baizel.core.model.TaskRequest.of(target, task));
+                requestQueue.add(TaskRequestImpl.of(target, task));
             }
         }
         while (! requestQueue.isEmpty()) {
@@ -175,7 +176,7 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
     //endregion
 
     //region generated code
-    public Baizel(
+    public BaizelImpl(
             Map<TaskRequest, Set<TaskRequest>> taskDependencyCache,
             Project project,
             Consumer<Issue> reporter,

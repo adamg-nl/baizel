@@ -5,7 +5,7 @@ import java.util.List;
 
 /// - API:    [nl.adamg.baizel.core.api.Invocation]
 /// - Entity: [nl.adamg.baizel.core.entities.Invocation]
-/// - Model:  [nl.adamg.baizel.core.model.Invocation]
+/// - Model: [nl.adamg.baizel.core.impl.InvocationImpl]
 public class Invocation implements Serializable {
     public List<String> tasks;
     public List<String> taskArgs;

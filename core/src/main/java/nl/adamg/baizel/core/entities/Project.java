@@ -6,7 +6,7 @@ import java.util.Map;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
-/// - Model:  [nl.adamg.baizel.core.model.Project]
+/// - Model: [nl.adamg.baizel.core.impl.ProjectImpl]
 public class Project implements Serializable {
     public String projectId;
     public String root;

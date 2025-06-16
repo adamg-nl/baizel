@@ -8,7 +8,7 @@ import java.util.Map;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
-/// - Model:  [nl.adamg.baizel.core.model.Module]
+/// - Model:  [nl.adamg.baizel.core.impl.ModuleImpl]
 public interface Module {
     Path fullPath();
     @CheckForNull Path getSourceRoot(SourceSet sourceSet);

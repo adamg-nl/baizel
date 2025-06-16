@@ -2,10 +2,16 @@ package nl.adamg.baizel.cli.tasks;
 
 import com.sun.source.util.JavacTask;
 import nl.adamg.baizel.core.BaizelException;
-import nl.adamg.baizel.core.api.*;
+import nl.adamg.baizel.core.api.Baizel;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.api.Target.Type;
+import nl.adamg.baizel.core.api.Task;
+import nl.adamg.baizel.core.api.TaskInput;
+import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
+import nl.adamg.baizel.core.impl.TargetImpl;
+import nl.adamg.baizel.core.impl.TaskRequestImpl;
 import nl.adamg.baizel.internal.bootstrap.util.collections.Items;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
@@ -58,7 +64,7 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<nl.adamg.baizel.core.api.TaskRequest> findDependencies(Target target, Type targetType, Baizel baizel) throws IOException {
+    public Set<TaskRequest> findDependencies(Target target, Type targetType, Baizel baizel) throws IOException {
         var module = target.getModule(baizel.project());
         var dependencies = new TreeSet<TaskRequest>();
         for (var requirement : module.requirements()) {
@@ -67,13 +73,13 @@ public class Compile implements Task {
             }
             var requiredModule = baizel.project().getModuleById(requirement.moduleId());
             if (requiredModule != null) {
-                dependencies.add(nl.adamg.baizel.core.model.TaskRequest.of(nl.adamg.baizel.core.model.Target.module(requiredModule.path()), TASK_ID));
+                dependencies.add(TaskRequestImpl.of(TargetImpl.module(requiredModule.path()), TASK_ID));
                 continue;
             }
             var requiredArtifact = baizel.project().getArtifactCoordinates(requirement.moduleId());
             if (requiredArtifact != null) {
-                var artifactTarget = nl.adamg.baizel.core.model.Target.artifact(requiredArtifact.organization(), requiredArtifact.artifact());
-                dependencies.add(nl.adamg.baizel.core.model.TaskRequest.of(artifactTarget, Resolve.TASK_ID));
+                var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requiredArtifact.artifact());
+                dependencies.add(TaskRequestImpl.of(artifactTarget, Resolve.TASK_ID));
                 continue;
             }
             baizel.report("UNRESOLVED_DEPENDENCY", "moduleId", requirement.moduleId());

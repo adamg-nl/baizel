@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
-/// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
+/// - Model: [nl.adamg.baizel.core.impl.ArtifactCoordinatesImpl]
 public class ArtifactCoordinates implements Serializable {
     public String organization;
     public String artifact;

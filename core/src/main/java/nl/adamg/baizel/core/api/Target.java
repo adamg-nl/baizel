@@ -10,7 +10,7 @@ import nl.adamg.baizel.core.BaizelException;
 ///
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Model:  [nl.adamg.baizel.core.model.Target]
+/// - Model: [nl.adamg.baizel.core.impl.TargetImpl]
 public interface Target extends Comparable<Target> {
     enum Type { MODULE, FILE, ARTIFACT, INVALID }
     /// @throws BaizelException if module is not found or this target is not a module nor file type target

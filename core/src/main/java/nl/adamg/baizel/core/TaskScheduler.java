@@ -2,6 +2,7 @@ package nl.adamg.baizel.core;
 
 import nl.adamg.baizel.core.api.TaskInput;
 import nl.adamg.baizel.core.api.TaskRequest;
+import nl.adamg.baizel.core.impl.TaskInputImpl;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.DirectedGraph;
 import nl.adamg.baizel.internal.common.util.collections.Items;
@@ -158,7 +159,7 @@ public class TaskScheduler implements AutoCloseable {
     private List<TaskInput> collectInputs(TaskRequest task) {
         var inputs = new ArrayList<TaskInput>();
         for (var dependency : dependencies.children(task)) {
-            inputs.add(nl.adamg.baizel.core.model.TaskInput.of(dependency.target(), dependency.taskId(), finishedTasks.get(dependency)));
+            inputs.add(TaskInputImpl.of(dependency.target(), dependency.taskId(), finishedTasks.get(dependency)));
         }
         return inputs;
     }

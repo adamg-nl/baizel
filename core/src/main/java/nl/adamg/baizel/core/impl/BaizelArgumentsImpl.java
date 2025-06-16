@@ -1,12 +1,16 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
+import nl.adamg.baizel.core.api.BaizelArguments;
 import nl.adamg.baizel.core.api.BaizelOptions;
 import nl.adamg.baizel.core.api.Invocation;
 import nl.adamg.baizel.internal.common.serialization.JsonUtil;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.Text;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 import java.util.function.Function;
 
 /// Format:
@@ -16,16 +20,16 @@ import java.util.function.Function;
 ///
 /// - API:    [nl.adamg.baizel.core.api.BaizelArguments]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelArguments]
-/// - Model:  [nl.adamg.baizel.core.model.BaizelArguments]
-public class BaizelArguments
-        extends EntityModel<nl.adamg.baizel.core.api.BaizelArguments, nl.adamg.baizel.core.entities.BaizelArguments, BaizelArguments>
-        implements nl.adamg.baizel.core.api.BaizelArguments {
+/// - Model:  [nl.adamg.baizel.core.impl.BaizelArgumentsImpl]
+public class BaizelArgumentsImpl
+        extends EntityModel<BaizelArguments, nl.adamg.baizel.core.entities.BaizelArguments, BaizelArgumentsImpl>
+        implements BaizelArguments {
     //region factory
-    public static nl.adamg.baizel.core.api.BaizelArguments of(
+    public static BaizelArguments of(
             nl.adamg.baizel.core.entities.BaizelOptions options,
             nl.adamg.baizel.core.entities.Invocation invocation
     ) {
-        return new BaizelArguments(
+        return new BaizelArgumentsImpl(
                 new nl.adamg.baizel.core.entities.BaizelArguments(
                         options,
                         invocation
@@ -33,7 +37,7 @@ public class BaizelArguments
         );
     }
 
-    public static nl.adamg.baizel.core.api.BaizelArguments parse(String... args) {
+    public static BaizelArguments parse(String... args) {
         if (args.length == 1) {
             var argsString = args[0];
             var base64Decoded = Text.tryDecodeBase64(argsString);
@@ -41,13 +45,13 @@ public class BaizelArguments
                 argsString = base64Decoded;
             }
             if (argsString.startsWith("{") && argsString.endsWith("}")) {
-                return new BaizelArguments(JsonUtil.fromJson(argsString, nl.adamg.baizel.core.entities.BaizelArguments.class));
+                return new BaizelArgumentsImpl(JsonUtil.fromJson(argsString, nl.adamg.baizel.core.entities.BaizelArguments.class));
             }
         }
         var remainingArgs = (Queue<String>)new LinkedList<>(Arrays.asList(args));
-        var options = nl.adamg.baizel.core.model.BaizelOptions.parse(remainingArgs);
-        var invocation = nl.adamg.baizel.core.model.Invocation.parse(remainingArgs);
-        return BaizelArguments.of(options, invocation);
+        var options = BaizelOptionsImpl.parse(remainingArgs);
+        var invocation = InvocationImpl.parse(remainingArgs);
+        return BaizelArgumentsImpl.of(options, invocation);
     }
 
     //endregion
@@ -55,12 +59,12 @@ public class BaizelArguments
     //region getters
     @Override
     public BaizelOptions options() {
-        return new nl.adamg.baizel.core.model.BaizelOptions(entity.options);
+        return new BaizelOptionsImpl(entity.options);
     }
 
     @Override
     public Invocation invocation() {
-        return new nl.adamg.baizel.core.model.Invocation(entity.invocation);
+        return new InvocationImpl(entity.invocation);
     }
     //endregion
 
@@ -80,7 +84,7 @@ public class BaizelArguments
     //endregion
 
     //region generated code
-    public BaizelArguments(nl.adamg.baizel.core.entities.BaizelArguments entity) {
+    public BaizelArgumentsImpl(nl.adamg.baizel.core.entities.BaizelArguments entity) {
         super(entity);
     }
     //endregion

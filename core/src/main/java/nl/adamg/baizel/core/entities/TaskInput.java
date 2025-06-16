@@ -5,7 +5,7 @@ import java.util.List;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
-/// - Model:  [nl.adamg.baizel.core.model.TaskInput]
+/// - Model: [nl.adamg.baizel.core.impl.TaskInputImpl]
 public class TaskInput implements Serializable {
     public Target origin;
     public String originTaskId;

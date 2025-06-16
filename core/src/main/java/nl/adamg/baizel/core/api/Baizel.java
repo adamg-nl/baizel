@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.function.Consumer;
 
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
-/// - Model:  [nl.adamg.baizel.core.model.Baizel]
+/// - Model:  [nl.adamg.baizel.core.impl.BaizelImpl]
 /// - CLI:    `nl.adamg.baizel.cli.Baizel`
 public interface Baizel {
     void run(Invocation invocation) throws IOException, InterruptedException;

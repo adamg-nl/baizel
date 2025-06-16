@@ -1,5 +1,6 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
+import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
@@ -7,16 +8,16 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
-/// - Model:  [nl.adamg.baizel.core.model.Requirement]
-public class Requirement
-        extends EntityModel<nl.adamg.baizel.core.api.Requirement, nl.adamg.baizel.core.entities.Requirement, Requirement>
-        implements nl.adamg.baizel.core.api.Requirement {
+/// - Model:  [nl.adamg.baizel.core.impl.RequirementImpl]
+public class RequirementImpl
+        extends EntityModel<Requirement, nl.adamg.baizel.core.entities.Requirement, RequirementImpl>
+        implements Requirement {
     //region factory
-    public static nl.adamg.baizel.core.api.Requirement of(
+    public static Requirement of(
             String moduleId,
             boolean isTransitive
     ) {
-        return new Requirement(
+        return new RequirementImpl(
                 new nl.adamg.baizel.core.entities.Requirement(
                         moduleId,
                         isTransitive
@@ -59,7 +60,7 @@ public class Requirement
     //endregion
 
     //region generated code
-    public Requirement(nl.adamg.baizel.core.entities.Requirement entity) {
+    public RequirementImpl(nl.adamg.baizel.core.entities.Requirement entity) {
         super(entity);
     }
     //endregion

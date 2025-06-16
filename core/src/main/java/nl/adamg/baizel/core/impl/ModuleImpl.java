@@ -1,6 +1,7 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.api.Class;
+import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.entities.Issue;
@@ -21,24 +22,24 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
-/// - Model:  [nl.adamg.baizel.core.model.Module]
-public class Module
-        extends EntityModel<nl.adamg.baizel.core.api.Module, nl.adamg.baizel.core.entities.Module, Module>
-        implements nl.adamg.baizel.core.api.Module {
+/// - Model: [nl.adamg.baizel.core.impl.ModuleImpl]
+public class ModuleImpl
+        extends EntityModel<Module, nl.adamg.baizel.core.entities.Module, ModuleImpl>
+        implements Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
-    private final Project project;
+    private final ProjectImpl project;
     private final Map<String, Class> classes;
     private final List<Requirement> requirements;
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
     private final Consumer<Issue> reporter;
 
     //region factory
-    public static nl.adamg.baizel.core.api.Module of(
-            Project project,
+    public static Module of(
+            ProjectImpl project,
             Consumer<Issue> reporter,
             String path
     ) {
-        return new Module(
+        return new ModuleImpl(
                 project,
                 reporter,
                 new TreeMap<>(),
@@ -143,7 +144,7 @@ public class Module
                 continue;
             }
             entity.requirements.add(requirement);
-            requirements.add(new nl.adamg.baizel.core.model.Requirement(requirement));
+            requirements.add(new RequirementImpl(requirement));
         }
         entity.exports.addAll(moduleDef.body().get("exports").list());
     }
@@ -165,8 +166,8 @@ public class Module
     //endregion
 
     //region generated code
-    public Module(
-            Project project,
+    public ModuleImpl(
+            ProjectImpl project,
             Consumer<Issue> reporter,
             Map<String, Class> classes,
             List<Requirement> requirements,

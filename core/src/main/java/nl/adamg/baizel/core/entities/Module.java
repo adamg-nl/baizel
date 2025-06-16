@@ -6,7 +6,7 @@ import java.util.Map;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
-/// - Model:  [nl.adamg.baizel.core.model.Module]
+/// - Model: [nl.adamg.baizel.core.impl.ModuleImpl]
 public class Module implements Serializable {
     public String path;
     public Map<String, Class> classes;

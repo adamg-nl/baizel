@@ -4,7 +4,7 @@
 //
 ///// - API:    [nl.adamg.baizel.core.api.Baizel]
 ///// - Entity: [nl.adamg.baizel.core.entities.Baizel]
-///// - Model:  [nl.adamg.baizel.core.model.Baizel]
+///// - Model:  [nl.adamg.baizel.core.impl.BaizelImpl]
 //public class Baizel implements Serializable {
 //    public Project project;
 //    public BaizelOptions options;

@@ -7,7 +7,7 @@ package nl.adamg.baizel.core.api;
 ///
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
-/// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
+/// - Model:  [nl.adamg.baizel.core.impl.ArtifactCoordinatesImpl]
 public interface ArtifactCoordinates {
     String organization();
     String artifact();

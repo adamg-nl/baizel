@@ -1,5 +1,6 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
+import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.ArtifactCoordinates;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.entities.Issue;
@@ -20,17 +21,17 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
-/// - Model:  [nl.adamg.baizel.core.model.Project]
-public class Project
-        extends EntityModel<nl.adamg.baizel.core.api.Project, nl.adamg.baizel.core.entities.Project, Project>
-        implements nl.adamg.baizel.core.api.Project {
+/// - Model:  [nl.adamg.baizel.core.impl.ProjectImpl]
+public class ProjectImpl
+        extends EntityModel<Project, nl.adamg.baizel.core.entities.Project, ProjectImpl>
+        implements Project {
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
     private final Map<String, Module> modules;
     private final Map<String, ArtifactCoordinates> dependencies;
     private final Consumer<Issue> reporter;
 
     //region factory
-    public static nl.adamg.baizel.core.api.Project of(
+    public static Project of(
             Consumer<Issue> reporter,
             Map<String, ArtifactCoordinates> dependencies,
             String projectId,
@@ -38,7 +39,7 @@ public class Project
             Map<String, nl.adamg.baizel.core.entities.ArtifactCoordinates> dependencyEntities,
             List<String> artifactRepositories
     ) {
-        return new Project(
+        return new ProjectImpl(
                 reporter,
                 new TreeMap<>(),
                 dependencies,
@@ -52,7 +53,7 @@ public class Project
         );
     }
 
-    public static nl.adamg.baizel.core.api.Project load(Path root, Consumer<Issue> reporter) throws IOException {
+    public static Project load(Path root, Consumer<Issue> reporter) throws IOException {
         var projectDefPath = getProjectDefinitionFile(root);
         ObjectTree projectDef;
         if (projectDefPath != null) {
@@ -71,13 +72,13 @@ public class Project
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {
-                var dependencyEntity = nl.adamg.baizel.core.model.ArtifactCoordinates.parse(coordinatesString);
+                var dependencyEntity = ArtifactCoordinatesImpl.parse(coordinatesString);
                 dependencyEntity.moduleId = String.valueOf(moduleId.get(0));
                 dependenciesEntity.put(dependencyEntity.moduleId, dependencyEntity);
-                dependencies.put(dependencyEntity.moduleId, new nl.adamg.baizel.core.model.ArtifactCoordinates(dependencyEntity));
+                dependencies.put(dependencyEntity.moduleId, new ArtifactCoordinatesImpl(dependencyEntity));
             }
         }
-        return Project.of(
+        return ProjectImpl.of(
                 reporter,
                 dependencies,
                 projectId,
@@ -107,7 +108,7 @@ public class Project
             return null;
         }
         var modulePath = path;
-        while (nl.adamg.baizel.core.model.Module.getModuleDefinitionFile(modulePath) != null) {
+        while (ModuleImpl.getModuleDefinitionFile(modulePath) != null) {
             modulePath = modulePath.getParent();
             if (! modulePath.startsWith(root())) {
                 return null;
@@ -117,7 +118,7 @@ public class Project
     }
 
     public Module getModule(String path) {
-        return modules.computeIfAbsent(path, p -> nl.adamg.baizel.core.model.Module.of(this, reporter, p));
+        return modules.computeIfAbsent(path, p -> ModuleImpl.of(this, reporter, p));
     }
 
     /// @param moduleId qualified Java module id, like `com.example.foobar`
@@ -138,7 +139,7 @@ public class Project
         if (coordinates == null) {
             return null;
         }
-        return new nl.adamg.baizel.core.model.ArtifactCoordinates(coordinates);
+        return new ArtifactCoordinatesImpl(coordinates);
     }
 
     @Override
@@ -193,7 +194,7 @@ public class Project
     //endregion
 
     //region generated code
-    public Project(
+    public ProjectImpl(
             Consumer<Issue> reporter,
             Map<String, Module> modules,
             Map<String, ArtifactCoordinates> dependencies,

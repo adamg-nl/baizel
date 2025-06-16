@@ -1,6 +1,7 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
@@ -8,18 +9,18 @@ import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskRequest]
-/// - Model:  [nl.adamg.baizel.core.model.TaskRequest]
-public class TaskRequest
-        extends EntityModel<nl.adamg.baizel.core.api.TaskRequest, nl.adamg.baizel.core.entities.TaskRequest, TaskRequest>
-        implements nl.adamg.baizel.core.api.TaskRequest {
+/// - Model:  [nl.adamg.baizel.core.impl.TaskRequestImpl]
+public class TaskRequestImpl
+        extends EntityModel<TaskRequest, nl.adamg.baizel.core.entities.TaskRequest, TaskRequestImpl>
+        implements TaskRequest {
     //region factory
-    public static nl.adamg.baizel.core.api.TaskRequest of(
+    public static TaskRequest of(
             Target target,
             String task
     ) {
-        return new TaskRequest(
+        return new TaskRequestImpl(
                 new nl.adamg.baizel.core.entities.TaskRequest(
-                        ((nl.adamg.baizel.core.model.Target)target).entity(),
+                        ((TargetImpl)target).entity(),
                         task
                 )
         );
@@ -29,7 +30,7 @@ public class TaskRequest
     //region getters
     @Override
     public Target target() {
-        return new nl.adamg.baizel.core.model.Target(entity.target);
+        return new TargetImpl(entity.target);
     }
 
     @Override
@@ -54,7 +55,7 @@ public class TaskRequest
     //endregion
 
     //region generated code
-    public TaskRequest(nl.adamg.baizel.core.entities.TaskRequest entity) {
+    public TaskRequestImpl(nl.adamg.baizel.core.entities.TaskRequest entity) {
         super(entity);
     }
     //endregion

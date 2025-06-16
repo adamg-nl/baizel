@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /// - API:    [nl.adamg.baizel.core.api.BaizelOptions]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelOptions]
-/// - Model:  [nl.adamg.baizel.core.model.BaizelOptions]
+/// - Model: [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
 public final class BaizelOptions implements Serializable {
     public int workerCount;
     public String projectRoot;

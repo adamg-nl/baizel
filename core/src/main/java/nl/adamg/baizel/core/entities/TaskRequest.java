@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskRequest]
-/// - Model:  [nl.adamg.baizel.core.model.TaskRequest]
+/// - Model: [nl.adamg.baizel.core.impl.TaskRequestImpl]
 public class TaskRequest implements Serializable {
     public Target target;
     public String taskId;

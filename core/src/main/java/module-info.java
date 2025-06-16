@@ -2,7 +2,7 @@ module nl.adamg.baizel.core {
     exports nl.adamg.baizel.core;
     exports nl.adamg.baizel.core.entities;
     exports nl.adamg.baizel.core.api;
-    exports nl.adamg.baizel.core.model;
+    exports nl.adamg.baizel.core.impl;
 
     uses nl.adamg.baizel.core.api.Task;
 

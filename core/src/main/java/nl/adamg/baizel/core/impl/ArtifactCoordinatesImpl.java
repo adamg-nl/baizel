@@ -1,24 +1,25 @@
-package nl.adamg.baizel.core.model;
+package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.internal.common.util.EntityModel;
+import nl.adamg.baizel.core.api.ArtifactCoordinates;
 
 import java.util.List;
 import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
-/// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
-public class ArtifactCoordinates
-        extends EntityModel<nl.adamg.baizel.core.api.ArtifactCoordinates, nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates>
-        implements nl.adamg.baizel.core.api.ArtifactCoordinates {
+/// - Model:  [nl.adamg.baizel.core.impl.ArtifactCoordinatesImpl]
+public class ArtifactCoordinatesImpl
+        extends EntityModel<ArtifactCoordinates, nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinatesImpl>
+        implements ArtifactCoordinates {
     //region factory
-    public static nl.adamg.baizel.core.api.ArtifactCoordinates of(
+    public static ArtifactCoordinates of(
             String organization,
             String artifact,
             String version,
             String moduleId
     ) {
-        return new ArtifactCoordinates(
+        return new ArtifactCoordinatesImpl(
                 new nl.adamg.baizel.core.entities.ArtifactCoordinates(
                         organization,
                         artifact,
@@ -79,7 +80,7 @@ public class ArtifactCoordinates
     //endregion
 
     //region generated code
-    public ArtifactCoordinates(nl.adamg.baizel.core.entities.ArtifactCoordinates entity) {
+    public ArtifactCoordinatesImpl(nl.adamg.baizel.core.entities.ArtifactCoordinates entity) {
         super(entity);
     }
     //endregion

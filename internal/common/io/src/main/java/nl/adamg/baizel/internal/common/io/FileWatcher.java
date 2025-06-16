@@ -1,11 +1,19 @@
 package nl.adamg.baizel.internal.common.io;
 
+import java.nio.file.ClosedWatchServiceException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardWatchEventKinds;
+import java.nio.file.WatchKey;
+import java.nio.file.WatchService;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import nl.adamg.baizel.internal.common.util.Exceptions;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.nio.file.*;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;

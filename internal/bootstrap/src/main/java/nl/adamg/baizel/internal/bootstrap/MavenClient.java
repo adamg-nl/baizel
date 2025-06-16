@@ -1,5 +1,12 @@
 package nl.adamg.baizel.internal.bootstrap;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import nl.adamg.baizel.internal.bootstrap.java.DynamicClassLoader;
 import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
 import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
@@ -15,7 +22,6 @@ import java.net.URLClassLoader;
 import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;

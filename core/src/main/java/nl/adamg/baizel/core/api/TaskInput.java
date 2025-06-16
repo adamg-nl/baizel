@@ -5,7 +5,7 @@ import java.util.Set;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
-/// - Model:  [nl.adamg.baizel.core.model.TaskInput]
+/// - Model: [nl.adamg.baizel.core.impl.TaskInputImpl]
 public interface TaskInput {
     Target origin();
     String originTaskId();
