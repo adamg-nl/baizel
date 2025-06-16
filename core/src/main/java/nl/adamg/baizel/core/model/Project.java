@@ -23,7 +23,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
 /// - Model:  [nl.adamg.baizel.core.model.Project]
-public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, Project> implements nl.adamg.baizel.core.api.Project {
+public class Project
+        extends EntityModel<nl.adamg.baizel.core.api.Project, nl.adamg.baizel.core.entities.Project, Project>
+        implements nl.adamg.baizel.core.api.Project {
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
     private final Map<String, Module> modules;
     private final Map<String, ArtifactCoordinates> dependencies;

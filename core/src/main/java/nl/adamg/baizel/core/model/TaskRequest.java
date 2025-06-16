@@ -9,15 +9,17 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskRequest]
 /// - Model:  [nl.adamg.baizel.core.model.TaskRequest]
-public class TaskRequest extends EntityModel<nl.adamg.baizel.core.entities.TaskRequest, TaskRequest> implements nl.adamg.baizel.core.api.TaskRequest {
+public class TaskRequest
+        extends EntityModel<nl.adamg.baizel.core.api.TaskRequest, nl.adamg.baizel.core.entities.TaskRequest, TaskRequest>
+        implements nl.adamg.baizel.core.api.TaskRequest {
     //region factory
     public static nl.adamg.baizel.core.api.TaskRequest of(
-            nl.adamg.baizel.core.entities.Target target,
+            Target target,
             String task
     ) {
         return new TaskRequest(
                 new nl.adamg.baizel.core.entities.TaskRequest(
-                        target,
+                        ((nl.adamg.baizel.core.model.Target)target).entity(),
                         task
                 )
         );

@@ -22,7 +22,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
 /// - Model:  [nl.adamg.baizel.core.model.Module]
-public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Module> implements nl.adamg.baizel.core.api.Module {
+public class Module
+        extends EntityModel<nl.adamg.baizel.core.api.Module, nl.adamg.baizel.core.entities.Module, Module>
+        implements nl.adamg.baizel.core.api.Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private final Project project;
     private final Map<String, Class> classes;

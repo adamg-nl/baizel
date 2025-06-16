@@ -2,23 +2,24 @@ package nl.adamg.baizel.internal.common.io;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
-/**
- * The real implementation of {@link Shell}. Allows executing processes, reading and manipulating
- * the env.
- */
+/// The real implementation of [Shell]. Allows executing processes, reading and manipulating the env.
+///
+/// When the process is launched via 'source bin/baizel ...', any env variables overridden
+/// using this class will at the end of execution be exported into the caller shell.
 public final class SystemShell implements Shell {
+    private static final String BAIZEL_ENV_CAPTURE_FILE = "BAIZEL_ENV_CAPTURE_FILE";
     private final Map<String, String> env;
+    @CheckForNull private final Path envCaptureFile;
 
     public static Shell load(Path pwd) throws IOException {
         // we start with base Bash environment
         var cleanTerminalShellEnv = getCleanShellEnv();
         var env = new TreeMap<>(cleanTerminalShellEnv);
-        var shell = new SystemShell(env);
+        var shell = new SystemShell(env, getEnvCaptureFile());
 
         // then we use this to run any .envrc files in the hierarchy and we put resulting entries on top
         var currentDirEnv = DirEnvUtil.getDirEnv(pwd, shell);
@@ -27,6 +28,7 @@ public final class SystemShell implements Shell {
         // then we put entries from this JVM process on top
         var currentJvmProcessEnv = System.getenv();
         env.putAll(currentJvmProcessEnv);
+        env.remove(BAIZEL_ENV_CAPTURE_FILE); // except this
 
         // then we merge the $PATHs
         env.put("PATH", ShellUtil.joinEnvPath(currentJvmProcessEnv, currentDirEnv, cleanTerminalShellEnv));
@@ -68,6 +70,27 @@ public final class SystemShell implements Shell {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        if (envCaptureFile == null) {
+            return;
+        }
+        var entries = new ArrayList<String>();
+        for(var entry : env.entrySet()) {
+            if (!Objects.equals(System.getenv(entry.getKey()), entry.getValue()) &&
+                    entry.getKey().matches("^[A-Z0-9_]+$")) {
+                entries.add(entry.getKey() + "='" + entry.getValue().replace("'", "") + "'");
+            }
+        }
+        Files.write(envCaptureFile, entries);
+    }
+
+    @CheckForNull
+    private static Path getEnvCaptureFile() {
+        var path = System.getenv(BAIZEL_ENV_CAPTURE_FILE);
+        return path != null ? Path.of(path) : null;
+    }
+
     // region internal utils
     private static Map<String, String> getCleanShellEnv() throws IOException {
         var envOverrides =
@@ -99,8 +122,12 @@ public final class SystemShell implements Shell {
     // endregion
 
     // region generated code
-    public SystemShell(Map<String, String> env) {
+    public SystemShell(
+            Map<String, String> env,
+            @CheckForNull Path envCaptureFile
+    ) {
         this.env = env;
+        this.envCaptureFile = envCaptureFile;
     }
     // endregion
 }

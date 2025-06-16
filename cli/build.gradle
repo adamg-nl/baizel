@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     api(project(":core"))
+    api(project(":internal:bootstrap"))
     api(project(":internal:common:annotations"))
     api(project(":internal:common:io"))
     api(project(":internal:common:util"))

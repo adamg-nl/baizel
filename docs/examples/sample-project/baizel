@@ -1,24 +1,40 @@
 #!/usr/bin/env bash
-BAIZEL_PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")
+BAIZEL_DIR="$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.baizel"
 
 
 
-### Baizel Build System for Java entry point.
-### On demand downloads and updates local clone of Baizel.
+### Baizel Build System for Java.
+### On demand downloads and updates local clone of Baizel to <PROJECT_ROOT>/.baizel, where it bootstraps.
 ### See .baizel/bin/baizel for full documentation.
-### Variables below can be customized as needed.
-BAIZEL_VERSION="2b42fc0b2c632ab78bba534166e7d7d9bcdbbc04"
-BAIZEL_SOURCE="https://github.com/adamg-nl/baizel.git"
-BAIZEL_DIR="${BAIZEL_PROJECT_ROOT}/.baizel"
+function main() {
+	local baizelVersion="2b42fc0b2c632ab78bba534166e7d7d9bcdbbc04"
+	local baizelOrigin="https://github.com/adamg-nl/baizel.git"
 
 
 
-if [[ ! -e "${BAIZEL_DIR}/.git/refs/heads/main" ]]; then
-    mkdir "${BAIZEL_DIR}"
-    git clone "${BAIZEL_SOURCE}" "${BAIZEL_DIR}"
-fi
-if [[ $(cat "${BAIZEL_DIR}/.git/refs/heads/main") != ${BAIZEL_VERSION} ]]; then
-    git -C "${BAIZEL_DIR}" fetch origin "${BAIZEL_VERSION}"
-    git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD
-fi
-source "${BAIZEL_DIR}/bin/baizel"
+	local currentVersion=$(cat "${BAIZEL_DIR}/.git/refs/heads/main" 2>/dev/null || true)
+	if [[ ${currentVersion} == "" ]]; then
+		echo "Installing the Baizel Build System for Java..." 1>&2
+		mkdir "${BAIZEL_DIR}"
+		git clone "${baizelOrigin}" "${BAIZEL_DIR}"
+	fi
+	if [[ ${currentVersion} != ${baizelVersion} ]]; then
+		echo "Updating the Baizel Build System for Java from ${currentVersion} to ${baizelVersion}..." 1>&2
+		git -C "${BAIZEL_DIR}" clean -dfX
+
+		local currentOrigin=$(git -C "${BAIZEL_DIR}" remote get-url origin)
+		if [[ ${currentOrigin} != ${baizelOrigin} ]]; then
+			git -C "${BAIZEL_DIR}" remote add origin "${baizelOrigin}"
+            git -C "${BAIZEL_DIR}" remote set-url origin "${baizelOrigin}"
+		fi
+
+		git -C "${BAIZEL_DIR}" fetch origin "${baizelVersion}"
+		git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD
+	fi
+	source "${BAIZEL_DIR}/bin/baizel"
+	unset BAIZEL_DIR
+}
+
+
+
+main "${@}"

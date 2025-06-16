@@ -1,9 +1,9 @@
 package nl.adamg.baizel.cli.tasks;
 
-import nl.adamg.baizel.core.Project;
-import nl.adamg.baizel.core.Target;
-import nl.adamg.baizel.core.tasks.Task;
-import nl.adamg.baizel.core.tasks.TaskInput;
+import nl.adamg.baizel.core.model.Project;
+import nl.adamg.baizel.core.model.Target;
+import nl.adamg.baizel.core.api.Task;
+import nl.adamg.baizel.core.model.TaskInput;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -20,7 +20,7 @@ public class Resolve implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Project project) {
+    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Project project, Baizel baizel) {
         LOG.warning("RESOLVING");
         return Set.of();
     }

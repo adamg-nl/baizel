@@ -2,6 +2,7 @@ package nl.adamg.baizel.core.model;
 
 import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.internal.common.util.EntityModel;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -11,16 +12,18 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
 /// - Model:  [nl.adamg.baizel.core.model.TaskInput]
-public class TaskInput extends EntityModel<nl.adamg.baizel.core.entities.TaskInput, TaskInput> implements nl.adamg.baizel.core.api.TaskInput {
+public class TaskInput
+        extends EntityModel<nl.adamg.baizel.core.api.TaskInput, nl.adamg.baizel.core.entities.TaskInput, TaskInput>
+        implements nl.adamg.baizel.core.api.TaskInput {
     //region factory
     public static TaskInput of(
-            nl.adamg.baizel.core.entities.Target origin,
+            Target origin,
             String originTaskId,
             Set<Path> paths
     ) {
         return new TaskInput(
                 new nl.adamg.baizel.core.entities.TaskInput(
-                        origin,
+                        ((nl.adamg.baizel.core.model.Target)origin).entity(),
                         originTaskId,
                         paths
                 )
@@ -41,7 +44,7 @@ public class TaskInput extends EntityModel<nl.adamg.baizel.core.entities.TaskInp
 
     @Override
     public Set<Path> paths() {
-        return entity.paths;
+        return Items.mapToSortedSet(entity.paths, Path::of);
     }
     //endregion
 

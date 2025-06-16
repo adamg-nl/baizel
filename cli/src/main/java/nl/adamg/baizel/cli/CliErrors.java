@@ -3,7 +3,7 @@ package nl.adamg.baizel.cli;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 
 public enum CliErrors {
-    @SuppressWarnings("unused") // used in bin/bazik
+    @SuppressWarnings("unused") // used in bin/baizel
     JDK_NOT_FOUND(201),
     @SuppressWarnings("unused") // used in Bootstrap.java
     BOOTSTRAP_COMPILATION_FAILED(202),

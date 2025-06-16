@@ -45,7 +45,9 @@ Target syntax examples:
   -//pkg:target    excludes a specific target within a package
 
 Baizel options:
-  --worker-count=<N> (optional, default: number of CPU cores)
+  --worker-count=<N>  (optional, default: number of CPU cores)
+  --project=<PATH>    (optional, default: innermost project containing $PWD, or $PWD if none found)
+  --debug             (optional) listen for debugger on port 5005 and enable verbose logging
 
 Environment variables used:
   BAIZEL_DEBUG     enables JVM waiting debugger. Values: true, false, or port number (default port: 5005)

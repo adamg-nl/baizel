@@ -6,10 +6,12 @@ import nl.adamg.baizel.internal.bootstrap.util.logging.LoggerUtil;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -31,7 +33,7 @@ public final class Bootstrap {
         LOG.info("Bootstrap Stage 2");
 
         // Step 2.1: we compute some paths, relative to the path of this .java file as detected via reflection
-        var builder = BootstrapBuilder.makeBuilder(findBaizelRoot());
+        var builder = BootstrapBuilder.makeBuilder(findBaizelDir());
 
         // Step 2.2: we check if the Baizel checksum matches
         var lastBaizelChecksum = builder.readLastBaizelChecksum();
@@ -63,7 +65,11 @@ public final class Bootstrap {
         }
     }
 
-    public static Path findBaizelRoot() throws URISyntaxException, IOException {
+    public static Path findBaizelDir() throws URISyntaxException, IOException {
+        var baizelDir = Optional.of(System.getenv("BAIZEL_DIR")).map(Path::of).orElse(null);
+        if (baizelDir != null && Files.isDirectory(baizelDir)) {
+            return baizelDir;
+        }
         var currentSourceUrl = Bootstrap.class.getProtectionDomain().getCodeSource().getLocation();
         var currentSourcePath = Path.of(Objects.requireNonNull(currentSourceUrl).toURI()).toRealPath();
         var buildClasspathRelativePath = "internal/bootstrap/.build/classes/java/main";

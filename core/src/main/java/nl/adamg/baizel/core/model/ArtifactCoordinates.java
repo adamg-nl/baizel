@@ -8,7 +8,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
 /// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
-public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates> implements nl.adamg.baizel.core.api.ArtifactCoordinates {
+public class ArtifactCoordinates
+        extends EntityModel<nl.adamg.baizel.core.api.ArtifactCoordinates, nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates>
+        implements nl.adamg.baizel.core.api.ArtifactCoordinates {
     //region factory
     public static nl.adamg.baizel.core.api.ArtifactCoordinates of(
             String organization,

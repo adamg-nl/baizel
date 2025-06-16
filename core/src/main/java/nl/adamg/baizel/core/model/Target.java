@@ -13,7 +13,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
 /// - Model:  [nl.adamg.baizel.core.model.Target]
-public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Target> implements nl.adamg.baizel.core.api.Target {
+public class Target
+        extends EntityModel<nl.adamg.baizel.core.api.Target, nl.adamg.baizel.core.entities.Target, Target>
+        implements nl.adamg.baizel.core.api.Target {
     //region factory
     public static nl.adamg.baizel.core.api.Target of(
             String org, 
@@ -37,6 +39,34 @@ public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Ta
 
     public static Target artifact(String organization, String artifact) {
         return new Target(new nl.adamg.baizel.core.entities.Target(organization, artifact, "", ""));
+    }
+
+    public static nl.adamg.baizel.core.entities.Target parseTarget(String input) {
+        var org = "";
+        var mod = "";
+        var name = "";
+
+        var at = input.indexOf('@');
+        var slashSlash = input.indexOf("//");
+        var colon = input.indexOf(':');
+
+        if (at != -1 && at < slashSlash) {
+            var orgMod = input.substring(at + 1, slashSlash).split("/", 2);
+            org = orgMod[0];
+            if (orgMod.length > 1) {
+                mod = orgMod[1];
+            }
+        }
+
+        var pathStart = slashSlash + 2;
+        var pathEnd = colon != -1 ? colon : input.length();
+        var path = input.substring(pathStart, pathEnd);
+
+        if (colon != -1) {
+            name = input.substring(colon + 1);
+        }
+
+        return new nl.adamg.baizel.core.entities.Target(org, mod, path, name);
     }
     //endregion
 

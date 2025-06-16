@@ -8,7 +8,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
 /// - Model:  [nl.adamg.baizel.core.model.Requirement]
-public class Requirement extends EntityModel<nl.adamg.baizel.core.entities.Requirement, Requirement> implements nl.adamg.baizel.core.api.Requirement {
+public class Requirement
+        extends EntityModel<nl.adamg.baizel.core.api.Requirement, nl.adamg.baizel.core.entities.Requirement, Requirement>
+        implements nl.adamg.baizel.core.api.Requirement {
     //region factory
     public static nl.adamg.baizel.core.api.Requirement of(
             String moduleId,

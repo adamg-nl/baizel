@@ -9,7 +9,7 @@ import java.util.function.Function;
 /// equals, hashCode, compareTo, auto-implemented based on given list of fields.
 /// Useful for model types (business logic classes) that wrap entity types (pure data structures).
 /// @param <TEntity> entity being wrapped and modelled.
-public abstract class EntityModel<TEntity, TModel extends EntityModel<TEntity, TModel>> implements Comparable<TModel> {
+public abstract class EntityModel<TInterface, TEntity, TModel extends EntityModel<TInterface, TEntity, TModel>> implements Comparable<TInterface> {
     protected final TEntity entity;
 
     protected EntityModel() {
@@ -27,9 +27,15 @@ public abstract class EntityModel<TEntity, TModel extends EntityModel<TEntity, T
 
     protected abstract List<Function<TEntity, ?>> fields();
 
+    public TEntity entity() {
+        return entity;
+    }
+
     @Override
-    public int compareTo(TModel that) {
-        return EntityComparator.compareBy(entity, that.entity, fields());
+    public int compareTo(TInterface that) {
+        @SuppressWarnings("unchecked")
+        var cast = (TModel)that;
+        return EntityComparator.compareBy(entity, cast.entity, fields());
     }
 
     @Override
@@ -39,6 +45,8 @@ public abstract class EntityModel<TEntity, TModel extends EntityModel<TEntity, T
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof EntityModel<?, ?> other && EntityComparator.equals(entity, other.entity, fields());
+        return obj instanceof EntityModel<?, ?, ?> other &&
+                entity.getClass() == other.entity.getClass() &&
+                EntityComparator.equals(entity, other.entity, fields());
     }
 }

@@ -1,4 +1,5 @@
 module nl.adamg.baizel.internal.bootstrap {
+    exports nl.adamg.baizel.internal.bootstrap;
     requires nl.adamg.baizel.internal.bootstrap.io;
     requires nl.adamg.baizel.internal.bootstrap.java;
     requires nl.adamg.baizel.internal.bootstrap.javadsl;

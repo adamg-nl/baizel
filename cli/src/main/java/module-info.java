@@ -17,4 +17,5 @@ module nl.adamg.baizel.cli {
     requires nl.adamg.baizel.internal.common.serialization;
     requires java.compiler;
     requires jdk.compiler;
+    requires nl.adamg.baizel.internal.bootstrap;
 }

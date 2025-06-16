@@ -1,8 +1,7 @@
 package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
-import java.nio.file.Path;
-import java.util.Set;
+import java.util.List;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
@@ -10,10 +9,10 @@ import java.util.Set;
 public class TaskInput implements Serializable {
     public Target origin;
     public String originTaskId;
-    public Set<Path> paths;
+    public List<String> paths;
 
     //region generated code
-    public TaskInput(Target origin, String originTaskId, Set<Path> paths) {
+    public TaskInput(Target origin, String originTaskId, List<String> paths) {
         this.origin = origin;
         this.originTaskId = originTaskId;
         this.paths = paths;

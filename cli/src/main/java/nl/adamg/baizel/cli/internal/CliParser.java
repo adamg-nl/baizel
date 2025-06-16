@@ -3,7 +3,7 @@ package nl.adamg.baizel.cli.internal;
 import nl.adamg.baizel.cli.Arguments;
 import nl.adamg.baizel.cli.CliErrors;
 import nl.adamg.baizel.cli.Options;
-import nl.adamg.baizel.core.model.Target;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.internal.common.serialization.JsonUtil;
 import nl.adamg.baizel.internal.common.util.Text;
 import nl.adamg.baizel.internal.common.util.collections.Items;
@@ -116,6 +116,6 @@ public class CliParser {
             name = input.substring(colon + 1);
         }
 
-        return new Target(new nl.adamg.baizel.core.entities.Target(org, mod, path, name));
+        return nl.adamg.baizel.core.model.Target.of(org, mod, path, name);
     }
 }

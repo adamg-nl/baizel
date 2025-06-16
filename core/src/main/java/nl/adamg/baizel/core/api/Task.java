@@ -10,7 +10,7 @@ import java.util.Set;
 @ServiceProvider.Interface
 public interface Task {
     /// @return output paths
-    Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Baizel baizel);
+    Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Baizel baizel) throws IOException;
 
     /// @return pairs of target and task id
     default Set<TaskRequest> findDependencies(Target target, Baizel baizel) throws IOException {

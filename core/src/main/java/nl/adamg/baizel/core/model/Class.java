@@ -9,7 +9,9 @@ import java.util.function.Function;
 /// - API:    [nl.adamg.baizel.core.api.Class]
 /// - Entity: [nl.adamg.baizel.core.entities.Class]
 /// - Model:  [nl.adamg.baizel.core.model.Class]
-public class Class extends EntityModel<nl.adamg.baizel.core.entities.Class, Class> implements nl.adamg.baizel.core.api.Class {
+public class Class
+        extends EntityModel<nl.adamg.baizel.core.api.Class, nl.adamg.baizel.core.entities.Class, Class>
+        implements nl.adamg.baizel.core.api.Class {
     private final Module module;
 
     //region factory

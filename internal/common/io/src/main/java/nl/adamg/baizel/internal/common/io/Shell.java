@@ -1,6 +1,7 @@
 package nl.adamg.baizel.internal.common.io;
 
 import javax.annotation.CheckForNull;
+import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Map;
  *
  * @see SystemShell
  */
-public interface Shell {
+public interface Shell extends AutoCloseable {
     enum OutputForwardingMode {
         NONE,
         ALL,
@@ -16,6 +17,9 @@ public interface Shell {
         STDERR,
         ALL_TO_STDERR
     }
+
+    @Override
+    void close() throws IOException;
 
     ExecResult exec(String command, ShellConfig config) throws ExecException;
 
