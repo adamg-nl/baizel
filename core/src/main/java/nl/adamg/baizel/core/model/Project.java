@@ -6,8 +6,6 @@ import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
 import nl.adamg.baizel.internal.common.util.EntityModel;
-import nl.adamg.baizel.internal.common.util.collections.Items;
-import nl.adamg.baizel.internal.common.util.java.typeref.TypeRef2;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
@@ -37,7 +35,8 @@ public class Project
             Map<String, ArtifactCoordinates> dependencies,
             String projectId,
             String root,
-            Map<String, nl.adamg.baizel.core.entities.ArtifactCoordinates> dependencyEntities
+            Map<String, nl.adamg.baizel.core.entities.ArtifactCoordinates> dependencyEntities,
+            List<String> artifactRepositories
     ) {
         return new Project(
                 reporter,
@@ -47,7 +46,8 @@ public class Project
                         projectId,
                         root,
                         new TreeMap<>(),
-                        dependencyEntities
+                        dependencyEntities,
+                        artifactRepositories
                 )
         );
     }
@@ -67,6 +67,7 @@ public class Project
         var dependenciesEntity = new TreeMap<String, nl.adamg.baizel.core.entities.ArtifactCoordinates>();
         var dependencies = new TreeMap<String, ArtifactCoordinates>();
         var rawDependencies = projectDef.body().get("dependencies").body();
+        var artifactRepositories = projectDef.body().get("repositories").list(String.class);
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {
@@ -81,7 +82,8 @@ public class Project
                 dependencies,
                 projectId,
                 root.toAbsolutePath().toString(),
-                dependenciesEntity
+                dependenciesEntity,
+                artifactRepositories
         );
     }
     //endregion
@@ -139,8 +141,19 @@ public class Project
         return new nl.adamg.baizel.core.model.ArtifactCoordinates(coordinates);
     }
 
-    public void report(String issueId, String... details) {
-        reporter.accept(new Issue(issueId, Items.map(new TypeRef2<>() {}, details)));
+    @Override
+    public List<String> artifactRepositories() {
+        return entity.artifactRepositories;
+    }
+
+    /// @return given path, resolved relative to the root
+    @Override
+    public Path path(String... path) {
+        var result = root();
+        for(var segment : path) {
+            result = result.resolve(segment);
+        }
+        return result;
     }
 
     //region implementation internals

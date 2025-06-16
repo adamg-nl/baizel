@@ -3,7 +3,9 @@ package nl.adamg.baizel.internal.common.io;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.function.BiPredicate;
 
 public class LocalFileSystem implements FileSystem {
     @Override
@@ -29,5 +31,18 @@ public class LocalFileSystem implements FileSystem {
     @Override
     public void delete(Path path) throws IOException {
         FileSystemUtil.delete(path);
+    }
+
+    @Override
+    public List<Path> findFiles(Path outputDir, String regexp) throws IOException {
+        var matcher = new BiPredicate<Path, BasicFileAttributes>() {
+            @Override
+            public boolean test(Path path, BasicFileAttributes basicFileAttributes) {
+                return Files.isRegularFile(path) && path.toString().matches(regexp);
+            }
+        };
+        try(var stream = Files.find(outputDir, Integer.MAX_VALUE, matcher)) {
+            return stream.toList();
+        }
     }
 }

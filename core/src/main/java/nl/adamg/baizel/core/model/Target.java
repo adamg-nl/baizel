@@ -1,12 +1,13 @@
 package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.SourceSets;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.SourceSet;
+import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
-import javax.annotation.CheckForNull;
 import java.util.List;
 import java.util.function.Function;
 
@@ -70,34 +71,36 @@ public class Target
     }
     //endregion
 
-    /// @return null if this target is not a project module (e.g. it's an artifact)
-    @CheckForNull
+    /// @throws BaizelException if module is not found or this target is not a module-type target
     public Module getModule(Project project) {
         if (!artifact().isEmpty() || entity.path.isEmpty()) {
-            return null;
+            throw new BaizelException(BaizelErrors.MODULE_NOT_FOUND, this.toString());
         }
-        return project.getModuleOf(project.root().resolve(entity.path));
+        var module = project.getModuleOf(project.root().resolve(entity.path));
+        if (module == null) {
+            throw new BaizelException(BaizelErrors.MODULE_NOT_FOUND, entity.path);
+        }
+        return module;
     }
 
-    public SourceSet getSourceSet() {
+    public SourceSet sourceSet() {
         return ! entity.targetName.isEmpty() ? SourceSets.get(entity.targetName) : SourceSets.main();
     }
 
-    //region get
+    //region getters
+    @Override
     public String organization() {
         return entity.organization;
     }
 
+    @Override
     public String artifact() {
         return entity.artifact;
     }
 
+    @Override
     public String path() {
         return entity.path;
-    }
-
-    public String targetName() {
-        return entity.targetName;
     }
     //endregion
 

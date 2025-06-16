@@ -17,4 +17,5 @@ public interface Baizel {
     Shell shell();
     Project project();
     BaizelOptions options();
+    Target.Type getTargetType(Target target);
 }

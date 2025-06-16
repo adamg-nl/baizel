@@ -24,13 +24,14 @@ public class Clean implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Baizel baizel) throws IOException {
+    public boolean isApplicable(Target target, Target.Type targetType, Baizel baizel) {
+        return targetType == Target.Type.MODULE;
+    }
+
+    @Override
+    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Target.Type targetType, Baizel baizel) throws IOException {
         var module = target.getModule(baizel.project());
-        if (module == null) {
-            baizel.report("MODULE_NOT_FOUND", "path", target.path());
-        } else {
-            baizel.fileSystem().delete(module.fullPath().resolve(".build"));
-        }
+        baizel.fileSystem().delete(module.fullPath().resolve(".build"));
         return Set.of();
     }
 }

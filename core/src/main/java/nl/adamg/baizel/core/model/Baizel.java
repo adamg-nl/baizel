@@ -18,8 +18,14 @@ import nl.adamg.baizel.internal.common.util.collections.Items;
 import nl.adamg.baizel.internal.common.util.java.typeref.TypeRef2;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -86,9 +92,27 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
         reporter.accept(new Issue(issueId, Items.map(new TypeRef2<>() {}, details)));
     }
 
+    @Override
+    public Target.Type getTargetType(Target target) {
+        if (! target.artifact().isEmpty()) {
+            return Target.Type.ARTIFACT;
+        }
+        if (target.path().isEmpty()) {
+            return Target.Type.MODULE;
+        }
+        var moduleDefFile = nl.adamg.baizel.core.model.Module.getModuleDefinitionFile(project.path(target.path()));
+        if(moduleDefFile != null) {
+            return Target.Type.MODULE;
+        }
+        if (Files.exists(project.path(target.path()))) {
+            return Target.Type.FILE;
+        }
+        return Target.Type.INVALID;
+    }
+
     //region implementation internals
     private TaskScheduler.Runner getRunner(Invocation invocation) {
-        return (task, inputs) -> Tasks.get(task.taskId()).run(task.target(), invocation.taskArgs(), inputs, this);
+        return (task, inputs) -> Tasks.get(task.taskId()).run(task.target(), invocation.taskArgs(), inputs, getTargetType(task.target()), this);
     }
 
     /// Collect transitive task dependency graph for given entry tasks.
@@ -110,10 +134,11 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
                 continue; // already processed
             }
             var task = Tasks.get(request.taskId());
-            if (! task.isApplicable(request.target(), this)) {
+            var targetType = getTargetType(request.target());
+            if (! task.isApplicable(request.target(), targetType, this)) {
                 continue;
             }
-            var dependencies = Items.computeIfAbsent(taskDependencyCache, request, r -> task.findDependencies(r.target(), this), IOException.class);
+            var dependencies = Items.computeIfAbsent(taskDependencyCache, request, r -> task.findDependencies(r.target(), targetType, this), IOException.class);
             allDependencies.put(request, dependencies);
             requestQueue.addAll(dependencies);
         }

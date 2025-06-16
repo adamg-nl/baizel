@@ -1,10 +1,12 @@
 module nl.adamg.baizel.cli {
     exports nl.adamg.baizel.cli;
-    exports nl.adamg.baizel.cli.internal;
 
     uses nl.adamg.baizel.core.api.Task;
 
-    provides nl.adamg.baizel.core.api.Task with nl.adamg.baizel.cli.tasks.Compile, nl.adamg.baizel.cli.tasks.Resolve;
+    provides nl.adamg.baizel.core.api.Task with
+            nl.adamg.baizel.cli.tasks.Compile,
+            nl.adamg.baizel.cli.tasks.Clean,
+            nl.adamg.baizel.cli.tasks.Resolve;
 
     requires transitive nl.adamg.baizel.internal.common.annotations;
     requires transitive nl.adamg.baizel.core;
@@ -18,4 +20,5 @@ module nl.adamg.baizel.cli {
     requires java.compiler;
     requires jdk.compiler;
     requires nl.adamg.baizel.internal.bootstrap;
+    requires nl.adamg.baizel.internal.maven;
 }

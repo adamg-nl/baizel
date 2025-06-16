@@ -9,5 +9,6 @@ dependencies {
     api(project(":internal:common:io"))
     api(project(":internal:common:util"))
     api(project(":internal:common:serialization"))
+    api(project(":internal:maven"))
     api(project(":internal:jar"))
 }

@@ -25,7 +25,7 @@ public class TaskInput
                 new nl.adamg.baizel.core.entities.TaskInput(
                         ((nl.adamg.baizel.core.model.Target)origin).entity(),
                         originTaskId,
-                        paths
+                        Items.mapToList(paths, Path::toString)
                 )
         );
     }

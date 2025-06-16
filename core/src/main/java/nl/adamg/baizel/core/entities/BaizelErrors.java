@@ -9,6 +9,9 @@ public enum BaizelErrors {
     UNKNOWN_TASK(204, "unknown task ${1}, available tasks: ${2}", true),
     UNRESOLVED_DEPENDENCIES(205, "unable to resolve dependencies: ${1}", false),
     INVALID_OPTION(206, "invalid CLI option provided: ${1}", true),
+    TASK_FAILED(207, "task execution failed: ${1}", false),
+    MODULE_NOT_FOUND(208, "module not found: ${1}", false),
+    ARTIFACT_NOT_FOUND(209, "artifact not found: ${1}", false),
     ;
     public final int exitCode;
     public final String message;

@@ -10,10 +10,10 @@ import java.util.Set;
 @ServiceProvider.Interface
 public interface Task {
     /// @return output paths
-    Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Baizel baizel) throws IOException;
+    Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Target.Type targetType, Baizel baizel) throws IOException;
 
     /// @return pairs of target and task id
-    default Set<TaskRequest> findDependencies(Target target, Baizel baizel) throws IOException {
+    default Set<TaskRequest> findDependencies(Target target, Target.Type targetType, Baizel baizel) throws IOException {
         return Set.of();
     }
 
@@ -21,7 +21,7 @@ public interface Task {
         return getClass().getSimpleName().toLowerCase();
     }
 
-    default boolean isApplicable(Target target, Baizel baizel) {
+    default boolean isApplicable(Target target, Target.Type targetType, Baizel baizel) {
         return true;
     }
 }

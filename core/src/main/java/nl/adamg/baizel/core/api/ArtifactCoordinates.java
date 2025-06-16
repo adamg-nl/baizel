@@ -13,4 +13,6 @@ public interface ArtifactCoordinates {
     String artifact();
     String version();
     String moduleId();
+    @Override
+    String toString();
 }
