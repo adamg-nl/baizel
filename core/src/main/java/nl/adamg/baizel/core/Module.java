@@ -27,7 +27,21 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
     @CheckForNull
     public static Path getModuleDefinitionFile(Path module) {
         var file = module.resolve(MODULE_DEF_FILE_PATH);
-        return Files.exists(file) ? file : null;
+        if (Files.exists(file)) {
+            return file;
+        }
+        if (module.endsWith(Path.of(MODULE_DEF_FILE_PATH).getParent())) {
+            // if this dir is .../something/src/main/java, then even if it does contain module-info.java
+            // this dir is not the module root but just a source root, the module root is 3 levels up
+            return null;
+        }
+        file = module.resolve(Path.of(MODULE_DEF_FILE_PATH).getFileName().toString());
+        if (Files.exists(file)) {
+            // this dir contains /module-info.java, and does not end with .../src/main/java
+            // it means it's a flat module with source root at the same path as module root
+            return file;
+        }
+        return null;
     }
 
     public static Module load(Project project, String path, Consumer<Issue> reporter) {
