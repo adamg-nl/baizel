@@ -1,7 +1,7 @@
 package nl.adamg.baizel.core;
 
-import nl.adamg.baizel.core.tasks.TaskInput;
-import nl.adamg.baizel.core.tasks.TaskRequest;
+import nl.adamg.baizel.core.model.TaskInput;
+import nl.adamg.baizel.core.model.TaskRequest;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.DirectedGraph;
 import nl.adamg.baizel.internal.common.util.collections.Items;

@@ -1,8 +1,8 @@
-package nl.adamg.baizel.core.tasks;
+package nl.adamg.baizel.core;
 
+import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.internal.common.util.Lazy;
 
-import javax.annotation.CheckForNull;
 import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.Set;
