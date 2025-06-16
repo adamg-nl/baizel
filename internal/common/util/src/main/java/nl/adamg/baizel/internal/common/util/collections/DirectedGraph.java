@@ -26,7 +26,7 @@ public class DirectedGraph<T extends Comparable<T>> {
 
     public Set<T> children(T node) {
         try(var ignored = lock.read()) {
-            return Objects.requireNonNullElse(parents.get(node), Set.of());
+            return Objects.requireNonNullElse(children.get(node), Set.of());
         }
     }
 
