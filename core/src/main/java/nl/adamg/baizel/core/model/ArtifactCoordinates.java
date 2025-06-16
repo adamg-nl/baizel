@@ -9,6 +9,23 @@ import java.util.function.Function;
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
 /// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
 public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates> implements nl.adamg.baizel.core.api.ArtifactCoordinates {
+    //region factory
+    public static nl.adamg.baizel.core.api.ArtifactCoordinates of(
+            String organization,
+            String artifact,
+            String version,
+            String moduleId
+    ) {
+        return new ArtifactCoordinates(
+                new nl.adamg.baizel.core.entities.ArtifactCoordinates(
+                        organization,
+                        artifact,
+                        version,
+                        moduleId
+                )
+        );
+    }
+
     public static nl.adamg.baizel.core.entities.ArtifactCoordinates parse(String coordinatesString) {
         var split = coordinatesString.split(":", 3);
         return new nl.adamg.baizel.core.entities.ArtifactCoordinates(
@@ -18,6 +35,7 @@ public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entiti
                 ""
         );
     }
+    //endregion
 
     //region getters
     @Override

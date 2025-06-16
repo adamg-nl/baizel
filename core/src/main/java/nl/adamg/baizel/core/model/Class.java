@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
@@ -11,7 +12,28 @@ import java.util.function.Function;
 public class Class extends EntityModel<nl.adamg.baizel.core.entities.Class, Class> implements nl.adamg.baizel.core.api.Class {
     private final Module module;
 
+    //region factory
+    public static nl.adamg.baizel.core.api.Class of(
+            Module module,
+            String canonicalName,
+            List<String> imports
+    ) {
+        return new Class(
+                module,
+                new nl.adamg.baizel.core.entities.Class(
+                        canonicalName,
+                        imports
+                )
+        );
+    }
+    //endregion
+
     //region getters
+    @Override
+    public Module module() {
+        return module;
+    }
+
     @Override
     public String canonicalName() {
         return entity.canonicalName;

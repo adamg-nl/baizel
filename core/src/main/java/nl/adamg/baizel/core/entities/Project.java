@@ -1,7 +1,6 @@
 package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
-import java.nio.file.Path;
 import java.util.Map;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]

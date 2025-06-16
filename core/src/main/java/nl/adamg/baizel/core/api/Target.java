@@ -1,8 +1,5 @@
 package nl.adamg.baizel.core.api;
 
-import nl.adamg.baizel.core.model.Module;
-import nl.adamg.baizel.core.model.Project;
-
 import javax.annotation.CheckForNull;
 
 /// Format: `[@[<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]`

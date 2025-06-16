@@ -1,5 +1,7 @@
 package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.api.ArtifactCoordinates;
+import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
@@ -23,20 +25,32 @@ import java.util.function.Function;
 /// - Model:  [nl.adamg.baizel.core.model.Project]
 public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, Project> implements nl.adamg.baizel.core.api.Project {
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
-    private final Map<String, nl.adamg.baizel.core.model.Module> modules = new TreeMap<>();
-    private final Consumer<Issue> reporter;
+    private final Map<String, Module> modules;
     private final Map<String, ArtifactCoordinates> dependencies;
+    private final Consumer<Issue> reporter;
 
-    public static Path findProjectRoot(Path path) {
-        var root = path;
-        while (root != null && getProjectDefinitionFile(root) == null) {
-            root = root.getParent();
-        }
-        // fall back to considering given directory as implicit project root
-        return Objects.requireNonNullElse(root, path);
+    //region factory
+    public static nl.adamg.baizel.core.api.Project of(
+            Consumer<Issue> reporter,
+            Map<String, ArtifactCoordinates> dependencies,
+            String projectId,
+            String root,
+            Map<String, nl.adamg.baizel.core.entities.ArtifactCoordinates> dependencyEntities
+    ) {
+        return new Project(
+                reporter,
+                new TreeMap<>(),
+                dependencies,
+                new nl.adamg.baizel.core.entities.Project(
+                        projectId,
+                        root,
+                        new TreeMap<>(),
+                        dependencyEntities
+                )
+        );
     }
 
-    public static Project load(Path root, Consumer<Issue> reporter) throws IOException {
+    public static nl.adamg.baizel.core.api.Project load(Path root, Consumer<Issue> reporter) throws IOException {
         var projectDefPath = getProjectDefinitionFile(root);
         ObjectTree projectDef;
         if (projectDefPath != null) {
@@ -54,19 +68,29 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {
-                var dependencyEntity = ArtifactCoordinates.parse(coordinatesString);
+                var dependencyEntity = nl.adamg.baizel.core.model.ArtifactCoordinates.parse(coordinatesString);
                 dependencyEntity.moduleId = String.valueOf(moduleId.get(0));
                 dependenciesEntity.put(dependencyEntity.moduleId, dependencyEntity);
-                dependencies.put(dependencyEntity.moduleId, new ArtifactCoordinates(dependencyEntity));
+                dependencies.put(dependencyEntity.moduleId, new nl.adamg.baizel.core.model.ArtifactCoordinates(dependencyEntity));
             }
         }
-        var entity = new nl.adamg.baizel.core.entities.Project(
+        return Project.of(
+                reporter,
+                dependencies,
                 projectId,
                 root.toAbsolutePath().toString(),
-                new TreeMap<>(),
                 dependenciesEntity
         );
-        return new Project(entity, reporter, dependencies);
+    }
+    //endregion
+
+    public static Path findProjectRoot(Path path) {
+        var root = path;
+        while (root != null && getProjectDefinitionFile(root) == null) {
+            root = root.getParent();
+        }
+        // fall back to considering given directory as implicit project root
+        return Objects.requireNonNullElse(root, path);
     }
 
     /**
@@ -74,7 +98,7 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
      */
     @CheckForNull
     @Override
-    public nl.adamg.baizel.core.model.Module getModuleOf(Path path) {
+    public Module getModuleOf(Path path) {
         if (! path.startsWith(root())) {
             return null;
         }
@@ -88,8 +112,8 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
         return getModule(root().relativize(path).toString());
     }
 
-    public nl.adamg.baizel.core.model.Module getModule(String path) {
-        return modules.computeIfAbsent(path, p -> nl.adamg.baizel.core.model.Module.load(this, p, reporter));
+    public Module getModule(String path) {
+        return modules.computeIfAbsent(path, p -> nl.adamg.baizel.core.model.Module.of(this, reporter, p));
     }
 
     /// @param moduleId qualified Java module id, like `com.example.foobar`
@@ -110,7 +134,7 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
         if (coordinates == null) {
             return null;
         }
-        return new ArtifactCoordinates(coordinates);
+        return new nl.adamg.baizel.core.model.ArtifactCoordinates(coordinates);
     }
 
     public void report(String issueId, String... details) {
@@ -155,12 +179,14 @@ public class Project extends EntityModel<nl.adamg.baizel.core.entities.Project, 
 
     //region generated code
     public Project(
-            nl.adamg.baizel.core.entities.Project entity,
             Consumer<Issue> reporter,
-            Map<String, ArtifactCoordinates> dependencies
+            Map<String, Module> modules,
+            Map<String, ArtifactCoordinates> dependencies,
+            nl.adamg.baizel.core.entities.Project entity
     ) {
         super(entity);
         this.reporter = reporter;
+        this.modules = modules;
         this.dependencies = dependencies;
     }
     //endregion

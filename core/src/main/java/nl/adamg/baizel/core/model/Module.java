@@ -1,5 +1,7 @@
 package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.api.Class;
+import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
@@ -23,10 +25,31 @@ import java.util.function.Function;
 public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Module> implements nl.adamg.baizel.core.api.Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private final Project project;
-    private final Map<String, nl.adamg.baizel.core.model.Class> classes = new TreeMap<>();
+    private final Map<String, Class> classes;
+    private final List<Requirement> requirements;
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
-    private final List<Requirement> requirements = new ArrayList<>();
     private final Consumer<Issue> reporter;
+
+    //region factory
+    public static nl.adamg.baizel.core.api.Module of(
+            Project project,
+            Consumer<Issue> reporter,
+            String path
+    ) {
+        return new Module(
+                project,
+                reporter,
+                new TreeMap<>(),
+                new ArrayList<>(),
+                new nl.adamg.baizel.core.entities.Module(
+                        path,
+                        new TreeMap<>(),
+                        new ArrayList<>(),
+                        new ArrayList<>()
+                )
+        );
+    }
+    //endregion
 
     @CheckForNull
     public static Path getModuleDefinitionFile(Path module) {
@@ -46,12 +69,6 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
             return file;
         }
         return null;
-    }
-
-    public static Module load(Project project, String path, Consumer<Issue> reporter) {
-        var classEntities = new TreeMap<String, nl.adamg.baizel.core.entities.Class>();
-        var moduleEntity = new nl.adamg.baizel.core.entities.Module(path, classEntities, new ArrayList<>(), new ArrayList<>());
-        return new Module(project, moduleEntity, reporter);
     }
 
     @Override
@@ -124,7 +141,7 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
                 continue;
             }
             entity.requirements.add(requirement);
-            requirements.add(new Requirement(requirement));
+            requirements.add(new nl.adamg.baizel.core.model.Requirement(requirement));
         }
         entity.exports.addAll(moduleDef.body().get("exports").list());
     }
@@ -148,12 +165,16 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
     //region generated code
     public Module(
             Project project,
-            nl.adamg.baizel.core.entities.Module entity,
-            Consumer<Issue> reporter
+            Consumer<Issue> reporter,
+            Map<String, Class> classes,
+            List<Requirement> requirements,
+            nl.adamg.baizel.core.entities.Module entity
     ) {
         super(entity);
         this.project = project;
         this.reporter = reporter;
+        this.classes = classes;
+        this.requirements = requirements;
     }
     //endregion
 }

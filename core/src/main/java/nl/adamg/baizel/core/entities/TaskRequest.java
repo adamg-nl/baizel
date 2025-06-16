@@ -1,7 +1,5 @@
 package nl.adamg.baizel.core.entities;
 
-import nl.adamg.baizel.core.model.Target;
-
 import java.io.Serializable;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]

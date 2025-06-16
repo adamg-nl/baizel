@@ -1,8 +1,5 @@
 package nl.adamg.baizel.core.api;
 
-import nl.adamg.baizel.core.model.Requirement;
-import nl.adamg.baizel.core.model.Class;
-
 import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.nio.file.Path;

@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.nio.file.Path;
@@ -11,10 +12,26 @@ import java.util.function.Function;
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
 /// - Model:  [nl.adamg.baizel.core.model.TaskInput]
 public class TaskInput extends EntityModel<nl.adamg.baizel.core.entities.TaskInput, TaskInput> implements nl.adamg.baizel.core.api.TaskInput {
+    //region factory
+    public static TaskInput of(
+            nl.adamg.baizel.core.entities.Target origin,
+            String originTaskId,
+            Set<Path> paths
+    ) {
+        return new TaskInput(
+                new nl.adamg.baizel.core.entities.TaskInput(
+                        origin,
+                        originTaskId,
+                        paths
+                )
+        );
+    }
+    //endregion
+
     //region getters
     @Override
     public Target origin() {
-        return entity.origin;
+        return new nl.adamg.baizel.core.model.Target(entity.origin);
     }
 
     @Override

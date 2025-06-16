@@ -6,6 +6,7 @@ import java.util.List;
 /// - Entity: [nl.adamg.baizel.core.entities.Class]
 /// - Model:  [nl.adamg.baizel.core.model.Class]
 public interface Class {
+    Module module();
     String canonicalName();
     List<String> imports();
 }
