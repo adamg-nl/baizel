@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+BAIZEL_PROJECT_ROOT=$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")
+
+
+
+### Baizel Build System for Java entry point.
+### On demand downloads and updates local clone of Baizel.
+### See .baizel/bin/baizel for full documentation.
+### Variables below can be customized as needed.
+BAIZEL_VERSION="2b42fc0b2c632ab78bba534166e7d7d9bcdbbc04"
+BAIZEL_SOURCE="https://github.com/adamg-nl/baizel.git"
+BAIZEL_DIR="${BAIZEL_PROJECT_ROOT}/.baizel"
+
+
+
+if [[ ! -e "${BAIZEL_DIR}/.git/refs/heads/main" ]]; then
+    mkdir "${BAIZEL_DIR}"
+    git clone "${BAIZEL_SOURCE}" "${BAIZEL_DIR}"
+fi
+if [[ $(cat "${BAIZEL_DIR}/.git/refs/heads/main") != ${BAIZEL_VERSION} ]]; then
+    git -C "${BAIZEL_DIR}" fetch origin "${BAIZEL_VERSION}"
+    git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD
+fi
+source "${BAIZEL_DIR}/bin/baizel"
