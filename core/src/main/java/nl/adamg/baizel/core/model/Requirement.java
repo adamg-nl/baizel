@@ -1,21 +1,27 @@
-package nl.adamg.baizel.core;
+package nl.adamg.baizel.core.model;
 
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class Requirement extends EntityModel<nl.adamg.baizel.core.entities.Requirement, Requirement> {
+/// - API:    [nl.adamg.baizel.core.api.Requirement]
+/// - Entity: [nl.adamg.baizel.core.entities.Requirement]
+/// - Model:  [nl.adamg.baizel.core.model.Requirement]
+public class Requirement extends EntityModel<nl.adamg.baizel.core.entities.Requirement, Requirement> implements nl.adamg.baizel.core.api.Requirement {
     /// @return true if this module is part of SDK, thus doesn't resolve to source module nor Maven artifact
+    @Override
     public boolean isSdkRequirement() {
         return entity.moduleId.startsWith("java.");
     }
 
     //region getters
+    @Override
     public boolean isTransitive() {
         return entity.isTransitive;
     }
 
+    @Override
     public String moduleId() {
         return entity.moduleId;
     }

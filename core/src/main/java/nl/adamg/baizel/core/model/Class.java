@@ -1,18 +1,23 @@
-package nl.adamg.baizel.core;
+package nl.adamg.baizel.core.model;
 
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
 import java.util.function.Function;
 
-public class Class extends EntityModel<nl.adamg.baizel.core.entities.Class, Class> {
+/// - API:    [nl.adamg.baizel.core.api.Class]
+/// - Entity: [nl.adamg.baizel.core.entities.Class]
+/// - Model:  [nl.adamg.baizel.core.model.Class]
+public class Class extends EntityModel<nl.adamg.baizel.core.entities.Class, Class> implements nl.adamg.baizel.core.api.Class {
     private final Module module;
 
     //region getters
+    @Override
     public String canonicalName() {
         return entity.canonicalName;
     }
 
+    @Override
     public List<String> imports() {
         return entity.imports;
     }

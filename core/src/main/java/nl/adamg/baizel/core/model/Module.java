@@ -1,5 +1,6 @@
-package nl.adamg.baizel.core;
+package nl.adamg.baizel.core.model;
 
+import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
 import nl.adamg.baizel.internal.common.util.EntityModel;
@@ -16,10 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Module> {
+/// - API:    [nl.adamg.baizel.core.api.Module]
+/// - Entity: [nl.adamg.baizel.core.entities.Module]
+/// - Model:  [nl.adamg.baizel.core.model.Module]
+public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Module> implements nl.adamg.baizel.core.api.Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private final Project project;
-    private final Map<String, Class> classes = new TreeMap<>();
+    private final Map<String, nl.adamg.baizel.core.model.Class> classes = new TreeMap<>();
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
     private final List<Requirement> requirements = new ArrayList<>();
     private final Consumer<Issue> reporter;
@@ -49,24 +53,41 @@ public class Module extends EntityModel<nl.adamg.baizel.core.entities.Module, Mo
         var moduleEntity = new nl.adamg.baizel.core.entities.Module(path, classEntities, new ArrayList<>(), new ArrayList<>());
         return new Module(project, moduleEntity, reporter);
     }
+
+    @Override
     public Path fullPath() {
         return project.root().resolve(path());
     }
 
+    /// @return null if this module does not have such a source root
+    @CheckForNull
+    @Override
+    public Path getSourceRoot(SourceSet sourceSet) {
+        var sourceRoot = fullPath().resolve(sourceSet.getPath());
+        if (!Files.exists(sourceRoot)) {
+            return null;
+        }
+        return sourceRoot;
+    }
+
     //region getters
+    @Override
     public String path() {
         return entity.path;
     }
 
+    @Override
     public Map<String, Class> classes() {
         return classes;
     }
 
+    @Override
     public List<Requirement> requirements() throws IOException {
         ensureModuleDefFileLoaded();
         return requirements;
     }
 
+    @Override
     public List<String> exports() throws IOException {
         ensureModuleDefFileLoaded();
         return entity.exports;

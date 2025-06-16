@@ -1,36 +1,43 @@
-package nl.adamg.baizel.core;
+package nl.adamg.baizel.core.model;
 
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
 import java.util.function.Function;
 
-/// Maven artifact coordinates, in format
-/// ```
-/// <ORGANIZATION>:<ARTIFACT>:<VERSION>
-/// ```
-public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates> {
+/// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
+/// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
+/// - Model:  [nl.adamg.baizel.core.model.ArtifactCoordinates]
+public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinates> implements nl.adamg.baizel.core.api.ArtifactCoordinates {
     public static nl.adamg.baizel.core.entities.ArtifactCoordinates parse(String coordinatesString) {
         var split = coordinatesString.split(":", 3);
         return new nl.adamg.baizel.core.entities.ArtifactCoordinates(
                 split.length > 0 ? split[0] : "",
                 split.length > 1 ? split[1] : "",
                 split.length > 2 ? split[2] : "",
-                null
+                ""
         );
     }
 
     //region getters
+    @Override
     public String organization() {
         return entity.organization;
     }
 
+    @Override
     public String artifact() {
         return entity.artifact;
     }
 
+    @Override
     public String version() {
         return entity.version;
+    }
+
+    @Override
+    public String moduleId() {
+        return entity.moduleId;
     }
     //endregion
 
@@ -45,7 +52,8 @@ public class ArtifactCoordinates extends EntityModel<nl.adamg.baizel.core.entiti
         return List.of(
                 e -> e.organization,
                 e -> e.artifact,
-                e -> e.version
+                e -> e.version,
+                e -> e.moduleId
         );
     }
     //endregion
