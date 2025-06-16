@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Map;
 
+/// - API:    [nl.adamg.baizel.core.api.Project]
+/// - Entity: [nl.adamg.baizel.core.entities.Project]
+/// - Model:  [nl.adamg.baizel.core.model.Project]
 public class Project implements Serializable {
     public String projectId;
     public String root;

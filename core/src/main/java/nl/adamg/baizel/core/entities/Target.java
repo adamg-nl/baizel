@@ -2,9 +2,9 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 
-/**
- * @see nl.adamg.baizel.core.Target
- */
+/// - API:    [nl.adamg.baizel.core.api.Target]
+/// - Entity: [nl.adamg.baizel.core.entities.Target]
+/// - Model:  [nl.adamg.baizel.core.model.Target]
 public class Target implements Serializable {
     public String organization;
     public String artifact;

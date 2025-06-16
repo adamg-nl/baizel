@@ -2,6 +2,9 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 
+/// - API:    [nl.adamg.baizel.core.api.Requirement]
+/// - Entity: [nl.adamg.baizel.core.entities.Requirement]
+/// - Model:  [nl.adamg.baizel.core.model.Requirement]
 public class Requirement implements Serializable {
     public String moduleId;
     public boolean isTransitive;
