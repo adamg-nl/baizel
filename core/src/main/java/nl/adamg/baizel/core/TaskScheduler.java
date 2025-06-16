@@ -2,6 +2,7 @@ package nl.adamg.baizel.core;
 
 import nl.adamg.baizel.core.tasks.TaskInput;
 import nl.adamg.baizel.core.tasks.TaskRequest;
+import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.DirectedGraph;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 import nl.adamg.baizel.internal.common.util.concurrent.Executor;
@@ -16,8 +17,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 public class TaskScheduler implements AutoCloseable {
+    private static final Logger LOG = Logger.getLogger(TaskScheduler.class.getName());
     /// parent: task that depends, children: tasks it depends on
     private final DirectedGraph<TaskRequest> dependencies = new DirectedGraph<>();
     /// as {@link #dependencies}, but tasks are removed from here as soon as they finish
@@ -38,6 +41,8 @@ public class TaskScheduler implements AutoCloseable {
     public static void scheduleAndWait(Map<TaskRequest, Set<TaskRequest>> dependencies, int workerCount, Runner runner) throws IOException, InterruptedException {
         try(var scheduler = TaskScheduler.create(workerCount, runner)) {
             for(var dependency : dependencies.entrySet()) {
+                var depsString = Items.toString(Items.flattenSet(dependencies.values()), " ", TaskRequest::toString);
+                LOG.info("scheduling" + LoggerUtil.with("task", dependency.getKey().toString(), "dependencies", depsString));
                 scheduler.schedule(dependency.getKey(), dependency.getValue());
             }
         }
@@ -118,7 +123,9 @@ public class TaskScheduler implements AutoCloseable {
         }
 
         // run the task
+        LOG.info("running" + LoggerUtil.with("task", task.toString()));
         var outputs = runner.run(task, collectInputs(task));
+        LOG.info("finished" + LoggerUtil.with("task", task.toString()));
 
         // mark this task as finished, and other tasks that only depended on this one as ready
         finishedTasks.put(task, outputs);
@@ -132,9 +139,10 @@ public class TaskScheduler implements AutoCloseable {
         }
     }
 
-    private void markTaskReady(TaskRequest dependingTask) {
+    private void markTaskReady(TaskRequest task) {
         synchronized (readyTasks) {
-            readyTasks.add(dependingTask);
+            LOG.info("task ready to start" + LoggerUtil.with("task", task.toString()));
+            readyTasks.add(task);
             readyTasks.notify();
         }
     }

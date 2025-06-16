@@ -85,7 +85,7 @@ public class Baizel {
 
     /// CLI entry point to the Baizel build system for Java™
     public static void main(String... rawArgs) throws Exception {
-        LOG.info("main(" + String.join(", ", rawArgs) + ")");
+        LOG.info("main() started" + LoggerUtil.with("rawArgs", String.join(", ", rawArgs)));
         if (rawArgs.length == 1 && "--help".equals(rawArgs[0])) {
             System.err.println(HELP);
             return;
@@ -93,6 +93,7 @@ public class Baizel {
         var args = CliParser.parseCliArgs(rawArgs);
         var reporter = (Consumer<Issue>) i -> LOG.warning(i.id + LoggerUtil.with(i.details));
         new Baizel(Project.load(args.options.projectRoot, reporter), reporter).run(args);
+        LOG.info("main() finished");
     }
 
     /// Run specified tasks and their transitive dependencies on the Baizel worker pool

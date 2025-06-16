@@ -222,6 +222,28 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return map(new HashMap<>(), typeRef, keyValuePairs);
     }
 
+    public static <I> List<I> flattenList(Collection<List<I>> input) {
+        if (input.isEmpty()) {
+            return List.of();
+        }
+        var output = newOfType(input.iterator().next());
+        for(var inner : input) {
+            output.addAll(inner);
+        }
+        return output;
+    }
+
+    public static <I> Set<I> flattenSet(Collection<Set<I>> input) {
+        if (input.isEmpty()) {
+            return Set.of();
+        }
+        var output = newOfType(input.iterator().next());
+        for(var inner : input) {
+            output.addAll(inner);
+        }
+        return output;
+    }
+
     public <T> T first(List<T> input) {
         if (input.isEmpty()) {
             throw new NoSuchElementException();

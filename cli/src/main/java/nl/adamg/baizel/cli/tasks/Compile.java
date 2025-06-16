@@ -1,12 +1,12 @@
 package nl.adamg.baizel.cli.tasks;
 
 import nl.adamg.baizel.core.entities.Issue;
-import nl.adamg.baizel.core.tasks.Resolve;
 import nl.adamg.baizel.core.tasks.Task;
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
 import nl.adamg.baizel.core.tasks.TaskInput;
 import nl.adamg.baizel.core.tasks.TaskRequest;
+import nl.adamg.baizel.internal.common.util.LoggerUtil;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -54,7 +54,7 @@ public class Compile implements Task {
 
     @Override
     public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Project project) {
-        LOG.warning("COMPILING");
+        LOG.warning("compiling" + LoggerUtil.with("target", target.toString()));
         return Set.of();
     }
 }

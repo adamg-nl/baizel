@@ -1,6 +1,7 @@
 package nl.adamg.baizel.cli.internal;
 
 import nl.adamg.baizel.cli.Arguments;
+import nl.adamg.baizel.cli.CliErrors;
 import nl.adamg.baizel.cli.Options;
 import nl.adamg.baizel.core.Target;
 import nl.adamg.baizel.internal.common.serialization.JsonUtil;
@@ -77,9 +78,9 @@ public class CliParser {
     }
 
     private static void parseOption(Options options, String option) {
-        var watcherCount = "--watcher-count=";
-        if (option.startsWith(watcherCount)) {
-            options.workerCount = Integer.parseInt(option.substring(watcherCount.length()));
+        var workerCount = "--worker-count=";
+        if (option.startsWith(workerCount)) {
+            options.workerCount = Integer.parseInt(option.substring(workerCount.length()));
             return;
         }
         var project = "--project=";
@@ -87,6 +88,7 @@ public class CliParser {
             options.projectRoot = Path.of(option.substring(project.length()));
             return;
         }
+        throw CliErrors.INVALID_OPTION.exit(option);
     }
 
     public static Target parseTarget(String input) {

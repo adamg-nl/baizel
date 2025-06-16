@@ -9,7 +9,9 @@ public enum CliErrors {
     BOOTSTRAP_COMPILATION_FAILED(202),
     TASK_NOT_SELECTED(203, "task not selected", true),
     UNKNOWN_TASK(204, "unknown task ${1}, available tasks: ${2}", true),
-    UNRESOLVED_DEPENDENCIES(205, "unable to resolve dependencies: ${1}", false);
+    UNRESOLVED_DEPENDENCIES(205, "unable to resolve dependencies: ${1}", false),
+    INVALID_OPTION(206, "invalid CLI option provided: ${1}", true),
+    ;
     private final int exitCode;
     private final String message;
     private final boolean printUsage;

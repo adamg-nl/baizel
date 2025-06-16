@@ -57,7 +57,9 @@ public class Target extends EntityModel<nl.adamg.baizel.core.entities.Target, Ta
                 sb.append('/').append(entity.artifact);
             }
         }
-        sb.append("//").append(entity.path);
+        if (! entity.path.isEmpty()) {
+            sb.append("//").append(entity.path);
+        }
         if (!entity.targetName.isEmpty()) {
             sb.append(':').append(entity.targetName);
         }
