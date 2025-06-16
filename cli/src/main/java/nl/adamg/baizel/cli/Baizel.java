@@ -14,10 +14,14 @@ import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+/// CLI entry point to the Baizel build system for Java™
+///
+/// - API:    [nl.adamg.baizel.core.api.Baizel]
+/// - Model:  [nl.adamg.baizel.core.model.Baizel]
+/// - CLI:    [nl.adamg.baizel.cli.Baizel]
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
 
-    /// CLI entry point to the Baizel build system for Java™
     public static void main(String... rawArgs) throws Exception {
         LOG.info("main() started" + LoggerUtil.with("rawArgs", String.join(", ", rawArgs)));
         if (rawArgs.length == 1 && "--help".equals(rawArgs[0])) {

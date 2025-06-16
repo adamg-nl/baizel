@@ -37,6 +37,7 @@ import java.util.logging.Logger;
 ///
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
 /// - Model:  [nl.adamg.baizel.core.model.Baizel]
+/// - CLI:    `nl.adamg.baizel.cli.Baizel`
 public class Baizel implements nl.adamg.baizel.core.api.Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());
     /// When Baizel instance is reused to run the same or overlapping set of tasks later,
@@ -63,7 +64,7 @@ public class Baizel implements nl.adamg.baizel.core.api.Baizel {
     //endregion
 
     @Override
-    public void run(Invocation invocation) throws IOException, InterruptedException {
+    public synchronized void run(Invocation invocation) throws IOException, InterruptedException {
         if (invocation.tasks().isEmpty()) {
             throw new BaizelException(BaizelErrors.TASK_NOT_SELECTED);
         }
