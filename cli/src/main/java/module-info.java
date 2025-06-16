@@ -4,7 +4,7 @@ module nl.adamg.baizel.cli {
 
     uses nl.adamg.baizel.core.tasks.Task;
 
-    provides nl.adamg.baizel.core.tasks.Task with nl.adamg.baizel.cli.tasks.Compile;
+    provides nl.adamg.baizel.core.tasks.Task with nl.adamg.baizel.cli.tasks.Compile, nl.adamg.baizel.cli.tasks.Resolve;
 
     requires transitive nl.adamg.baizel.internal.common.annotations;
     requires transitive nl.adamg.baizel.core;
@@ -15,4 +15,6 @@ module nl.adamg.baizel.cli {
     requires nl.adamg.baizel.internal.common.java;
     requires nl.adamg.baizel.internal.jar;
     requires nl.adamg.baizel.internal.common.serialization;
+    requires java.compiler;
+    requires jdk.compiler;
 }

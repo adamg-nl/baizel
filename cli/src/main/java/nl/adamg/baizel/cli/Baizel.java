@@ -79,6 +79,8 @@ public class Baizel {
               BAIZEL_VERBOSE   enables verbose logging. Values: true, false
               BAIZEL_JVM_OPTS  additional JVM arguments, space-separated
             """;
+    /// When Baizel instance is reused to run the same or overlapping set of tasks later,
+    /// thanks to this map their task dependencies will not need to be recomputed.
     private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache = new ConcurrentHashMap<>();
     private final Project project;
     private final Consumer<Issue> reporter;

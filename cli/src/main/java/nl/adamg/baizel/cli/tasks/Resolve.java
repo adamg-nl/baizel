@@ -1,7 +1,9 @@
-package nl.adamg.baizel.core.tasks;
+package nl.adamg.baizel.cli.tasks;
 
 import nl.adamg.baizel.core.Project;
 import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.core.tasks.Task;
+import nl.adamg.baizel.core.tasks.TaskInput;
 
 import java.nio.file.Path;
 import java.util.List;
