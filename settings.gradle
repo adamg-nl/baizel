@@ -2,7 +2,6 @@ rootProject.name = "baizel"
 
 include(":cli")
 include(":core")
-include(":internal:bazel")
 include(":internal:bootstrap")
 include(":internal:bootstrap:javadsl")
 include(":internal:bootstrap:util")
