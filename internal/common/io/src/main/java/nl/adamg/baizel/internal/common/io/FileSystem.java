@@ -16,4 +16,6 @@ public interface FileSystem {
     void writeLines(Path path, List<String> lines) throws IOException;
 
     void createDirectories(Path path) throws IOException;
+
+    void delete(Path path) throws IOException;
 }

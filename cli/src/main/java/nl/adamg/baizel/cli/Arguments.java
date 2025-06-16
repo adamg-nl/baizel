@@ -1,6 +1,6 @@
 package nl.adamg.baizel.cli;
 
-import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.core.model.Target;
 
 import java.util.List;
 import java.util.Set;

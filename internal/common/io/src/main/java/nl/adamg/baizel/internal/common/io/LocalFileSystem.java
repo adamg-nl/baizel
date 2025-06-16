@@ -25,4 +25,9 @@ public class LocalFileSystem implements FileSystem {
     public void createDirectories(Path path) throws IOException {
         Files.createDirectories(path);
     }
+
+    @Override
+    public void delete(Path path) throws IOException {
+        FileSystemUtil.delete(path);
+    }
 }

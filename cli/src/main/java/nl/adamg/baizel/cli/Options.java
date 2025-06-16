@@ -1,6 +1,6 @@
 package nl.adamg.baizel.cli;
 
-import nl.adamg.baizel.core.Project;
+import nl.adamg.baizel.core.model.Project;
 
 import java.io.Serializable;
 import java.nio.file.Path;

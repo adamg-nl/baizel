@@ -3,7 +3,7 @@ package nl.adamg.baizel.cli.internal;
 import nl.adamg.baizel.cli.Arguments;
 import nl.adamg.baizel.cli.CliErrors;
 import nl.adamg.baizel.cli.Options;
-import nl.adamg.baizel.core.Target;
+import nl.adamg.baizel.core.model.Target;
 import nl.adamg.baizel.internal.common.serialization.JsonUtil;
 import nl.adamg.baizel.internal.common.util.Text;
 import nl.adamg.baizel.internal.common.util.collections.Items;
