@@ -68,7 +68,7 @@ public final class Bootstrap {
     public static Path findBaizelDir() throws URISyntaxException, IOException {
         var baizelDir = Optional.of(System.getenv("BAIZEL_DIR")).map(Path::of).orElse(null);
         if (baizelDir != null && Files.isDirectory(baizelDir)) {
-            return baizelDir;
+            return baizelDir.toRealPath();
         }
         var currentSourceUrl = Bootstrap.class.getProtectionDomain().getCodeSource().getLocation();
         var currentSourcePath = Path.of(Objects.requireNonNull(currentSourceUrl).toURI()).toRealPath();
@@ -76,7 +76,7 @@ public final class Bootstrap {
         var currentClassPathString = currentSourcePath.toString().replaceAll("\\\\", "/");
         if (currentClassPathString.endsWith(buildClasspathRelativePath)) {
             var pathLength = currentClassPathString.length() - buildClasspathRelativePath.length();
-            return Path.of(currentClassPathString.substring(0, pathLength));
+            return Path.of(currentClassPathString.substring(0, pathLength)).toRealPath();
         }
         throw new BootstrapMethodError("unexpected location of Bootstrap.class)");
     }

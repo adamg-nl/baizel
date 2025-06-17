@@ -67,7 +67,7 @@ public class ProjectImpl
         var dependenciesEntity = new TreeMap<String, nl.adamg.baizel.core.entities.ArtifactCoordinates>();
         var dependencies = new TreeMap<String, ArtifactCoordinates>();
         var rawDependencies = projectDef.body().get("dependencies").body();
-        var artifactRepositories = projectDef.body().get("repositories").list(String.class);
+        var artifactRepositories = projectDef.body().get("repository").list(String.class);
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {

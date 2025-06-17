@@ -97,11 +97,12 @@ public final class SystemShell implements Shell {
 
     // region internal utils
     private static Map<String, String> getCleanShellEnv() throws IOException {
-        var envOverrides =
-                "USER=" + System.getenv("USER") + " HOME=" + System.getenv("HOME") + " PWD=" + System.getenv("HOME");
-        var getEnvCommand = "env -i " + envOverrides + " bash -l -c env";
+        var user = System.getProperty("user.name");
+        var home = System.getProperty("user.home");
+        var envOverrides = "USER='" + user + "' HOME='" + home + "' PWD='" + home + "'";
+        var getEnvCommand = "env -i " + envOverrides + " '" + ShellUtil.bashPath() + "' -l -c env";
         var shellConfig = new ShellConfig();
-        shellConfig.pwd = Path.of(System.getenv("HOME"));
+        shellConfig.pwd = Path.of(home);
         var envString = ShellUtil.exec(getEnvCommand, shellConfig);
         return ShellUtil.parseEnvMap(envString.stdOut());
     }

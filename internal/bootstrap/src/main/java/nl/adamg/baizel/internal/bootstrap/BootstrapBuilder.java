@@ -150,7 +150,7 @@ class BootstrapBuilder {
     }
 
     private static String relativize(Path path) {
-        return Path.of(".").toAbsolutePath().relativize(path).toString();
+        return Path.of(".").toAbsolutePath().relativize(path.toAbsolutePath()).toString();
     }
     
     //region generated code

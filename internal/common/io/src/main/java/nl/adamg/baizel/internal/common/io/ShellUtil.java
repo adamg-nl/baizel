@@ -1,5 +1,7 @@
 package nl.adamg.baizel.internal.common.io;
 
+import java.nio.file.Files;
+import nl.adamg.baizel.internal.common.util.Lazy;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import javax.annotation.CheckForNull;
@@ -23,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  * System.getenv()}, variables here can be overridden at runtime.
  */
 public final class ShellUtil {
+    private static final Lazy.NonNull<String, IOException> BASH_PATH = new Lazy.NonNull<>(ShellUtil::findBashPath);
     private ShellUtil() {}
 
     public static Map<String, String> parseEnvMap(String envString) {
@@ -118,7 +121,7 @@ public final class ShellUtil {
             if (envp.length == 0) {
                 envp = null;
             }
-            var wrappedCommand = new String[] {"/bin/bash", "-c", command}; // required on Linux to search the $PATH
+            var wrappedCommand = new String[] { bashPath(), "-c", command}; // required on Linux to search the $PATH
             var process = Runtime.getRuntime().exec(wrappedCommand, envp, config.pwd.toFile());
             var outBuffer = new ByteArrayOutputStream();
             var errBuffer = new ByteArrayOutputStream();
@@ -144,16 +147,8 @@ public final class ShellUtil {
         }
     }
 
-    private static OutputStream possiblyForward(
-            OutputStream buffer, @CheckForNull Shell.OutputForwardingMode forwardingMode, boolean isErr) {
-        return switch (forwardingMode) {
-            case ALL -> new TeeOutputStream(isErr ? System.err : System.out, buffer);
-            case STDOUT -> !isErr ? new TeeOutputStream(System.out, buffer) : buffer;
-            case ALL_TO_STDERR -> new TeeOutputStream(System.err, buffer);
-            case STDERR -> isErr ? new TeeOutputStream(System.err, buffer) : buffer;
-            case NONE -> buffer;
-            case null -> buffer;
-        };
+    public static String bashPath() throws IOException {
+        return BASH_PATH.get();
     }
 
     public static void setColor(@CheckForNull LogLevel logLevel) {
@@ -169,6 +164,30 @@ public final class ShellUtil {
     }
 
     // region internal utils
+    private static String findBashPath() {
+        var linuxBash = "/bin/bash";
+        if (Files.exists(Path.of(linuxBash))) {
+            return linuxBash;
+        }
+        var windowsBash = "C:\\Program Files\\Git\\bin\\bash.exe";
+        if (Files.exists(Path.of(windowsBash))) {
+            return windowsBash;
+        }
+        throw new UnsupportedOperationException("Bash not found");
+    }
+
+    private static OutputStream possiblyForward(
+            OutputStream buffer, @CheckForNull Shell.OutputForwardingMode forwardingMode, boolean isErr) {
+        return switch (forwardingMode) {
+            case ALL -> new TeeOutputStream(isErr ? System.err : System.out, buffer);
+            case STDOUT -> !isErr ? new TeeOutputStream(System.out, buffer) : buffer;
+            case ALL_TO_STDERR -> new TeeOutputStream(System.err, buffer);
+            case STDERR -> isErr ? new TeeOutputStream(System.err, buffer) : buffer;
+            case NONE -> buffer;
+            case null -> buffer;
+        };
+    }
+
     private static Thread transferStream(InputStream inStream, OutputStream outStream) {
         var thread =
                 new Thread(
