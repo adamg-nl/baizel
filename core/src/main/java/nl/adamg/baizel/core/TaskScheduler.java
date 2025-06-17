@@ -86,7 +86,9 @@ public class TaskScheduler implements AutoCloseable {
         schedulerThread.join();
         workerPool.close();
         isFinished.set(true);
-        isFinished.notifyAll();
+        synchronized (isFinished) {
+            isFinished.notifyAll();
+        }
     }
 
     //region internals

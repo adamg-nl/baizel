@@ -10,4 +10,5 @@ public interface Invocation extends Comparable<Invocation> {
     Set<String> tasks();
     List<String> taskArgs();
     Set<Target> targets();
+    @Override String toString();
 }

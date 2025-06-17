@@ -23,17 +23,16 @@ public class BaizelException extends RuntimeException {
     public void log() {
         var processedMessage = error.message;
         for(var i=0; i<details.length; i++) {
-            processedMessage = processedMessage.replace("${" + i + "}", details[i]);
+            processedMessage = processedMessage.replace("${" + (i+1) + "}", details[i]);
         }
         System.err.println(processedMessage);
         if (error.printUsage) {
             var usage = "baizel [<BAIZEL_OPTION>...] <TASK>... [<TASK_ARG>...] [-- <TARGET>...]";
-            for(var i = 0; i< details.length; i++) {
-                usage = usage.replace("${" + (i+1) + "}", details[i]);
-            }
             System.err.println(usage);
         }
-        LoggerUtil.logStackTraceIfVerbose();
+        if (LoggerUtil.isVerbose()) {
+            this.printStackTrace(System.err);
+        }
     }
 
     //region getters

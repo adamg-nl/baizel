@@ -1,10 +1,12 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Set;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
 import java.util.function.Function;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
@@ -12,6 +14,8 @@ import java.util.function.Function;
 public class RequirementImpl
         extends EntityModel<Requirement, nl.adamg.baizel.core.entities.Requirement, RequirementImpl>
         implements Requirement {
+    private static final Set<String> SDK_PACKAGES = Set.of("java", "jdk");
+
     //region factory
     public static Requirement of(
             String moduleId,
@@ -29,7 +33,7 @@ public class RequirementImpl
     /// @return true if this module is part of SDK, thus doesn't resolve to source module nor Maven artifact
     @Override
     public boolean isSdkRequirement() {
-        return entity.moduleId.startsWith("java.");
+        return Items.anyMatch(SDK_PACKAGES, p -> entity.moduleId.startsWith(p + "."));
     }
 
     //region getters

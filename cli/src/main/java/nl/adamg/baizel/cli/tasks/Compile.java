@@ -78,7 +78,7 @@ public class Compile implements Task {
             }
             var requiredArtifact = baizel.project().getArtifactCoordinates(requirement.moduleId());
             if (requiredArtifact != null) {
-                var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requiredArtifact.artifact());
+                var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requirement.moduleId());
                 dependencies.add(TaskRequestImpl.of(artifactTarget, Resolve.TASK_ID));
                 continue;
             }

@@ -42,7 +42,7 @@ public class TaskRequestImpl
     //region entity model
     @Override
     public String toString() {
-        return entity.target + ":" + entity.taskId;
+        return target() + ":" + entity.taskId;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class TaskInputImpl
     //region entity model
     @Override
     public String toString() {
-        return entity.origin + "." + entity.originTaskId;
+        return origin() + "." + entity.originTaskId;
     }
 
     @Override

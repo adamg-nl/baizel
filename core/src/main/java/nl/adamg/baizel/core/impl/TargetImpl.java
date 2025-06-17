@@ -39,6 +39,7 @@ public class TargetImpl
         return of("", "", path, "");
     }
 
+    /// @param artifact qualified Java module id (that will be mapped to Maven coordinates)
     public static Target artifact(String organization, String artifact) {
         return of(organization, artifact, "", "");
     }

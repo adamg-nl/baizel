@@ -5,6 +5,7 @@ module nl.adamg.baizel.core {
     exports nl.adamg.baizel.core.impl;
 
     uses nl.adamg.baizel.core.api.Task;
+    uses nl.adamg.baizel.core.api.SourceSet;
 
     provides nl.adamg.baizel.core.api.SourceSet with
             nl.adamg.baizel.core.sourcesets.Main,
