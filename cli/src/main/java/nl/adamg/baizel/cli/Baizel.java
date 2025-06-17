@@ -1,7 +1,7 @@
 package nl.adamg.baizel.cli;
 
 import nl.adamg.baizel.core.api.BaizelArguments;
-import nl.adamg.baizel.core.BaizelException;
+import nl.adamg.baizel.core.api.BaizelException;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.core.impl.BaizelArgumentsImpl;
 import nl.adamg.baizel.core.impl.BaizelImpl;
@@ -38,7 +38,7 @@ public class Baizel {
             var baizel = BaizelImpl.start(args.options(), projectRoot, shell, fileSystem, reporter)) {
             baizel.run(args.invocation());
         } catch (BaizelException e) {
-            throw e.exit();
+            throw exit(e);
         }
         LOG.info("main() finished");
     }
@@ -49,5 +49,21 @@ public class Baizel {
             return ProjectImpl.findProjectRoot(Path.of("."));
         }
         return projectRoot;
+    }
+
+    /// Logs the error message and exits the JVM process with configured exit code.
+    /// Only logs the stacktrace if verbose mode is enabled.
+    private static BaizelException exit(BaizelException cause) {
+        var processedMessage = cause.issue().messageTemplate;
+        for(var detail : cause.issue().details.entrySet()) {
+            processedMessage = processedMessage.replace("${" + (detail.getKey()) + "}", detail.getValue());
+        }
+        System.err.println(processedMessage);
+        if (LoggerUtil.isVerbose()) {
+            System.err.println("\n\n\n");
+            cause.printStackTrace(System.err);
+        }
+        System.exit(cause.issue().errorCode);
+        throw cause;
     }
 }

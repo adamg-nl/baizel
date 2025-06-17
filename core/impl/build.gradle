@@ -8,7 +8,7 @@ dependencies {
     api(project(":internal:common:javadsl"))
     api(project(":internal:common:serialization"))
     api(project(":internal:common:util"))
+
     api(project(":core:api"))
     api(project(":core:entities"))
-    api(project(":core:impl"))
 }

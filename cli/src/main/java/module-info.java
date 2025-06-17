@@ -21,4 +21,8 @@ module nl.adamg.baizel.cli {
     requires jdk.compiler;
     requires nl.adamg.baizel.internal.bootstrap;
     requires nl.adamg.baizel.internal.maven;
+    requires nl.adamg.baizel.core.entities;
+    requires nl.adamg.baizel.core.api;
+    requires nl.adamg.baizel.core.impl;
+    requires nl.adamg.baizel.internal.compiler;
 }
