@@ -17,13 +17,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
 /// - Model:  [nl.adamg.baizel.core.impl.ProjectImpl]
 public class ProjectImpl
-        extends EntityModel<Project, nl.adamg.baizel.core.entities.Project, ProjectImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Project>
         implements Project {
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
     private final Map<String, Module> modules = new TreeMap<>();
@@ -184,11 +183,6 @@ public class ProjectImpl
     @Override
     public String toString() {
         return entity.root;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Project, ?>> fields() {
-        return List.of(p -> p.root, p -> p.projectId, p -> p.modules);
     }
     //endregion
 

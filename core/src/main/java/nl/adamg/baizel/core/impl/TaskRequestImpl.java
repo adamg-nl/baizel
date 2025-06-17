@@ -4,14 +4,11 @@ import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
-import java.util.List;
-import java.util.function.Function;
-
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskRequest]
 /// - Model:  [nl.adamg.baizel.core.impl.TaskRequestImpl]
 public class TaskRequestImpl
-        extends EntityModel<TaskRequest, nl.adamg.baizel.core.entities.TaskRequest, TaskRequestImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.TaskRequest>
         implements TaskRequest {
     //region factory
     public static TaskRequest of(
@@ -26,6 +23,11 @@ public class TaskRequestImpl
         );
     }
     //endregion
+
+    @Override
+    public int compareTo(TaskRequest taskRequest) {
+        return toString().compareTo(taskRequest.toString());
+    }
 
     //region getters
     @Override
@@ -43,14 +45,6 @@ public class TaskRequestImpl
     @Override
     public String toString() {
         return target() + ":" + entity.taskId;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.TaskRequest, ?>> fields() {
-        return List.of(
-                tr -> tr.target,
-                tr -> tr.taskId
-        );
     }
     //endregion
 

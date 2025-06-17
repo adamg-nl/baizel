@@ -13,6 +13,7 @@ public interface ArtifactCoordinates {
     String artifact();
     String version();
     String moduleId();
-    @Override
-    String toString();
+    @Override String toString();
+    @Override boolean equals(Object other);
+    @Override int hashCode();
 }

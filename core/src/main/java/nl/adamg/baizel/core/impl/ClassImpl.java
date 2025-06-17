@@ -5,13 +5,12 @@ import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
-import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Class]
 /// - Entity: [nl.adamg.baizel.core.entities.Class]
 /// - Model:  [nl.adamg.baizel.core.impl.ClassImpl]
 public class ClassImpl
-        extends EntityModel<Class, nl.adamg.baizel.core.entities.Class, ClassImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Class>
         implements Class {
     private final Module module;
 
@@ -52,14 +51,6 @@ public class ClassImpl
     @Override
     public String toString() {
         return entity.canonicalName;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Class, ?>> fields() {
-        return List.of(
-                c -> c.canonicalName,
-                c -> c.imports
-        );
     }
     //endregion
 

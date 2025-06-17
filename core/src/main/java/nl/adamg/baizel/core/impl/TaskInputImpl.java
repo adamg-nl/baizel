@@ -6,15 +6,13 @@ import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
 /// - Model:  [nl.adamg.baizel.core.impl.TaskInputImpl]
 public class TaskInputImpl
-        extends EntityModel<TaskInput, nl.adamg.baizel.core.entities.TaskInput, TaskInputImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.TaskInput>
         implements TaskInput {
     //region factory
     public static TaskInputImpl of(
@@ -53,15 +51,6 @@ public class TaskInputImpl
     @Override
     public String toString() {
         return origin() + "." + entity.originTaskId;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.TaskInput, ?>> fields() {
-        return List.of(
-                ti -> ti.origin,
-                ti -> ti.originTaskId,
-                ti -> ti.paths
-        );
     }
     //endregion
 

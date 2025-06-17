@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 
 /// Format:
 /// ```
@@ -21,7 +20,7 @@ import java.util.function.Function;
 /// - Entity: [nl.adamg.baizel.core.entities.Invocation]
 /// - Model:  [nl.adamg.baizel.core.impl.InvocationImpl]
 public class InvocationImpl
-        extends EntityModel<Invocation, nl.adamg.baizel.core.entities.Invocation, InvocationImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Invocation>
         implements Invocation {
     //region factory
     public static Invocation of(
@@ -99,15 +98,6 @@ public class InvocationImpl
         return String.join(" ", entity.tasks) + " " +
                 String.join(" ", entity.taskArgs) + " " +
                 Items.toString(targets(), " ", Object::toString);
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Invocation, ?>> fields() {
-        return List.of(
-                e -> e.targets,
-                e -> e.taskArgs,
-                e -> e.tasks
-        );
     }
     //endregion
 

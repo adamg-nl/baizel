@@ -9,14 +9,11 @@ import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
-import java.util.List;
-import java.util.function.Function;
-
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Model: [nl.adamg.baizel.core.impl.TargetImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.TargetImpl]
 public class TargetImpl
-        extends EntityModel<Target, nl.adamg.baizel.core.entities.Target, TargetImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Target>
         implements Target {
     //region factory
     public static Target of(
@@ -123,16 +120,6 @@ public class TargetImpl
             sb.append(':').append(entity.targetName);
         }
         return sb.toString();
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Target, ?>> fields() {
-        return List.of(
-                t -> t.organization,
-                t -> t.artifact,
-                t -> t.path,
-                t -> t.targetName
-        );
     }
     //endregion
 

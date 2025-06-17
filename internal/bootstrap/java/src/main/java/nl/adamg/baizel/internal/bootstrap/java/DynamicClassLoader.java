@@ -55,9 +55,7 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
             }
             return null;
         } catch (ReflectiveOperationException e) {
-            if (require) {
-                throw new RuntimeException(e);
-            }
+            handleFail(require, e);
             return null;
         }
     }
@@ -77,9 +75,7 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                 subject = classLoader.loadClass(className);
             }
         } catch (ReflectiveOperationException e) {
-            if (require) {
-                throw new RuntimeException(e);
-            }
+            handleFail(require, e);
             return null;
         }
         if (subject instanceof Class<?> class_ && class_.isEnum()) {
@@ -102,9 +98,7 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                     return (T) field.get((exactType == subject) ? null : subject);
                 }
             } catch (ReflectiveOperationException e) {
-                if (require) {
-                    throw new RuntimeException(e);
-                }
+                handleFail(require, e);
             }
         }
         return null;
@@ -151,19 +145,26 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                     }
                 }
             } catch (ReflectiveOperationException e) {
-                if(required) {
-                    throw new RuntimeException(e);
-                }
-                if (System.getenv("BAIZEL_VERBOSE") == "true") {
-                    Throwable cause = e;
-                    while (cause.getCause() != cause && cause.getCause() != null) {
-                        cause = cause.getCause();
-                    }
-                    cause.printStackTrace(System.err);
-                }
+                handleFail(required, e);
             }
         }
         return null;
+    }
+
+    private static void handleFail(boolean required, ReflectiveOperationException e) {
+        Throwable cause = e;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+        if(required) {
+            if (cause instanceof RuntimeException re) {
+                throw re;
+            }
+            throw new RuntimeException(cause);
+        }
+        if (Objects.equals(System.getenv("BAIZEL_VERBOSE"), "true")) {
+            cause.printStackTrace(System.err);
+        }
     }
 
     public void set(Object subject, String fieldName, /*@CheckForNull*/ Object value) {
@@ -176,9 +177,7 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                 subject = classLoader.loadClass(className);
             }
         } catch (ReflectiveOperationException e) {
-            if(required) {
-                throw new RuntimeException(e);
-            }
+            handleFail(required, e);
             return;
         }
         var exactType = (subject instanceof Class<?> clazz) ? clazz : subject.getClass();
@@ -196,9 +195,7 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
                     }
                 }
             } catch (ReflectiveOperationException e) {
-                if(required) {
-                    throw new RuntimeException(e);
-                }
+                handleFail(required, e);
             }
         }
     }

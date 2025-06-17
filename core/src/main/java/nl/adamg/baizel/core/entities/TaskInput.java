@@ -2,10 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskInput]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskInput]
-/// - Model: [nl.adamg.baizel.core.impl.TaskInputImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.TaskInputImpl]
 public class TaskInput implements Serializable {
     public Target origin;
     public String originTaskId;
@@ -16,6 +17,18 @@ public class TaskInput implements Serializable {
         this.origin = origin;
         this.originTaskId = originTaskId;
         this.paths = paths;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        TaskInput taskInput = (TaskInput) object;
+        return Objects.equals(origin, taskInput.origin) && Objects.equals(originTaskId, taskInput.originTaskId) && Objects.equals(paths, taskInput.paths);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(origin, originTaskId, paths);
     }
     //endregion
 }

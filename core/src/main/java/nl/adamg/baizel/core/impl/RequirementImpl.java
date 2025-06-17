@@ -4,15 +4,13 @@ import java.util.Set;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
-import java.util.List;
-import java.util.function.Function;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
 /// - Model:  [nl.adamg.baizel.core.impl.RequirementImpl]
 public class RequirementImpl
-        extends EntityModel<Requirement, nl.adamg.baizel.core.entities.Requirement, RequirementImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Requirement>
         implements Requirement {
     private static final Set<String> SDK_PACKAGES = Set.of("java", "jdk");
 
@@ -52,14 +50,6 @@ public class RequirementImpl
     @Override
     public String toString() {
         return (entity.isTransitive ? "transitive " : "") + entity.moduleId;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Requirement, ?>> fields() {
-        return List.of(
-                e -> e.isTransitive,
-                e -> e.moduleId
-        );
     }
     //endregion
 

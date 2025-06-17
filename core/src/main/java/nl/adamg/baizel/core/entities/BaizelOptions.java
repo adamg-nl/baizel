@@ -1,11 +1,12 @@
 package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /// - API:    [nl.adamg.baizel.core.api.BaizelOptions]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelOptions]
-/// - Model: [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
-public final class BaizelOptions implements Serializable {
+/// - Impl:   [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
+public class BaizelOptions implements Serializable {
     public int workerCount;
     public String projectRoot;
 
@@ -13,6 +14,18 @@ public final class BaizelOptions implements Serializable {
     public BaizelOptions(int workerCount, String projectRoot) {
         this.workerCount = workerCount;
         this.projectRoot = projectRoot;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        BaizelOptions that = (BaizelOptions) object;
+        return workerCount == that.workerCount && Objects.equals(projectRoot, that.projectRoot);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(workerCount, projectRoot);
     }
     //endregion
 }

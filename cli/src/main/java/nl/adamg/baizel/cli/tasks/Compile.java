@@ -101,6 +101,7 @@ public class Compile implements Task {
             artifactRoots.addAll(input.paths());
         }
         var outputDir = module.fullPath().resolve(".build/classes/java").resolve(sourceSet.getSourceSetId());
+        Files.createDirectories(outputDir);
         var succeeded = compile(Set.of(sourceRoot), artifactRoots, outputDir, baizel.reporter());
         if (! succeeded) {
             throw new BaizelException(BaizelErrors.TASK_FAILED, target + ":" + TASK_ID);

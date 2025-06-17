@@ -1,10 +1,11 @@
 package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
-/// - Model: [nl.adamg.baizel.core.impl.RequirementImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.RequirementImpl]
 public class Requirement implements Serializable {
     public String moduleId;
     public boolean isTransitive;
@@ -13,6 +14,18 @@ public class Requirement implements Serializable {
     public Requirement(String moduleId, boolean isTransitive) {
         this.moduleId = moduleId;
         this.isTransitive = isTransitive;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Requirement that = (Requirement) object;
+        return isTransitive == that.isTransitive && Objects.equals(moduleId, that.moduleId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(moduleId, isTransitive);
     }
     //endregion
 }

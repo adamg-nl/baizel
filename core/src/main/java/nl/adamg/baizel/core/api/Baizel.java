@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
 /// - Model:  [nl.adamg.baizel.core.impl.BaizelImpl]
 /// - CLI:    `nl.adamg.baizel.cli.Baizel`
-public interface Baizel {
+public interface Baizel extends AutoCloseable {
     void run(Invocation invocation) throws IOException, InterruptedException;
     void report(String issueId, String... details);
     Consumer<Issue> reporter();
@@ -19,4 +19,6 @@ public interface Baizel {
     Project project();
     BaizelOptions options();
     Target.Type getTargetType(Target target);
+    @Override
+    void close() throws IOException, InterruptedException;
 }

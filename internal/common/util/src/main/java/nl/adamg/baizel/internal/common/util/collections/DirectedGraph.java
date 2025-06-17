@@ -63,4 +63,14 @@ public class DirectedGraph<T extends Comparable<T>> {
             this.children.computeIfAbsent(parent, k -> new TreeSet<>()).addAll(children);
         }
     }
+
+    public boolean isEmpty() {
+        return size() == 0;
+    }
+
+    public int size() {
+        try(var ignored = lock.read()) {
+            return children.size();
+        }
+    }
 }

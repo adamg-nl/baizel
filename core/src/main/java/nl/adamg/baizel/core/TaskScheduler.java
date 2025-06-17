@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core;
 
+import java.util.TreeSet;
 import nl.adamg.baizel.core.api.TaskInput;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.impl.TaskInputImpl;
@@ -25,14 +26,15 @@ public class TaskScheduler implements AutoCloseable {
     private static final Logger LOG = Logger.getLogger(TaskScheduler.class.getName());
     /// parent: task that depends, children: tasks it depends on
     private final DirectedGraph<TaskRequest> dependencies = new DirectedGraph<>();
-    /// as {@link #dependencies}, but tasks are removed from here as soon as they finish
+    /// like {@link #dependencies}, but tasks are removed from here as soon as they finish
     private final DirectedGraph<TaskRequest> remainingDependencies = new DirectedGraph<>();
-    /// key: task that finished, value: list of output
+    /// key: task that finished, value: list of output files
     private final Map<TaskRequest, Set<Path>> finishedTasks = Collections.synchronizedMap(new TreeMap<>());
     private final Map<TaskRequest, Thread> runningTasks = Collections.synchronizedMap(new TreeMap<>());
+    private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
     private final Executor<IOException> workerPool;
     private final Thread schedulerThread;
-    private final Set<TaskRequest> readyTasks = Items.newConcurrentSet();
+    private final Set<TaskRequest> readyTasks = Collections.synchronizedSet(new TreeSet<>());
     private final Runner runner;
     private final AtomicBoolean isFinished = new AtomicBoolean(false);
 
@@ -41,11 +43,9 @@ public class TaskScheduler implements AutoCloseable {
     }
 
     /// Creates new task scheduler with given settings.
-    public static TaskScheduler create(int workerCount, Runner runner) {
-        var workerPool = Executor.create(workerCount, IOException.class);
+    public static TaskScheduler create(Executor<IOException> workerPool, Runner runner) {
         var schedulerThreadRunnable = new AtomicReference<Runnable>(); // solves circular dependency scheduler <> thread
         var schedulerThread = new Thread(() -> schedulerThreadRunnable.get().run());
-        schedulerThread.setDaemon(true);
         var scheduler = new TaskScheduler(workerPool, schedulerThread, runner);
         schedulerThread.setName(TaskScheduler.class.getCanonicalName() + "#" + System.identityHashCode(scheduler));
         schedulerThreadRunnable.set(scheduler::schedulerThreadMain);
@@ -55,8 +55,11 @@ public class TaskScheduler implements AutoCloseable {
 
     /// Schedules a task
     public void schedule(TaskRequest task, Set<TaskRequest> dependencies) {
+        if (isShuttingDown.get()) {
+            throw new IllegalStateException("shutting down");
+        }
         if (this.dependencies.contains(task)) {
-            return; // ignore attempts to schedule the same task twice
+            throw new IllegalStateException("task already scheduled");
         }
         this.dependencies.add(task, dependencies);
         this.remainingDependencies.add(task, dependencies);
@@ -82,7 +85,10 @@ public class TaskScheduler implements AutoCloseable {
 
     @Override
     public void close() throws IOException, InterruptedException {
-        schedulerThread.interrupt();
+        isShuttingDown.set(true);
+        synchronized (isShuttingDown) {
+            isShuttingDown.notifyAll();
+        }
         schedulerThread.join();
         workerPool.close();
         isFinished.set(true);
@@ -108,9 +114,16 @@ public class TaskScheduler implements AutoCloseable {
                 workerPool.run(() -> workerThreadMain(task));
             }
             if (schedulerThread.isInterrupted()) {
+                LOG.warning("scheduler thread was interrupted");
+                return;
+            }
+            if (isShuttingDown.get() && remainingDependencies.isEmpty() && readyTasks.isEmpty()) {
                 return;
             }
             synchronized (readyTasks) {
+                if (! readyTasks.isEmpty()) {
+                    continue;
+                }
                 try {
                     readyTasks.wait();
                 } catch (InterruptedException e) {
@@ -131,6 +144,7 @@ public class TaskScheduler implements AutoCloseable {
                 return;
             }
             runningTasks.put(task, thread);
+            runningTasks.notifyAll();
         }
 
         // run the task
@@ -140,7 +154,10 @@ public class TaskScheduler implements AutoCloseable {
 
         // mark this task as finished, and other tasks that only depended on this one as ready
         finishedTasks.put(task, outputs);
-        runningTasks.remove(task);
+        synchronized (runningTasks) {
+            runningTasks.remove(task);
+            runningTasks.notifyAll();
+        }
         var dependingTasks = remainingDependencies.parents(task);
         remainingDependencies.remove(task);
         for(var dependingTask : dependingTasks) {

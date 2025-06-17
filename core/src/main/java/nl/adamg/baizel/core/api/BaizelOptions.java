@@ -8,4 +8,7 @@ import java.nio.file.Path;
 public interface BaizelOptions {
     int workerCount();
     Path projectRoot();
+    @Override String toString();
+    @Override boolean equals(Object other);
+    @Override int hashCode();
 }

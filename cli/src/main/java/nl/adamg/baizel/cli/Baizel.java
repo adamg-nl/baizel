@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /// CLI entry point to the Baizel build system for Java™
 ///
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
-/// - Model: [nl.adamg.baizel.core.impl.BaizelImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.BaizelImpl]
 /// - CLI:    [nl.adamg.baizel.cli.Baizel]
 public class Baizel {
     private static final Logger LOG = Logger.getLogger(Baizel.class.getName());

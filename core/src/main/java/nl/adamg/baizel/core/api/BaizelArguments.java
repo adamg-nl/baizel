@@ -6,4 +6,7 @@ package nl.adamg.baizel.core.api;
 public interface BaizelArguments {
     BaizelOptions options();
     Invocation invocation();
+    @Override String toString();
+    @Override boolean equals(Object other);
+    @Override int hashCode();
 }

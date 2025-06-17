@@ -3,10 +3,11 @@ package nl.adamg.baizel.core.entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
-/// - Model: [nl.adamg.baizel.core.impl.ProjectImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.ProjectImpl]
 public class Project implements Serializable {
     public String projectId;
     public String root;
@@ -28,6 +29,18 @@ public class Project implements Serializable {
         this.modules = modules;
         this.dependencies = dependencies;
         this.artifactRepositories = artifactRepositories;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Project project = (Project) object;
+        return Objects.equals(projectId, project.projectId) && Objects.equals(root, project.root) && Objects.equals(modules, project.modules) && Objects.equals(dependencies, project.dependencies) && Objects.equals(artifactRepositories, project.artifactRepositories);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(projectId, root, modules, dependencies, artifactRepositories);
     }
     //endregion
 }

@@ -6,9 +6,7 @@ import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Queue;
-import java.util.function.Function;
 
 /// Format:
 /// ```
@@ -19,7 +17,7 @@ import java.util.function.Function;
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelOptions]
 /// - Model:  [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
 public class BaizelOptionsImpl
-        extends EntityModel<BaizelOptions, nl.adamg.baizel.core.entities.BaizelOptions, BaizelOptionsImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.BaizelOptions>
         implements BaizelOptions {
     private static final String WORKER_COUNT = "--worker-count=";
     private static final String PROJECT_ROOT = "--project-root=";
@@ -78,14 +76,6 @@ public class BaizelOptionsImpl
     @Override
     public String toString() {
         return WORKER_COUNT + entity.workerCount + " " + PROJECT_ROOT + entity.projectRoot;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.BaizelOptions, ?>> fields() {
-        return List.of(
-                o -> o.workerCount,
-                o -> o.projectRoot
-        );
     }
     //endregion
 

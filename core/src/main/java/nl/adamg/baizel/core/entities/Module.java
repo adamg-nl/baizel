@@ -3,10 +3,11 @@ package nl.adamg.baizel.core.entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
-/// - Model: [nl.adamg.baizel.core.impl.ModuleImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.ModuleImpl]
 public class Module implements Serializable {
     public String path;
     public Map<String, Class> classes;
@@ -24,6 +25,18 @@ public class Module implements Serializable {
         this.classes = classes;
         this.exports = exports;
         this.requirements = requires;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == null || getClass() != object.getClass()) return false;
+        Module module = (Module) object;
+        return Objects.equals(path, module.path) && Objects.equals(classes, module.classes) && Objects.equals(exports, module.exports) && Objects.equals(requirements, module.requirements);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(path, classes, exports, requirements);
     }
     //endregion
 }

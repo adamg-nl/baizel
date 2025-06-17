@@ -1,5 +1,7 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Collections;
+import java.util.concurrent.ConcurrentHashMap;
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.core.Tasks;
@@ -16,12 +18,12 @@ import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.io.Shell;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.Items;
+import nl.adamg.baizel.internal.common.util.concurrent.Executor;
 import nl.adamg.baizel.internal.common.util.java.typeref.TypeRef2;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
@@ -43,7 +45,7 @@ public class BaizelImpl implements Baizel {
     /// When Baizel instance is reused to run the same or overlapping set of tasks later,
     /// thanks to this map their task dependencies will not need to be recomputed.
     private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache = Collections.synchronizedMap(new TreeMap<>());
-    private final Map<Invocation, TaskScheduler> runningInvocations = Collections.synchronizedMap(new TreeMap<>());
+    private final Executor<IOException> workerPool;
     private final Project project;
     private final Consumer<Issue> reporter;
     private final FileSystem fileSystem;
@@ -54,10 +56,11 @@ public class BaizelImpl implements Baizel {
     public static Baizel start(BaizelOptions options, Path projectRoot, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
         return new BaizelImpl(
                 ProjectImpl.load(projectRoot, reporter),
-                reporter,
+                Executor.create(options.workerCount(), IOException.class),
                 fileSystem,
                 shell,
-                options
+                options,
+                reporter
         );
     }
     //endregion
@@ -67,14 +70,7 @@ public class BaizelImpl implements Baizel {
         if (invocation.tasks().isEmpty()) {
             throw new BaizelException(BaizelErrors.TASK_NOT_SELECTED);
         }
-        var runningInvocation = runningInvocations.get(invocation);
-        if (runningInvocation != null) {
-            // exactly the same thing invoked on the same project - just wait till finished
-            runningInvocation.waitUntilFinished();
-            return;
-        }
-        try(var scheduler = TaskScheduler.create(options.workerCount(), getRunner(invocation))) {
-            runningInvocations.put(invocation, scheduler);
+        try(var scheduler = TaskScheduler.create(workerPool, getRunner(invocation))) {
             var taskDependencies = collectTaskDependencies(invocation.tasks(), invocation.targets());
             for(var dependency : taskDependencies.entrySet()) {
                 LOG.info(() -> "scheduling" + LoggerUtil.with(
@@ -84,7 +80,6 @@ public class BaizelImpl implements Baizel {
                 scheduler.schedule(dependency.getKey(), dependency.getValue());
             }
         }
-        runningInvocations.remove(invocation);
     }
 
     @Override
@@ -108,6 +103,16 @@ public class BaizelImpl implements Baizel {
             return Target.Type.FILE;
         }
         return Target.Type.INVALID;
+    }
+
+    @Override
+    public void close() throws IOException, InterruptedException {
+        workerPool.close();
+    }
+
+    @Override
+    public String toString() {
+        return "baizel " + options;
     }
 
     //region implementation internals
@@ -176,11 +181,13 @@ public class BaizelImpl implements Baizel {
     //region generated code
     public BaizelImpl(
             Project project,
-            Consumer<Issue> reporter,
+            Executor<IOException> workerPool,
             FileSystem fileSystem,
-            Shell shell ,
-            BaizelOptions options
+            Shell shell,
+            BaizelOptions options,
+            Consumer<Issue> reporter
     ) {
+        this.workerPool = workerPool;
         this.project = project;
         this.reporter = reporter;
         this.fileSystem = fileSystem;

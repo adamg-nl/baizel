@@ -3,6 +3,9 @@ package nl.adamg.baizel.core;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 
+/// Thrown for "predictable fatal failures" (e.g. user errors), that should result in
+/// an error message getting printed without a stacktrace, and process exiting with
+/// the given non-zero exit code. CLI entry point catches it and calls [#exit()].
 public class BaizelException extends RuntimeException {
     private final BaizelErrors error;
     private final String[] details;

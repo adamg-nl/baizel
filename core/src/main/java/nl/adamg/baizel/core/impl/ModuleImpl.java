@@ -18,13 +18,12 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
-/// - Model: [nl.adamg.baizel.core.impl.ModuleImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.ModuleImpl]
 public class ModuleImpl
-        extends EntityModel<Module, nl.adamg.baizel.core.entities.Module, ModuleImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.Module>
         implements Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private final Map<String, Class> classes = new TreeMap<>();
@@ -152,14 +151,6 @@ public class ModuleImpl
     @Override
     public String toString() {
         return entity.path;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.Module, ?>> fields() {
-        return List.of(
-                m -> m.path,
-                m -> m.classes
-        );
     }
     //endregion
 

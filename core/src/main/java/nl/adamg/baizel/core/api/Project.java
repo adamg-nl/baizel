@@ -6,7 +6,7 @@ import java.util.List;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
-/// - Model: [nl.adamg.baizel.core.impl.ProjectImpl]
+/// - Impl:   [nl.adamg.baizel.core.impl.ProjectImpl]
 public interface Project {
     String projectId();
     Path path(String... path);

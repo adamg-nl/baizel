@@ -9,8 +9,6 @@ import nl.adamg.baizel.internal.common.util.Text;
 
 import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
 
 /// Format:
 /// ```
@@ -21,7 +19,7 @@ import java.util.function.Function;
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelArguments]
 /// - Model:  [nl.adamg.baizel.core.impl.BaizelArgumentsImpl]
 public class BaizelArgumentsImpl
-        extends EntityModel<BaizelArguments, nl.adamg.baizel.core.entities.BaizelArguments, BaizelArgumentsImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.BaizelArguments>
         implements BaizelArguments {
     //region factory
     public static BaizelArguments of(
@@ -71,14 +69,6 @@ public class BaizelArgumentsImpl
     @Override
     public String toString() {
         return options() + " " + invocation();
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.BaizelArguments, ?>> fields() {
-        return List.of(
-                a -> a.options,
-                a -> a.invocation
-        );
     }
     //endregion
 

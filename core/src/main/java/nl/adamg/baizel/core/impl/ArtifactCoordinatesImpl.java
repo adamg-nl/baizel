@@ -3,14 +3,11 @@ package nl.adamg.baizel.core.impl;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.core.api.ArtifactCoordinates;
 
-import java.util.List;
-import java.util.function.Function;
-
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
 /// - Model:  [nl.adamg.baizel.core.impl.ArtifactCoordinatesImpl]
 public class ArtifactCoordinatesImpl
-        extends EntityModel<ArtifactCoordinates, nl.adamg.baizel.core.entities.ArtifactCoordinates, ArtifactCoordinatesImpl>
+        extends EntityModel<nl.adamg.baizel.core.entities.ArtifactCoordinates>
         implements ArtifactCoordinates {
     //region factory
     public static ArtifactCoordinates of(
@@ -66,16 +63,6 @@ public class ArtifactCoordinatesImpl
     @Override
     public String toString() {
         return entity.organization + ":" + entity.artifact + ":" + entity.version;
-    }
-
-    @Override
-    protected List<Function<nl.adamg.baizel.core.entities.ArtifactCoordinates, ?>> fields() {
-        return List.of(
-                e -> e.organization,
-                e -> e.artifact,
-                e -> e.version,
-                e -> e.moduleId
-        );
     }
     //endregion
 
