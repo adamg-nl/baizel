@@ -32,10 +32,10 @@ public class Baizel {
         }
         var args = BaizelArgumentsImpl.parse(rawArgs);
         var projectRoot = getProjectRoot(args);
-        try(var shell = SystemShell.load(projectRoot)) {
-            var reporter = (Consumer<Issue>) i -> LOG.warning(i.id + LoggerUtil.with(i.details));
-            var fileSystem = new LocalFileSystem();
-            var baizel = BaizelImpl.start(args.options(), projectRoot, shell, fileSystem, reporter);
+        var reporter = (Consumer<Issue>) i -> LOG.warning(i.id + LoggerUtil.with(i.details));
+        var fileSystem = new LocalFileSystem();
+        try(var shell = SystemShell.load(projectRoot);
+            var baizel = BaizelImpl.start(args.options(), projectRoot, shell, fileSystem, reporter)) {
             baizel.run(args.invocation());
         } catch (BaizelException e) {
             throw e.exit();

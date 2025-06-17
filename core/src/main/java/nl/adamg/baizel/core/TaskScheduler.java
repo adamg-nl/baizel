@@ -83,6 +83,7 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
         if(dependencies.isEmpty()) {
             markTaskReady(task);
         }
+        headsUp();
     }
 
     @Override
@@ -97,7 +98,7 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
         if (taskException.get() == null) {
             LOG.info("shutdown finished");
         } else {
-            LOG.info("crash finished");
+            LOG.warning("crash finished");
         }
         Exceptions.rethrowIfIs(taskException.get(), IOException.class);
         Exceptions.rethrowIfIs(taskException.get(), InterruptedException.class);
@@ -106,6 +107,7 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
 
     public void interrupt() {
         LOG.warning("interrupting all threads");
+        reportException(new InterruptedException());
         for(var thread : runningTasks.values()) {
             thread.interrupt();
         }
@@ -115,7 +117,7 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
     /// waits for short time or until something interesting happens
     private void waitABit() throws InterruptedException {
         synchronized (waiter) {
-            waiter.wait(100);
+            waiter.wait(1000);
         }
     }
 
@@ -128,20 +130,23 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
 
     /// Submits tasks to the workers, as soon as these tasks have their dependencies satisfied.
     private void schedulerThreadMain() {
+        LOG.info("scheduler thread started");
         while (true) {
             List<Task> sortedReadyTasks;
             synchronized (readyTasks) {
                 sortedReadyTasks = new ArrayList<>(readyTasks);
                 readyTasks.clear();
             }
+            LOG.info("will schedule ${count} ready tasks" + LoggerUtil.with("count", sortedReadyTasks.size()+""));
             // sort the ready tasks by how many other tasks still depend on them and submit for execution
             sortedReadyTasks.sort(Comparator.<Task, Integer>comparing(task -> -1 * unfinishedTasks.parents(task).size()).thenComparing(task -> task));
             for (var task : sortedReadyTasks) {
+                LOG.info("scheduling ${task}" + LoggerUtil.with("task", task.toString()));
                 workerPool.run(() -> workerThreadMain(task));
             }
             if (schedulerThread.isInterrupted()) {
                 LOG.severe("scheduler thread interrupted");
-                taskException.compareAndSet(null, new InterruptedException());
+                reportException(new InterruptedException());
                 return;
             }
             if (isShuttingDown.get() && unfinishedTasks.isEmpty()) {
@@ -156,16 +161,10 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
                 continue;
             }
             try {
-                while (readyTasks.isEmpty()) {
-                    if (taskException.get() != null) {
-                        LOG.warning("scheduler exiting due to task crash");
-                        return;
-                    }
-                    waitABit();
-                }
+                waitABit();
             } catch (InterruptedException e) {
                 LOG.severe("scheduler thread interrupted");
-                taskException.compareAndSet(null, e);
+                reportException(e);
                 return;
             }
         }
@@ -174,6 +173,7 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
     /// Runs the given task, if it didn't run yet, and then triggers successors
     private void workerThreadMain(Task task) {
         var thread = Thread.currentThread();
+        runningTasks.put(task, thread);
         thread.setName(task + " (" + thread.getName() + ")");
         Set<Path> outputs;
 
@@ -182,8 +182,8 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
         try {
             outputs = runner.run(task, collectInputs(task));
         } catch (Throwable t) {
-            taskException.compareAndSet(null, t);
-            headsUp();
+            runningTasks.remove(task);
+            reportException(t);
             LOG.severe("task crashed" + LoggerUtil.with(
                     "task", task.toString(),
                     "exceptionClass", t.getClass().getName(),
@@ -204,6 +204,11 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
                 markTaskReady(dependingTask);
             }
         }
+        headsUp();
+    }
+
+    private void reportException(Throwable t) {
+        taskException.compareAndSet(null, t);
         headsUp();
     }
 

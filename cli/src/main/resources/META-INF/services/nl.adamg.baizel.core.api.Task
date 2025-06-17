@@ -1,2 +1,3 @@
 nl.adamg.baizel.cli.tasks.Compile
+nl.adamg.baizel.cli.tasks.Clean
 nl.adamg.baizel.cli.tasks.Resolve
