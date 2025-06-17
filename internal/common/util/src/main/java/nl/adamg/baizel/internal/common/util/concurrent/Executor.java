@@ -58,4 +58,7 @@ public interface Executor<TException extends Exception> extends AutoCloseable {
             Class<TException> exceptionType) {
         return create(threadCount, exceptionType, null);
     }
+
+    /// Interrupts all the threads
+    void interrupt();
 }

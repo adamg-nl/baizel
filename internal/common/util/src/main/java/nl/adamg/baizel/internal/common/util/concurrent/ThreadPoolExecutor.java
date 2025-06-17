@@ -64,7 +64,7 @@ public class ThreadPoolExecutor<TException extends Exception> implements Executo
                     if (taskException == null) {
                         taskException = e;
                         // attempt to kill all the threads with InterruptedException
-                        executorService.shutdownNow();
+                        interrupt();
                     }
                 }
                 throw e;
@@ -82,7 +82,7 @@ public class ThreadPoolExecutor<TException extends Exception> implements Executo
         var timedOut = ! executorService.awaitTermination(remainingTime.toSeconds(), TimeUnit.SECONDS);
         if (timedOut) {
             // attempt to kill all the threads with InterruptedException
-            executorService.shutdownNow();
+            interrupt();
             throw new InterruptedException("timed out after " + timeLimit);
         }
         if (taskException != null) {
@@ -96,5 +96,11 @@ public class ThreadPoolExecutor<TException extends Exception> implements Executo
                 throw Exceptions.rethrow(cause != null ? cause : e, exceptionType, InterruptedException.class);
             }
         }
+    }
+
+    /// attempt to kill all the threads with InterruptedException
+    @Override
+    public void interrupt() {
+        executorService.shutdownNow();
     }
 }

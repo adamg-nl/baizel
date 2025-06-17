@@ -68,4 +68,9 @@ public class CurrentThreadExecutor<TException extends Exception> implements Exec
             throw Exceptions.rethrow(taskException, exceptionType, InterruptedException.class);
         }
     }
+
+    @Override
+    public void interrupt() {
+        Thread.currentThread().interrupt();
+    }
 }
