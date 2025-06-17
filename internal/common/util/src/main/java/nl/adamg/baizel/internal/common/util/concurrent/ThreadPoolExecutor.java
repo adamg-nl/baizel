@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
  * @see Executor#create public factory method
  */
 public class ThreadPoolExecutor<TException extends Exception> implements Executor<TException> {
+    private final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
     private final List<Future<Void>> futures = new ArrayList<>();
     private final Instant startTime = Instant.now();
     private final ExecutorService executorService;
@@ -51,6 +52,7 @@ public class ThreadPoolExecutor<TException extends Exception> implements Executo
                 return null;
             }
             var thread = Thread.currentThread();
+            thread.setContextClassLoader(contextClassLoader);
             var originalName = thread.getName();
             if (threadName != null) {
                 thread.setName(threadName + "[" + originalName + "]");

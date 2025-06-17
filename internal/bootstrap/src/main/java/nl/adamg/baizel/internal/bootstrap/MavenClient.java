@@ -39,7 +39,7 @@ public final class MavenClient {
 
     public static MavenClient loadClient(List<String> repositories, Map<String, Set<String>> moduleCoordinates, Path baizelRoot) throws IOException {
         var mavenClientLibDependencies = BeforeClientLib.resolveMavenClientLibDependencies(baizelRoot, repositories.get(0), moduleCoordinates);
-        var dynamicLibs = DynamicClassLoader.forPaths(mavenClientLibDependencies, MavenClient.class);
+        var dynamicLibs = DynamicClassLoader.forPaths(mavenClientLibDependencies, null);
         var libClient = AfterClientLib.load(repositories.stream().map(BeforeClientLib::url).toList(), dynamicLibs);
         return new MavenClient(libClient);
     }

@@ -58,7 +58,7 @@ public final class Bootstrap {
 
         // Step 2.4: load the compiled Baizel into a child classloader in the current JVM and call baizel.cli main
         bootstrapClasspath.add(builder.compiledClasspathRoot());
-        try(var bootstrapClassLoader = DynamicClassLoader.forPaths(bootstrapClasspath, Bootstrap.class)) {
+        try(var bootstrapClassLoader = DynamicClassLoader.forPaths(bootstrapClasspath, Bootstrap.class.getClassLoader().getParent())) {
             LOG.info("Stage 2 finished -- { \"durationMs\": " + Duration.between(START_TIMESTAMP, Instant.now()).toMillis() + " }");
             bootstrapClassLoader.activate(Thread.currentThread());
             bootstrapClassLoader.invoke("nl.adamg.baizel.cli.Baizel", "main", true, new Object[]{args});

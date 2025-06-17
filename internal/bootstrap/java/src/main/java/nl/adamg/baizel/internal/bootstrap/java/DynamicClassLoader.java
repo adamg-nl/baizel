@@ -20,9 +20,9 @@ public final class DynamicClassLoader<C extends ClassLoader & Closeable> impleme
         thread.setContextClassLoader(classLoader);
     }
 
-    public static DynamicClassLoader<URLClassLoader> forPaths(Collection<Path> paths, Class<?> owner) {
+    public static DynamicClassLoader<URLClassLoader> forPaths(Collection<Path> paths, /*@CheckForNull*/ ClassLoader parent) {
         var urls = paths.stream().map(DynamicClassLoader::url).toArray(URL[]::new);
-        var urlLoader = new URLClassLoader(urls, owner.getClassLoader());
+        var urlLoader = new URLClassLoader(urls, parent != null ? parent : Thread.currentThread().getContextClassLoader());
         return new DynamicClassLoader<>(urlLoader);
     }
 
