@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 
 import java.io.IOException;
@@ -10,7 +11,7 @@ import java.util.Set;
 @ServiceProvider.Interface
 public interface Task {
     /// @return output paths
-    Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Target.Type targetType, Baizel baizel) throws IOException;
+    Set<Path> run(Target target, List<String> args, List<TaskScheduler.Input<TaskRequest>> inputs, Target.Type targetType, Baizel baizel) throws IOException;
 
     /// @return pairs of target and task id
     default Set<TaskRequest> findDependencies(Target target, Target.Type targetType, Baizel baizel) throws IOException {

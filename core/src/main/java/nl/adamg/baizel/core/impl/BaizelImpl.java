@@ -1,7 +1,6 @@
 package nl.adamg.baizel.core.impl;
 
 import java.util.Collections;
-import java.util.concurrent.ConcurrentHashMap;
 import nl.adamg.baizel.core.BaizelException;
 import nl.adamg.baizel.core.TaskScheduler;
 import nl.adamg.baizel.core.Tasks;
@@ -116,7 +115,7 @@ public class BaizelImpl implements Baizel {
     }
 
     //region implementation internals
-    private TaskScheduler.Runner getRunner(Invocation invocation) {
+    private TaskScheduler.Runner<TaskRequest> getRunner(Invocation invocation) {
         return (task, inputs) -> Tasks.get(task.taskId()).run(task.target(), invocation.taskArgs(), inputs, getTargetType(task.target()), this);
     }
 

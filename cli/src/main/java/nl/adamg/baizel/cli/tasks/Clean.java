@@ -1,9 +1,10 @@
 package nl.adamg.baizel.cli.tasks;
 
+import nl.adamg.baizel.core.TaskScheduler.Input;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.api.Task;
-import nl.adamg.baizel.core.api.TaskInput;
+import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 
 import java.io.IOException;
@@ -29,7 +30,7 @@ public class Clean implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Target.Type targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(Target target, List<String> args, List<Input<TaskRequest>> inputs, Target.Type targetType, Baizel baizel) throws IOException {
         var module = target.getModule(baizel.project());
         baizel.fileSystem().delete(module.fullPath().resolve(".build"));
         return Set.of();

@@ -3,7 +3,6 @@ package nl.adamg.baizel.core;
 import java.util.TreeSet;
 import nl.adamg.baizel.internal.common.util.Exceptions;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
-import nl.adamg.baizel.internal.common.util.Pair;
 import nl.adamg.baizel.internal.common.util.collections.DirectedGraph;
 import nl.adamg.baizel.internal.common.util.concurrent.Executor;
 
@@ -47,7 +46,6 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
     /// tasks that can be already started, because all their dependency inputs are ready
     private final Set<Task> readyTasks = Collections.synchronizedSet(new TreeSet<>());
     private final AtomicBoolean isShuttingDown = new AtomicBoolean(false);
-    private final AtomicBoolean isFinished = new AtomicBoolean(false);
     private final AtomicReference<Throwable> taskException = new AtomicReference<>();
     private final Object waiter = new Object();
     private final Executor<IOException> workerPool;
@@ -57,8 +55,10 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
     /// How to run the task, given the list of inputs?
     @FunctionalInterface
     public interface Runner<Task extends Comparable<Task>> {
-        Set<Path> run(Task task, List<Pair<Task, Set<Path>>> inputs) throws IOException;
+        Set<Path> run(Task task, List<Input<Task>> inputs) throws IOException;
     }
+
+    public record Input<Task extends Comparable<Task>>(Task source, Set<Path> paths) {}
 
     public static <Task extends Comparable<Task>> TaskScheduler<Task> create(Executor<IOException> workerPool, Runner<Task> runner) {
         var schedulerThreadRunnable = new Runnable[1]; // solves circular dependency scheduler <> thread
@@ -87,16 +87,18 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
 
     @Override
     public void close() throws IOException, InterruptedException {
-        LOG.info("shutting down - waiting for scheduler and tasks");
+        LOG.info("waiting for scheduled tasks to finish");
         isShuttingDown.set(true);
         headsUp();
         schedulerThread.join();
         while (! unfinishedTasks.isEmpty() && taskException.get() == null) {
             waitABit();
         }
-        isFinished.set(true);
-        headsUp();
-        LOG.info("shutdown finished");
+        if (taskException.get() == null) {
+            LOG.info("shutdown finished");
+        } else {
+            LOG.info("crash finished");
+        }
         Exceptions.rethrowIfIs(taskException.get(), IOException.class);
         Exceptions.rethrowIfIs(taskException.get(), InterruptedException.class);
         Exceptions.rethrowIfAny(taskException.get());
@@ -213,10 +215,10 @@ public class TaskScheduler<Task extends Comparable<Task>> implements AutoCloseab
         headsUp();
     }
 
-    private List<Pair<Task, Set<Path>>> collectInputs(Task task) {
-        var inputs = new ArrayList<Pair<Task, Set<Path>>>();
+    private List<Input<Task>> collectInputs(Task task) {
+        var inputs = new ArrayList<Input<Task>>();
         for (var dependency : allTasksAndDependencies.children(task)) {
-            inputs.add(Pair.of(dependency, finishedTasks.get(dependency)));
+            inputs.add(new Input<>(dependency, finishedTasks.get(dependency)));
         }
         return inputs;
     }

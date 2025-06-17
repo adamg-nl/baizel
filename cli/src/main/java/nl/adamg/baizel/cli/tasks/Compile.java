@@ -2,11 +2,11 @@ package nl.adamg.baizel.cli.tasks;
 
 import com.sun.source.util.JavacTask;
 import nl.adamg.baizel.core.BaizelException;
+import nl.adamg.baizel.core.TaskScheduler.Input;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.api.Target.Type;
 import nl.adamg.baizel.core.api.Task;
-import nl.adamg.baizel.core.api.TaskInput;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
@@ -88,7 +88,7 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<TaskInput> inputs, Type targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(Target target, List<String> args, List<Input<TaskRequest>> inputs, Type targetType, Baizel baizel) throws IOException {
         LOG.warning("compiling" + LoggerUtil.with("target", target.toString()));
         var module = target.getModule(baizel.project());
         var sourceSet = target.sourceSet();
