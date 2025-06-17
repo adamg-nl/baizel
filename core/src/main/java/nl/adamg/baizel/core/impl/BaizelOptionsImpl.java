@@ -37,7 +37,7 @@ public class BaizelOptionsImpl
         );
     }
 
-    public static nl.adamg.baizel.core.entities.BaizelOptions parse(Queue<String> remainingArgs) {
+    public static BaizelOptions parse(Queue<String> remainingArgs) {
         var options = new nl.adamg.baizel.core.entities.BaizelOptions(
                 Runtime.getRuntime().availableProcessors(),
                 ""
@@ -45,7 +45,7 @@ public class BaizelOptionsImpl
         while (! remainingArgs.isEmpty() && remainingArgs.peek().startsWith("-")) {
             parseOption(options, remainingArgs.poll());
         }
-        return options;
+        return new BaizelOptionsImpl(options);
     }
 
     public static void parseOption(nl.adamg.baizel.core.entities.BaizelOptions options, String option) {

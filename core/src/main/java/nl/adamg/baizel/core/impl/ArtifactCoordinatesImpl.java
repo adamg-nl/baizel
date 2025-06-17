@@ -29,9 +29,9 @@ public class ArtifactCoordinatesImpl
         );
     }
 
-    public static nl.adamg.baizel.core.entities.ArtifactCoordinates parse(String coordinatesString) {
+    public static ArtifactCoordinates parse(String coordinatesString) {
         var split = coordinatesString.split(":", 3);
-        return new nl.adamg.baizel.core.entities.ArtifactCoordinates(
+        return of(
                 split.length > 0 ? split[0] : "",
                 split.length > 1 ? split[1] : "",
                 split.length > 2 ? split[2] : "",

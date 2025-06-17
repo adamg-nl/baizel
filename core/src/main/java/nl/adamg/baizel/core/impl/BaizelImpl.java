@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -43,18 +42,17 @@ public class BaizelImpl implements Baizel {
     private static final Logger LOG = Logger.getLogger(BaizelImpl.class.getName());
     /// When Baizel instance is reused to run the same or overlapping set of tasks later,
     /// thanks to this map their task dependencies will not need to be recomputed.
-    private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache;
+    private final Map<TaskRequest, Set<TaskRequest>> taskDependencyCache = Collections.synchronizedMap(new TreeMap<>());
+    private final Map<Invocation, TaskScheduler> runningInvocations = Collections.synchronizedMap(new TreeMap<>());
     private final Project project;
     private final Consumer<Issue> reporter;
     private final FileSystem fileSystem;
     private final Shell shell;
     private final BaizelOptions options;
-    private final Map<Invocation, TaskScheduler> runningInvocations = Collections.synchronizedMap(new TreeMap<>());
 
     //region factory
     public static Baizel start(BaizelOptions options, Path projectRoot, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
         return new BaizelImpl(
-                new ConcurrentHashMap<>(),
                 ProjectImpl.load(projectRoot, reporter),
                 reporter,
                 fileSystem,
@@ -177,14 +175,12 @@ public class BaizelImpl implements Baizel {
 
     //region generated code
     public BaizelImpl(
-            Map<TaskRequest, Set<TaskRequest>> taskDependencyCache,
             Project project,
             Consumer<Issue> reporter,
             FileSystem fileSystem,
             Shell shell ,
             BaizelOptions options
     ) {
-        this.taskDependencyCache = taskDependencyCache;
         this.project = project;
         this.reporter = reporter;
         this.fileSystem = fileSystem;

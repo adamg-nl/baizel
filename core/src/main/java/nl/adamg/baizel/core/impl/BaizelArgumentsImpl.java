@@ -10,7 +10,6 @@ import nl.adamg.baizel.internal.common.util.Text;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.function.Function;
 
 /// Format:
@@ -26,13 +25,13 @@ public class BaizelArgumentsImpl
         implements BaizelArguments {
     //region factory
     public static BaizelArguments of(
-            nl.adamg.baizel.core.entities.BaizelOptions options,
-            nl.adamg.baizel.core.entities.Invocation invocation
+            BaizelOptions options,
+            Invocation invocation
     ) {
         return new BaizelArgumentsImpl(
                 new nl.adamg.baizel.core.entities.BaizelArguments(
-                        options,
-                        invocation
+                        ((BaizelOptionsImpl)options).entity(),
+                        ((InvocationImpl)invocation).entity()
                 )
         );
     }
@@ -48,7 +47,7 @@ public class BaizelArgumentsImpl
                 return new BaizelArgumentsImpl(JsonUtil.fromJson(argsString, nl.adamg.baizel.core.entities.BaizelArguments.class));
             }
         }
-        var remainingArgs = (Queue<String>)new LinkedList<>(Arrays.asList(args));
+        var remainingArgs = new LinkedList<>(Arrays.asList(args));
         var options = BaizelOptionsImpl.parse(remainingArgs);
         var invocation = InvocationImpl.parse(remainingArgs);
         return BaizelArgumentsImpl.of(options, invocation);

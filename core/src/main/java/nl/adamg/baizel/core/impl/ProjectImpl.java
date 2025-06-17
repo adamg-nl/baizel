@@ -26,7 +26,7 @@ public class ProjectImpl
         extends EntityModel<Project, nl.adamg.baizel.core.entities.Project, ProjectImpl>
         implements Project {
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
-    private final Map<String, Module> modules;
+    private final Map<String, Module> modules = new TreeMap<>();
     private final Map<String, ArtifactCoordinates> dependencies;
     private final Consumer<Issue> reporter;
 
@@ -41,7 +41,6 @@ public class ProjectImpl
     ) {
         return new ProjectImpl(
                 reporter,
-                new TreeMap<>(),
                 dependencies,
                 new nl.adamg.baizel.core.entities.Project(
                         projectId,
@@ -72,7 +71,7 @@ public class ProjectImpl
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {
-                var dependencyEntity = ArtifactCoordinatesImpl.parse(coordinatesString);
+                var dependencyEntity = ((ArtifactCoordinatesImpl)ArtifactCoordinatesImpl.parse(coordinatesString)).entity();
                 dependencyEntity.moduleId = String.valueOf(moduleId.get(0));
                 dependenciesEntity.put(dependencyEntity.moduleId, dependencyEntity);
                 dependencies.put(dependencyEntity.moduleId, new ArtifactCoordinatesImpl(dependencyEntity));
@@ -196,13 +195,11 @@ public class ProjectImpl
     //region generated code
     public ProjectImpl(
             Consumer<Issue> reporter,
-            Map<String, Module> modules,
             Map<String, ArtifactCoordinates> dependencies,
             nl.adamg.baizel.core.entities.Project entity
     ) {
         super(entity);
         this.reporter = reporter;
-        this.modules = modules;
         this.dependencies = dependencies;
     }
     //endregion

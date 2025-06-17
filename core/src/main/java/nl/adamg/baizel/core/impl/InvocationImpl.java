@@ -24,25 +24,24 @@ public class InvocationImpl
         extends EntityModel<Invocation, nl.adamg.baizel.core.entities.Invocation, InvocationImpl>
         implements Invocation {
     //region factory
-    public Invocation of(
+    public static Invocation of(
             List<String> tasks,
             List<String> taskArgs,
-            List<nl.adamg.baizel.core.entities.Target> targets
+            List<Target> targets
     ) {
         return new InvocationImpl(
                 new nl.adamg.baizel.core.entities.Invocation(
                         tasks,
                         taskArgs,
-                        targets
+                        Items.mapToList(targets, t -> ((TargetImpl)t).entity())
                 )
         );
     }
 
-    public static nl.adamg.baizel.core.entities.Invocation parse(Queue<String> remainingArgs) {
+    public static Invocation parse(Queue<String> remainingArgs) {
         var tasks = new ArrayList<String>();
         var taskArgs = new ArrayList<String>();
-        var targets = new ArrayList<nl.adamg.baizel.core.entities.Target>();
-        var invocation = new nl.adamg.baizel.core.entities.Invocation(tasks, taskArgs, targets);
+        var targets = new ArrayList<Target>();
 
         var targetPrefixes = Set.of("//", ":", "-:", "-//");
         while (! remainingArgs.isEmpty() &&
@@ -73,7 +72,7 @@ public class InvocationImpl
                 targets.add(TargetImpl.parseTarget(next));
             }
         }
-        return invocation;
+        return of(tasks, taskArgs, targets);
     }
     //endregion
 

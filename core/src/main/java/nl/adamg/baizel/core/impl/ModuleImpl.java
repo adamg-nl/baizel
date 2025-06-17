@@ -27,10 +27,10 @@ public class ModuleImpl
         extends EntityModel<Module, nl.adamg.baizel.core.entities.Module, ModuleImpl>
         implements Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
-    private final ProjectImpl project;
-    private final Map<String, Class> classes;
-    private final List<Requirement> requirements;
+    private final Map<String, Class> classes = new TreeMap<>();
+    private final List<Requirement> requirements = new ArrayList<>();
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
+    private final ProjectImpl project;
     private final Consumer<Issue> reporter;
 
     //region factory
@@ -42,8 +42,6 @@ public class ModuleImpl
         return new ModuleImpl(
                 project,
                 reporter,
-                new TreeMap<>(),
-                new ArrayList<>(),
                 new nl.adamg.baizel.core.entities.Module(
                         path,
                         new TreeMap<>(),
@@ -169,15 +167,11 @@ public class ModuleImpl
     public ModuleImpl(
             ProjectImpl project,
             Consumer<Issue> reporter,
-            Map<String, Class> classes,
-            List<Requirement> requirements,
             nl.adamg.baizel.core.entities.Module entity
     ) {
         super(entity);
         this.project = project;
         this.reporter = reporter;
-        this.classes = classes;
-        this.requirements = requirements;
     }
     //endregion
 }

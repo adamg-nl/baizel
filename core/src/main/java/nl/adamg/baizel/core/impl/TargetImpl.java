@@ -35,15 +35,15 @@ public class TargetImpl
         );
     }
 
-    public static TargetImpl module(String path) {
-        return new TargetImpl(new nl.adamg.baizel.core.entities.Target("", "", path, ""));
+    public static Target module(String path) {
+        return of("", "", path, "");
     }
 
-    public static TargetImpl artifact(String organization, String artifact) {
-        return new TargetImpl(new nl.adamg.baizel.core.entities.Target(organization, artifact, "", ""));
+    public static Target artifact(String organization, String artifact) {
+        return of(organization, artifact, "", "");
     }
 
-    public static nl.adamg.baizel.core.entities.Target parseTarget(String input) {
+    public static Target parseTarget(String input) {
         var org = "";
         var mod = "";
         var name = "";
@@ -68,7 +68,7 @@ public class TargetImpl
             name = input.substring(colon + 1);
         }
 
-        return new nl.adamg.baizel.core.entities.Target(org, mod, path, name);
+        return of(org, mod, path, name);
     }
     //endregion
 
