@@ -1,9 +1,9 @@
 package nl.adamg.baizel.cli.tasks;
 
-import com.sun.source.util.JavacTask;
 import java.util.Locale;
+import javax.annotation.CheckForNull;
 import javax.tools.Diagnostic;
-import nl.adamg.baizel.core.api.BaizelException;
+import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.TaskScheduler;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.Target;
@@ -14,30 +14,17 @@ import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.impl.Issue;
 import nl.adamg.baizel.core.impl.TargetImpl;
 import nl.adamg.baizel.core.impl.TaskRequestImpl;
-import nl.adamg.baizel.internal.bootstrap.util.collections.Items;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.StandardJavaFileManager;
-import javax.tools.StandardLocation;
-import javax.tools.ToolProvider;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import static nl.adamg.baizel.internal.bootstrap.util.collections.Items.mapToList;
-import static nl.adamg.baizel.internal.bootstrap.util.collections.Items.mergeSet;
 import nl.adamg.baizel.internal.compiler.Compiler;
 
 public class Compile implements Task {
@@ -64,23 +51,36 @@ public class Compile implements Task {
         var module = target.getModule(baizel.project());
         var dependencies = new TreeSet<TaskRequest>();
         for (var requirement : module.requirements()) {
-            if (requirement.isSdkRequirement()) {
-                continue;
-            }
-            var requiredModule = baizel.project().getModuleById(requirement.moduleId());
-            if (requiredModule != null) {
-                dependencies.add(TaskRequestImpl.of(TargetImpl.module(requiredModule.path()), TASK_ID));
-                continue;
-            }
-            var requiredArtifact = baizel.project().getArtifactCoordinates(requirement.moduleId());
-            if (requiredArtifact != null) {
-                var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requirement.moduleId());
-                dependencies.add(TaskRequestImpl.of(artifactTarget, Resolve.TASK_ID));
-                continue;
-            }
-            baizel.report("UNRESOLVED_DEPENDENCY", "moduleId", requirement.moduleId());
+            dependencies.addAll(getDependency(requirement, baizel));
         }
         return dependencies;
+    }
+
+    private Set<TaskRequest> getDependency(Requirement requirement, Baizel baizel) throws IOException {
+        var dependencies = new TreeSet<TaskRequest>();
+        if (requirement.isSdkRequirement()) {
+            return Set.of();
+        }
+        var requiredModule = baizel.project().getModuleById(requirement.moduleId());
+        if (requiredModule != null) {
+            dependencies.add(TaskRequestImpl.of(TargetImpl.module(requiredModule.path()), TASK_ID));
+            for(var transitiveRequirement : requiredModule.requirements()) {
+                if (! transitiveRequirement.isTransitive()) {
+                    continue;
+                }
+                var transitiveDependency = getDependency(transitiveRequirement, baizel);
+                dependencies.addAll(transitiveDependency);
+            }
+            return dependencies;
+        }
+        var requiredArtifact = baizel.project().getArtifactCoordinates(requirement.moduleId());
+        if (requiredArtifact != null) {
+            var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requirement.moduleId());
+            dependencies.add(TaskRequestImpl.of(artifactTarget, Resolve.TASK_ID));
+            return dependencies;
+        }
+        baizel.report("UNRESOLVED_DEPENDENCY", "moduleId", requirement.moduleId());
+        return Set.of();
     }
 
     @Override
@@ -93,10 +93,22 @@ public class Compile implements Task {
             return Set.of(); // nothing to compile
         }
         var artifactRoots = new TreeSet<Path>();
+        var outputPathSuffix = Path.of(".build/classes/java/" + sourceSet.getSourceSetId());
         for(var input : inputs) {
-            artifactRoots.addAll(input.paths());
+            if (input.source().taskId().equals(Resolve.TASK_ID)) {
+                artifactRoots.addAll(input.paths());
+                continue;
+            }
+            if (input.source().taskId().equals(Compile.TASK_ID)) {
+                for(var path : input.paths()) {
+                    var suffixOffset = path.toString().indexOf(outputPathSuffix.toString());
+                    if (suffixOffset > 0) {
+                        artifactRoots.add(Path.of(path.toString().substring(0, suffixOffset + outputPathSuffix.toString().length())));
+                    }
+                }
+            }
         }
-        var outputDir = module.fullPath().resolve(".build/classes/java").resolve(sourceSet.getSourceSetId());
+        var outputDir = module.fullPath().resolve(outputPathSuffix);
         Files.createDirectories(outputDir);
         var issues = COMPILER.get().compile(Set.of(sourceRoot), artifactRoots, outputDir);
         for(var issue : issues) {
