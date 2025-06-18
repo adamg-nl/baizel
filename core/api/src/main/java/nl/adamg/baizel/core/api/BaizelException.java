@@ -7,6 +7,7 @@ public class BaizelException extends RuntimeException {
 
     //region generated code
     public BaizelException(Issue issue) {
+        super(issue.id + ": " + issue.messageTemplate + "\n" + issue.details);
         this.issue = issue;
     }
 

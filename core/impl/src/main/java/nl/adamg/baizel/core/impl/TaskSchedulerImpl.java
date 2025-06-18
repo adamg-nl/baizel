@@ -2,9 +2,11 @@ package nl.adamg.baizel.core.impl;
 
 import java.util.TreeSet;
 import nl.adamg.baizel.core.api.TaskScheduler;
+import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.Exceptions;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
 import nl.adamg.baizel.internal.common.util.collections.DirectedGraph;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 import nl.adamg.baizel.internal.common.util.concurrent.Executor;
 
 import java.io.IOException;
@@ -132,13 +134,10 @@ public class TaskSchedulerImpl<Task extends Comparable<Task>> implements nl.adam
                 sortedReadyTasks = new ArrayList<>(readyTasks);
                 readyTasks.clear();
             }
-            if (! sortedReadyTasks.isEmpty()) {
-                LOG.info("will schedule ${count} ready tasks" + LoggerUtil.with("count", sortedReadyTasks.size() + ""));
-            }
             // sort the ready tasks by how many other tasks still depend on them and submit for execution
             sortedReadyTasks.sort(Comparator.<Task, Integer>comparing(task -> -1 * unfinishedTasks.parents(task).size()).thenComparing(task -> task));
             for (var task : sortedReadyTasks) {
-                LOG.info("scheduling ${task}" + LoggerUtil.with("task", task.toString()));
+                LOG.fine("scheduling ${task}" + LoggerUtil.with("task", task.toString()));
                 workerPool.run(() -> workerThreadMain(task));
             }
             if (schedulerThread.isInterrupted()) {
@@ -152,6 +151,11 @@ public class TaskSchedulerImpl<Task extends Comparable<Task>> implements nl.adam
             }
             if (taskException.get() != null) {
                 LOG.warning("scheduler exiting due to task crash");
+                return;
+            }
+            if (runningTasks.isEmpty() && sortedReadyTasks.isEmpty() && isShuttingDown.get() && ! unfinishedTasks.isEmpty()) {
+                LOG.severe("cyclic dependency detected");
+                reportException(Issue.critical(BaizelErrors.CYCLIC_DEPENDENCY, "tasks", Items.toString(unfinishedTasks.all(), ", ", Object::toString)));
                 return;
             }
             if (! readyTasks.isEmpty()) {
@@ -207,6 +211,7 @@ public class TaskSchedulerImpl<Task extends Comparable<Task>> implements nl.adam
     private void reportException(Throwable t) {
         taskException.compareAndSet(null, t);
         headsUp();
+        interrupt();
     }
 
     private void markTaskReady(Task task) {

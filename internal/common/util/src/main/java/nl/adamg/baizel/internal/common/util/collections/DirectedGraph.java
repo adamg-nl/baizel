@@ -73,4 +73,8 @@ public class DirectedGraph<T extends Comparable<T>> {
             return children.size();
         }
     }
+
+    public Set<T> all() {
+        return children.keySet();
+    }
 }

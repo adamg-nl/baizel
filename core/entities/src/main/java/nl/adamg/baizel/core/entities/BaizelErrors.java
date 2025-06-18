@@ -13,7 +13,9 @@ public enum BaizelErrors {
     MODULE_NOT_FOUND(208, "module not found: ${module}", false),
     ARTIFACT_NOT_FOUND(209, "artifact not found: ${artifact}", false),
     INPUT_ISSUE(210, "input issue", false),
-    COMPILATION_FAILED(211, "compilation failed: ${message} in ${file}:${lineNumber}", false);
+    COMPILATION_FAILED(211, "compilation failed: ${message} in ${file}:${lineNumber}", false),
+    CYCLIC_DEPENDENCY(212, "cyclic dependency detected between tasks: ${tasks}", false),
+    ;
     public final int exitCode;
     public final String message;
     public final boolean printUsage;
