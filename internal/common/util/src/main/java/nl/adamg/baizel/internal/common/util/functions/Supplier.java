@@ -1,5 +1,7 @@
 package nl.adamg.baizel.internal.common.util.functions;
 
+import javax.annotation.CheckForNull;
+
 @SuppressWarnings("unused")
 @FunctionalInterface
 public interface Supplier<T, E extends Exception> {
@@ -7,7 +9,7 @@ public interface Supplier<T, E extends Exception> {
 
     @FunctionalInterface
     interface Nullable<T, E extends Exception> {
-        @javax.annotation.CheckForNull
+        @CheckForNull
         T get() throws E;
     }
 }

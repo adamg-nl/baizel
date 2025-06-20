@@ -1,5 +1,7 @@
 package nl.adamg.baizel.internal.common.util.functions;
 
+import javax.annotation.CheckForNull;
+
 @SuppressWarnings("unused")
 @FunctionalInterface
 public interface Predicate<T, E extends Exception> {
@@ -7,6 +9,6 @@ public interface Predicate<T, E extends Exception> {
 
     @FunctionalInterface
     interface Nullable<T, E extends Exception> {
-        boolean test(@javax.annotation.CheckForNull T t) throws E;
+        boolean test(@CheckForNull T t) throws E;
     }
 }
