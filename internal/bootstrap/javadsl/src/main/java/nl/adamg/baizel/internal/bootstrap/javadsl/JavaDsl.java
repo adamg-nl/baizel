@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/// Java DSL: abstract superset of syntax of Java and 'module-info.java' syntax.
+/// Java DSL: generic Java-like syntax overlapping with the 'module-info.java' syntax.
 /// Supports nested lists and strings ("stringly typed").
 ///
 /// Doesn't assume any keywords or structures other than brace-delimited block made of
@@ -48,12 +48,17 @@ import java.util.List;
 /// is parsed into:
 /// ```
 /// List.of(
-///     "module", "example", List.of(
+///     "module", "com.example", List.of(
 ///         List.of("exports", "com.example"),
 ///         List.of("exports", "com.example.util"),
 ///         List.of("provides", "com.example.Service", "with", "com.example.Impl")
 ///     )
 /// )
+/// ```
+/// And can be queried like this:
+/// ```
+/// List<String> exports = JavaDslReader.read(moduleDefPath).body().get("exports").list(String.class);
+/// // exports == List.of("com.example", "com.example.util")
 /// ```
 /// More examples:
 /// ```
