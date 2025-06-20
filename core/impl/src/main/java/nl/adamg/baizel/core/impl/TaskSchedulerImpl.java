@@ -37,7 +37,7 @@ import java.util.logging.Logger;
 /// }
 /// // this line will be only reached once all the tasks finished, in any order
 /// ```
-public class TaskSchedulerImpl<Task extends Comparable<Task>> implements nl.adamg.baizel.core.api.TaskScheduler<Task> {
+public class TaskSchedulerImpl<Task extends Comparable<Task>> implements TaskScheduler<Task> {
     private static final Logger LOG = Logger.getLogger(TaskSchedulerImpl.class.getName());
     /// parent: task that depends, children: tasks it depends on
     private final DirectedGraph<Task> allTasksAndDependencies = new DirectedGraph<>();
