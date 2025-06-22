@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Collection;
 import java.util.regex.Pattern;
 import nl.adamg.baizel.core.api.Class;
 import nl.adamg.baizel.core.api.Module;
@@ -8,6 +9,7 @@ import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
+import nl.adamg.baizel.core.entities.SourceRoot;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.io.Shell;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
@@ -34,7 +36,8 @@ public class ModuleImpl
         implements Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private static final Pattern ENTRY_POINT_PATTERN = Pattern.compile(".*( |\"|'|^)(?<PATH>[^ \"']+.java)(\"|'| |$)");
-    private final Map<String, Class> classes = new TreeMap<>();
+    /// key: source root path relative to the module root
+    private final Map<String, SourceRoot> sourceRoots = new TreeMap<>();
     private final List<Requirement> requirements = new ArrayList<>();
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
     private final Lazy<Class, IOException> mainClass = new Lazy<>(this::findMainClass);
@@ -124,15 +127,34 @@ public class ModuleImpl
         return moduleDoc.get().title();
     }
 
+    @Override
+    @CheckForNull
+    public Class getClassByPath(String relativePath) {
+        var sourceSet = getSourceSet(relativePath);
+        if (sourceSet == null) {
+            return null;
+        }
+        var sourceRootRelativePath = relativePath.substring(sourceSet.getPath().length());
+        var sour
+        var className = ClassImpl.pathToClassName(sourceRootRelativePath);
+        return getClass(className);
+    }
+
+    @CheckForNull
+    @Override
+    public nl.adamg.baizel.core.api.SourceRoot getSourceRoot(String relativePath) {
+        return null;
+    }
+
+    @Override
+    public Collection<nl.adamg.baizel.core.api.SourceRoot> getAllSourceRoots() {
+        return List.of();
+    }
+
     //region getters
     @Override
     public String path() {
         return entity.path;
-    }
-
-    @Override
-    public Map<String, Class> classes() {
-        return classes;
     }
 
     @Override
@@ -220,7 +242,7 @@ public class ModuleImpl
                 var path = matcher.group("PATH");
                 if (path != null && Files.exists(project.path(path))) {
                     var relativePath = fullPath().relativize(project.path(path)).toString();
-                    var clazz = getClassByPath(relativePath); // TODO
+                    return getClassByPath(relativePath);
                 }
             }
         }
@@ -229,6 +251,16 @@ public class ModuleImpl
 
     private ModuleDoc readDoc() throws IOException {
         return ModuleDoc.read(fullPath(), this.fileSystem);
+    }
+
+    @CheckForNull
+    private SourceSet getSourceSet(String sourceFilePath) {
+        for(var sourceSet : SourceSets.values()) {
+            if (sourceFilePath.startsWith(sourceSet.getPath())) {
+                return sourceSet;
+            }
+        }
+        return null;
     }
     //endregion
 

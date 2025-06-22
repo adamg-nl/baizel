@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.Requirement]
 /// - Entity: [nl.adamg.baizel.core.entities.Requirement]
 /// - Impl:   [nl.adamg.baizel.core.impl.RequirementImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class Requirement implements Serializable {
     public String moduleId;
     public boolean isTransitive;

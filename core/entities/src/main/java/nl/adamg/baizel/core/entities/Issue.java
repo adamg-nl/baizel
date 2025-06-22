@@ -3,9 +3,7 @@ package nl.adamg.baizel.core.entities;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
-@Entity
 public class Issue implements Serializable {
     public String id;
     public int errorCode;

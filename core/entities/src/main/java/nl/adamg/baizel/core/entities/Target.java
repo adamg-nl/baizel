@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.Target]
 /// - Entity: [nl.adamg.baizel.core.entities.Target]
 /// - Impl:   [nl.adamg.baizel.core.impl.TargetImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class Target implements Serializable {
     public String organization;
     public String artifact;

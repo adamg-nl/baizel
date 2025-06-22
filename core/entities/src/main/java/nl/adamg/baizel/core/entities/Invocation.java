@@ -3,13 +3,11 @@ package nl.adamg.baizel.core.entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.Invocation]
 /// - Entity: [nl.adamg.baizel.core.entities.Invocation]
 /// - Impl:   [nl.adamg.baizel.core.impl.InvocationImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class Invocation implements Serializable {
     public List<String> tasks;
     public List<String> taskArgs;

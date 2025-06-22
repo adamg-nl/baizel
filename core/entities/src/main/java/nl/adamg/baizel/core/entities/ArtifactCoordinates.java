@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.ArtifactCoordinates]
 /// - Entity: [nl.adamg.baizel.core.entities.ArtifactCoordinates]
 /// - Impl:   [nl.adamg.baizel.core.impl.ArtifactCoordinatesImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class ArtifactCoordinates implements Serializable {
     public String organization;
     public String artifact;

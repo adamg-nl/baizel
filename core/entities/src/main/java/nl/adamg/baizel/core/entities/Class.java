@@ -3,13 +3,11 @@ package nl.adamg.baizel.core.entities;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.Class]
 /// - Entity: [nl.adamg.baizel.core.entities.Class]
 /// - Impl:   [nl.adamg.baizel.core.impl.ClassImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class Class implements Serializable {
     public String canonicalName;
     public List<String> imports;

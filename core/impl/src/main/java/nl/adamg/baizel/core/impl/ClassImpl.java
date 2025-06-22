@@ -1,7 +1,9 @@
 package nl.adamg.baizel.core.impl;
 
+import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.Class;
 import nl.adamg.baizel.core.api.Module;
+import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.util.List;
@@ -28,7 +30,20 @@ public class ClassImpl
                 )
         );
     }
+
+    @CheckForNull
+    public static Class load(String className, Module module, FileSystem fileSystem) {
+
+        return null;
+    }
     //endregion
+
+    /// @param pathRelativeToSourceRoot path relative to the source root
+    public static String pathToClassName(String pathRelativeToSourceRoot) {
+        return pathRelativeToSourceRoot
+                .replaceFirst("\\.java$", "")
+                .replaceAll("/", ".");
+    }
 
     //region getters
     @Override

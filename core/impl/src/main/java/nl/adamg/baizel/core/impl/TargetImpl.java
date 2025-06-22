@@ -100,6 +100,11 @@ public class TargetImpl
     public String path() {
         return entity.path;
     }
+
+    @Override
+    public String targetName() {
+        return entity.targetName;
+    }
     //endregion
 
     //region entity model

@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.TaskRequest]
 /// - Entity: [nl.adamg.baizel.core.entities.TaskRequest]
 /// - Impl:   [nl.adamg.baizel.core.impl.TaskRequestImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class TaskRequest implements Serializable {
     public Target target;
     public String taskId;

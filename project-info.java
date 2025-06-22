@@ -1,5 +1,16 @@
 project nl.adamg.baizel {
-    repository https://repo1.maven.org/maven2/;
+    group nl.adamg;
+    www https://adamg.nl/baizel;
+    git https://github.com/adamg-nl/baizel.git;
+    license Copyright (C) 2025 AdamG.NL\u003B All rights reserved.;
+    repository maven https://repo1.maven.org/maven2/;
+
+    custom metadata {
+        example 42;
+        foo {
+            bar;
+        }
+    }
 
     dependencies {
         com.google.code.findbugs:jsr305:3.0.2                               { javax.annotation; jsr305; }

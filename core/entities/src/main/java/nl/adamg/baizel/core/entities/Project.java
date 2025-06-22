@@ -4,13 +4,11 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.Project]
 /// - Entity: [nl.adamg.baizel.core.entities.Project]
 /// - Impl:   [nl.adamg.baizel.core.impl.ProjectImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class Project implements Serializable {
     /// Domain name of the organization that owns the project (example: `com.acme`)
     public String groupId;

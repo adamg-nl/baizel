@@ -19,6 +19,7 @@ public interface Target {
     /// Equal to the qualified Java module name
     String artifact();
     String path();
+    String targetName();
     @Override String toString();
     @Override boolean equals(Object other);
     @Override int hashCode();

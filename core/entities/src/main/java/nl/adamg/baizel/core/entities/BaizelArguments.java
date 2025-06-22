@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.BaizelArguments]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelArguments]
 /// - Impl:   [nl.adamg.baizel.core.impl.BaizelArgumentsImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class BaizelArguments implements Serializable {
     public BaizelOptions options;
     public Invocation invocation;

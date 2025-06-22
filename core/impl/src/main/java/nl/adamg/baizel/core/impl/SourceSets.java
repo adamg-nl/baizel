@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Collection;
 import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.impl.sourcesets.Main;
 import nl.adamg.baizel.core.impl.sourcesets.MainResources;
@@ -9,13 +10,13 @@ import nl.adamg.baizel.internal.common.java.Services;
 import nl.adamg.baizel.internal.common.util.Lazy;
 
 import java.util.Map;
-import java.util.Set;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
 /// Provides access to source set configurations: the default ones like [#main()],
 /// and to any custom ones, like this: `getByPath("src/testFixtures/java")`.
-public enum SourceSets {
-    ;
+public final class SourceSets {
+    private SourceSets(){}
+
     private static final Lazy.NonNull.Safe<Map<String, SourceSet>> SOURCE_SETS_BY_ID = Lazy.safeNonNull(() ->
             Items.mapToMap(Services.get(SourceSet.class), SourceSet::getSourceSetId, s -> s)
     );
@@ -40,8 +41,8 @@ public enum SourceSets {
         return sourceSet;
     }
 
-    public static Set<String> sourceSets() {
-        return SOURCE_SETS_BY_ID.get().keySet();
+    public static Collection<SourceSet> values() {
+        return SOURCE_SETS_BY_ID.get().values();
     }
 
     @SuppressWarnings("ConfusingMainMethod")

@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import java.util.Collection;
 import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,10 +19,16 @@ public interface Module {
     @CheckForNull
     Path sourceRoot(SourceSet sourceSet);
 
+    @CheckForNull
+    Class getClassByPath(String relativePath);
+
     /// Relative to `project.root`. Example: `toaster/api`.
     String path();
 
-    Map<String, Class> classes();
+    @CheckForNull
+    SourceRoot getSourceRoot(String relativePath);
+
+    Collection<SourceRoot> getAllSourceRoots();
 
     List<Requirement> requirements() throws IOException;
 

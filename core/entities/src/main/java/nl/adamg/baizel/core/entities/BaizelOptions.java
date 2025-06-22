@@ -2,13 +2,11 @@ package nl.adamg.baizel.core.entities;
 
 import java.io.Serializable;
 import java.util.Objects;
-import nl.adamg.baizel.internal.common.annotations.Entity;
 
 /// - API:    [nl.adamg.baizel.core.api.BaizelOptions]
 /// - Entity: [nl.adamg.baizel.core.entities.BaizelOptions]
 /// - Impl:   [nl.adamg.baizel.core.impl.BaizelOptionsImpl]
 @SuppressWarnings("JavadocReference")
-@Entity
 public class BaizelOptions implements Serializable {
     public int workerCount;
     public String projectRoot;
