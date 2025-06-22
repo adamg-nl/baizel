@@ -1,6 +1,5 @@
 package nl.adamg.baizel.cli.tasks;
 
-import nl.adamg.baizel.core.api.BaizelException;
 import nl.adamg.baizel.core.api.TaskScheduler.Input;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.Target;

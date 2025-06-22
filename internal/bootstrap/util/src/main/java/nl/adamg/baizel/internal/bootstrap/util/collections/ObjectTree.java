@@ -28,7 +28,7 @@ public class ObjectTree {
     }
 
     /*@CheckForNull*/
-    private static ObjectTree of(/*@CheckForNull*/ Object child, /*@CheckForNull*/ ObjectTree parent, /*@CheckForNull*/ String id) {
+    public static ObjectTree of(/*@CheckForNull*/ Object child, /*@CheckForNull*/ ObjectTree parent, /*@CheckForNull*/ String id) {
         if (child == null || ObjectTreeUtils.isEmpty(child)) {
             return null;
         }
@@ -134,10 +134,10 @@ public class ObjectTree {
      */
     public List<ObjectTree> getAncestors() {
         var ancestors = new ArrayList<ObjectTree>();
-        var level = this.getParent();
-        while(level != null) {
-            ancestors.add(level);
+        var level = this;
+        while(level.hasParent()) {
             level = level.getParent();
+            ancestors.add(level);
         }
         Collections.reverse(ancestors);
         return ancestors;
@@ -150,7 +150,7 @@ public class ObjectTree {
     public List<String> getPath() {
         var path = new ArrayList<String>();
         var level = this;
-        while(level != null && level.name != null) {
+        while(level.hasParent()) {
             path.add(level.name);
             level = level.getParent();
         }
@@ -166,18 +166,7 @@ public class ObjectTree {
         return level;
     }
 
-    public int getIndex() {
-        if(name == null || parent == null || ! name.matches("[0-9]+")) {
-            return -1;
-        }
-        var index = Integer.parseInt(name);
-        if (index >= 0 && index < parent.size()) {
-            return index;
-        }
-        return -1;
-    }
-
-    private int size() {
+    public int size() {
         if (value instanceof Collection<?> collection) {
             return collection.size();
         } else if (value instanceof Map<?,?> map) {
@@ -194,13 +183,14 @@ public class ObjectTree {
         return name;
     }
 
-    /*@CheckForNull*/
+    /// @return empty node if there is no parent.
+    /// Use [#hasParent()] to check if there is a real parent.
     public ObjectTree getParent() {
-        return parent;
+        return parent != null ? parent : empty();
     }
 
-    public ObjectTree getParentOrEmpty() {
-        return parent != null ? parent : empty();
+    public boolean hasParent() {
+        return parent != null;
     }
     //endregion
 
@@ -282,6 +272,17 @@ public class ObjectTree {
                     .filter(Objects::nonNull)
                     .toList();
         }
+        if (value instanceof List<?> list) {
+            return list.stream().map(
+                    i -> {
+                        if (i instanceof List<?> subList && ! subList.isEmpty()) {
+                            return subList.subList(1, subList.size());
+                        } else {
+                            return i;
+                        }
+                    }
+            ).toList();
+        }
         return List.of();
     }
 
@@ -294,7 +295,12 @@ public class ObjectTree {
         }
         var unwrapped = unwrap();
         if (unwrapped.value != value) {
-            return unwrapped.toString();
+            return unwrapped.string();
+        }
+        if (value instanceof List<?> list && Items.allMatch(list, i -> i instanceof String)) {
+            @SuppressWarnings("unchecked")
+            var cast = (List<String>) list;
+            return String.join(" ", cast);
         }
         return "";
     }

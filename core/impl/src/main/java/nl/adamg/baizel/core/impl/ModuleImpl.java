@@ -1,11 +1,15 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.regex.Pattern;
 import nl.adamg.baizel.core.api.Class;
 import nl.adamg.baizel.core.api.Module;
+import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.SourceSet;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
+import nl.adamg.baizel.internal.common.io.FileSystem;
+import nl.adamg.baizel.internal.common.io.Shell;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
@@ -19,6 +23,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import nl.adamg.baizel.internal.common.util.Lazy;
+import nl.adamg.baizel.internal.common.util.Text;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
@@ -27,20 +33,29 @@ public class ModuleImpl
         extends EntityModel<nl.adamg.baizel.core.entities.Module>
         implements Module {
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
+    private static final Pattern ENTRY_POINT_PATTERN = Pattern.compile(".*( |\"|'|^)(?<PATH>[^ \"']+.java)(\"|'| |$)");
     private final Map<String, Class> classes = new TreeMap<>();
     private final List<Requirement> requirements = new ArrayList<>();
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
+    private final Lazy<Class, IOException> mainClass = new Lazy<>(this::findMainClass);
+    private final Lazy.NonNull<ModuleDoc, IOException> moduleDoc = new Lazy.NonNull<>(this::readDoc);
     private final ProjectImpl project;
+    private final Shell shell;
+    private final FileSystem fileSystem;
     private final Consumer<Issue> reporter;
 
     //region factory
     public static Module of(
             ProjectImpl project,
+            Shell shell,
+            FileSystem fileSystem,
             Consumer<Issue> reporter,
             String path
     ) {
         return new ModuleImpl(
                 project,
+                shell,
+                fileSystem,
                 reporter,
                 new nl.adamg.baizel.core.entities.Module(
                         path,
@@ -80,12 +95,33 @@ public class ModuleImpl
     /// @return null if this module does not have such a source root
     @CheckForNull
     @Override
-    public Path getSourceRoot(SourceSet sourceSet) {
+    public Path sourceRoot(SourceSet sourceSet) {
         var sourceRoot = fullPath().resolve(sourceSet.getPath());
         if (!Files.exists(sourceRoot)) {
             return null;
         }
         return sourceRoot;
+    }
+
+    @Override
+    @CheckForNull
+    public Class mainClass() throws IOException {
+        return mainClass.get();
+    }
+
+    @Override
+    public Path buildDir() {
+        return fullPath().resolve(".build");
+    }
+
+    @Override
+    public String shortDescription() throws IOException {
+        return moduleDoc.get().shortDescription();
+    }
+
+    @Override
+    public String title() throws IOException {
+        return moduleDoc.get().title();
     }
 
     //region getters
@@ -109,6 +145,26 @@ public class ModuleImpl
     public List<String> exports() throws IOException {
         ensureModuleDefFileLoaded();
         return entity.exports;
+    }
+
+    @Override
+    public Project project() {
+        return project;
+    }
+
+    @Override
+    public String artifactId() {
+        return Text.dashed(path());
+    }
+
+    @Override
+    public String groupId() {
+        return project.groupId();
+    }
+
+    @Override
+    public String moduleId() {
+        return project.groupId() + "." + Text.dotted(path());
     }
     //endregion
 
@@ -150,6 +206,30 @@ public class ModuleImpl
         }
         entity.exports.addAll(moduleDef.body().get("exports").list());
     }
+
+    @CheckForNull
+    private Class findMainClass() throws IOException {
+        var shellEntryPoint = fullPath().resolve("main");
+        if (! fileSystem.exists(shellEntryPoint)) {
+            return null;
+        }
+        var lines = fileSystem.readAllLines(shellEntryPoint);
+        for(var line : lines) {
+            var matcher = ENTRY_POINT_PATTERN.matcher(line);
+            if(matcher.matches()) {
+                var path = matcher.group("PATH");
+                if (path != null && Files.exists(project.path(path))) {
+                    var relativePath = fullPath().relativize(project.path(path)).toString();
+                    var clazz = getClassByPath(relativePath); // TODO
+                }
+            }
+        }
+        return null;
+    }
+
+    private ModuleDoc readDoc() throws IOException {
+        return ModuleDoc.read(fullPath(), this.fileSystem);
+    }
     //endregion
 
     //region entity model
@@ -162,12 +242,16 @@ public class ModuleImpl
     //region generated code
     public ModuleImpl(
             ProjectImpl project,
+            Shell shell,
+            FileSystem fileSystem,
             Consumer<Issue> reporter,
             nl.adamg.baizel.core.entities.Module entity
     ) {
         super(entity);
         this.project = project;
         this.reporter = reporter;
+        this.shell = shell;
+        this.fileSystem = fileSystem;
     }
     //endregion
 }

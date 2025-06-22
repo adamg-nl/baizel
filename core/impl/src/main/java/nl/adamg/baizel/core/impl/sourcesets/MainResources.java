@@ -1,14 +1,13 @@
 package nl.adamg.baizel.core.impl.sourcesets;
 
 import nl.adamg.baizel.core.api.SourceSet;
-import nl.adamg.baizel.core.impl.SourceSets;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 
-public class Main implements SourceSet {
-    public static final String SOURCE_SET_ID = "main";
+public class MainResources implements SourceSet {
+    public static final String SOURCE_SET_ID = "main-resources";
 
     @ServiceProvider(SourceSet.class)
-    public Main() {}
+    public MainResources() {}
 
     @Override
     public String getSourceSetId() {
@@ -17,11 +16,6 @@ public class Main implements SourceSet {
 
     @Override
     public String getPath() {
-        return "src/main/java";
-    }
-
-    @Override
-    public SourceSet resourceSet() {
-        return SourceSets.byId(MainResources.SOURCE_SET_ID);
+        return "src/main/resources";
     }
 }

@@ -1,3 +1,6 @@
 nl.adamg.baizel.cli.tasks.Compile
 nl.adamg.baizel.cli.tasks.Clean
+nl.adamg.baizel.cli.tasks.IdeaExport
+nl.adamg.baizel.cli.tasks.Jar
 nl.adamg.baizel.cli.tasks.Resolve
+nl.adamg.baizel.cli.tasks.Run

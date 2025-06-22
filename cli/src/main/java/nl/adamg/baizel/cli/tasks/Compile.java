@@ -1,7 +1,6 @@
 package nl.adamg.baizel.cli.tasks;
 
 import java.util.Locale;
-import javax.annotation.CheckForNull;
 import javax.tools.Diagnostic;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.TaskScheduler;
@@ -88,7 +87,7 @@ public class Compile implements Task {
         LOG.info("compiling" + LoggerUtil.with("target", target.toString()));
         var module = target.getModule(baizel.project());
         var sourceSet = target.sourceSet();
-        var sourceRoot = module.getSourceRoot(target.sourceSet());
+        var sourceRoot = module.sourceRoot(target.sourceSet());
         if (sourceRoot == null) {
             return Set.of(); // nothing to compile
         }

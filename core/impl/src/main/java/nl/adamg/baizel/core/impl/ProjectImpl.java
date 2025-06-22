@@ -1,12 +1,17 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Set;
+import nl.adamg.baizel.core.api.ObjectTree;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.ArtifactCoordinates;
 import nl.adamg.baizel.core.api.Module;
+import nl.adamg.baizel.core.api.SemanticVersion;
+import nl.adamg.baizel.core.api.VersionTracker;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
-import nl.adamg.baizel.internal.bootstrap.util.collections.ObjectTree;
-import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
+import nl.adamg.baizel.internal.common.io.FileSystem;
+import nl.adamg.baizel.internal.common.io.Shell;
+import nl.adamg.baizel.internal.common.java.Services;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import javax.annotation.CheckForNull;
@@ -28,35 +33,45 @@ public class ProjectImpl
     private static final String PROJECT_DEF_FILE_NAME = "project-info.java";
     private final Map<String, Module> modules = new TreeMap<>();
     private final Map<String, ArtifactCoordinates> dependencies;
+    private final Shell shell;
+    private final FileSystem fileSystem;
     private final Consumer<Issue> reporter;
 
     //region factory
     public static Project of(
+            Shell shell,
+            FileSystem fileSystem,
             Consumer<Issue> reporter,
             Map<String, ArtifactCoordinates> dependencies,
+            String organizationId,
             String projectId,
             String root,
             Map<String, nl.adamg.baizel.core.entities.ArtifactCoordinates> dependencyEntities,
-            List<String> artifactRepositories
+            List<String> artifactRepositories,
+            Map<String, Object> metadata
     ) {
         return new ProjectImpl(
+                shell,
+                fileSystem,
                 reporter,
                 dependencies,
                 new nl.adamg.baizel.core.entities.Project(
+                        organizationId,
                         projectId,
                         root,
                         new TreeMap<>(),
                         dependencyEntities,
-                        artifactRepositories
+                        artifactRepositories,
+                        metadata
                 )
         );
     }
 
-    public static Project load(Path root, Consumer<Issue> reporter) throws IOException {
+    public static Project load(Path root, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
         var projectDefPath = getProjectDefinitionFile(root);
         ObjectTree projectDef;
         if (projectDefPath != null) {
-            projectDef = JavaDslReader.read(projectDefPath);
+            projectDef = ObjectTreeImpl.read(projectDefPath);
             if (!"project".equals(projectDef.get(0).string())) {
                 reporter.accept(new Issue(
                         "INVALID_PROJECT_FILE",
@@ -66,13 +81,14 @@ public class ProjectImpl
                 ));
             }
         } else {
-            projectDef = ObjectTree.of(List.of("project", root.getFileName().toString(), List.of()));
+            projectDef = ObjectTreeImpl.of(List.of("project", root.getFileName().toString(), List.of()));
         }
         var projectId = projectDef.get(1).string();
         var dependenciesEntity = new TreeMap<String, nl.adamg.baizel.core.entities.ArtifactCoordinates>();
         var dependencies = new TreeMap<String, ArtifactCoordinates>();
+        var groupId = projectDef.body().get("group").string();
         var rawDependencies = projectDef.body().get("dependencies").body();
-        var artifactRepositories = projectDef.body().get("repository").list(String.class);
+        var artifactRepositories = projectDef.body().get("repository").get("maven").list(String.class);
         for(var coordinatesString : rawDependencies.keys()) {
             var modulesForCoordinate = rawDependencies.get(coordinatesString).body().list(List.class);
             for(var moduleId : modulesForCoordinate) {
@@ -82,13 +98,25 @@ public class ProjectImpl
                 dependencies.put(dependencyEntity.moduleId, new ArtifactCoordinatesImpl(dependencyEntity));
             }
         }
+        var coreFields = Set.of("group", "repository", "dependencies");
+        var metadata = new TreeMap<String, Object>();
+        for(var field : projectDef.body().keys()) {
+            if (coreFields.contains(field)) {
+                continue;
+            }
+            metadata.put(field, projectDef.body().get(field).value());
+        }
         return ProjectImpl.of(
+                shell,
+                fileSystem,
                 reporter,
                 dependencies,
+                groupId,
                 projectId,
                 root.toAbsolutePath().toString(),
                 dependenciesEntity,
-                artifactRepositories
+                artifactRepositories,
+                metadata
         );
     }
     //endregion
@@ -122,7 +150,7 @@ public class ProjectImpl
     }
 
     public Module getModule(String path) {
-        return modules.computeIfAbsent(path, p -> ModuleImpl.of(this, reporter, p));
+        return modules.computeIfAbsent(path, p -> ModuleImpl.of(this, shell, fileSystem, reporter, p));
     }
 
     /// @param moduleId qualified Java module id, like `com.example.foobar`
@@ -161,6 +189,11 @@ public class ProjectImpl
         return result;
     }
 
+    @Override
+    public SemanticVersion version() throws IOException {
+        return Services.getFirst(VersionTracker.class).getVersion(this, shell, fileSystem);
+    }
+
     //region implementation internals
     @CheckForNull
     private static Path getProjectDefinitionFile(Path projectRoot) {
@@ -176,12 +209,18 @@ public class ProjectImpl
     }
 
     @Override
+    public String groupId() {
+        return entity.groupId;
+    }
+
+    @Override
     public String projectId() {
         return entity.projectId;
     }
 
-    public Consumer<Issue> reporter() {
-        return reporter;
+    @Override
+    public ObjectTree metadata() {
+        return ObjectTreeImpl.of(entity.metadata);
     }
     //endregion
 
@@ -194,11 +233,15 @@ public class ProjectImpl
 
     //region generated code
     public ProjectImpl(
+            Shell shell,
+            FileSystem fileSystem,
             Consumer<Issue> reporter,
             Map<String, ArtifactCoordinates> dependencies,
             nl.adamg.baizel.core.entities.Project entity
     ) {
         super(entity);
+        this.shell = shell;
+        this.fileSystem = fileSystem;
         this.reporter = reporter;
         this.dependencies = dependencies;
     }

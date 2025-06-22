@@ -4,9 +4,13 @@ module nl.adamg.baizel.cli {
     uses nl.adamg.baizel.core.api.Task;
 
     provides nl.adamg.baizel.core.api.Task with
+            nl.adamg.baizel.cli.tasks.Build,
             nl.adamg.baizel.cli.tasks.Compile,
             nl.adamg.baizel.cli.tasks.Clean,
-            nl.adamg.baizel.cli.tasks.Resolve;
+            nl.adamg.baizel.cli.tasks.IdeaExport,
+            nl.adamg.baizel.cli.tasks.Jar,
+            nl.adamg.baizel.cli.tasks.Resolve,
+            nl.adamg.baizel.cli.tasks.Run;
 
     requires java.compiler;
     requires java.logging;

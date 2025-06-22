@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import java.io.IOException;
 import javax.annotation.CheckForNull;
 import java.nio.file.Path;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 /// - Impl:   [nl.adamg.baizel.core.impl.ProjectImpl]
 @SuppressWarnings("JavadocReference")
 public interface Project {
+    String groupId();
     String projectId();
     Path path(String... path);
     Path root();
@@ -16,4 +18,7 @@ public interface Project {
     @CheckForNull Module getModuleById(String javaModuleId);
     @CheckForNull ArtifactCoordinates getArtifactCoordinates(String javaModuleId);
     List<String> artifactRepositories();
+    SemanticVersion version() throws IOException;
+    /// any extra fields from the `project-info.json` go here
+    ObjectTree metadata();
 }

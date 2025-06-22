@@ -1,5 +1,6 @@
 package nl.adamg.baizel.internal.jar;
 
+import java.util.logging.Logger;
 import net.java.truevfs.access.TArchiveDetector;
 import net.java.truevfs.access.TConfig;
 import net.java.truevfs.access.TFile;
@@ -12,6 +13,8 @@ import java.nio.file.Path;
 import java.util.Map;
 
 public class JarUtil {
+    private static final Logger LOG = Logger.getLogger(JarUtil.class.getName());
+
     /** Updates the jar in-place without rewriting */
     public static void update(Path jarPath, Map<String, Path> replacements) throws IOException {
         TFile jarFile = null;
@@ -38,4 +41,5 @@ public class JarUtil {
             }
         }
     }
+
 }

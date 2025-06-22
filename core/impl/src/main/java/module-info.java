@@ -7,7 +7,12 @@ module nl.adamg.baizel.core.impl {
 
     provides nl.adamg.baizel.core.api.SourceSet with
             nl.adamg.baizel.core.impl.sourcesets.Main,
-            nl.adamg.baizel.core.impl.sourcesets.Test;
+            nl.adamg.baizel.core.impl.sourcesets.Test,
+            nl.adamg.baizel.core.impl.sourcesets.MainResources,
+            nl.adamg.baizel.core.impl.sourcesets.TestResources;
+
+    provides nl.adamg.baizel.core.api.VersionTracker with
+            nl.adamg.baizel.core.impl.GitVersionTracker;
 
     requires nl.adamg.baizel.internal.common.annotations;
     requires nl.adamg.baizel.internal.common.javadsl;
@@ -16,4 +21,5 @@ module nl.adamg.baizel.core.impl {
     requires nl.adamg.baizel.internal.common.serialization;
     requires nl.adamg.baizel.core.entities;
     requires nl.adamg.baizel.core.api;
+    requires nl.adamg.baizel.internal.common.java;
 }

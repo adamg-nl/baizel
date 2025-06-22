@@ -51,7 +51,7 @@ public class BaizelImpl implements Baizel {
     //region factory
     public static Baizel start(BaizelOptions options, Path projectRoot, Shell shell, FileSystem fileSystem, Consumer<nl.adamg.baizel.core.entities.Issue> reporter) throws IOException {
         return new BaizelImpl(
-                ProjectImpl.load(projectRoot, reporter),
+                ProjectImpl.load(projectRoot, shell, fileSystem, reporter),
                 Executor.create(options.workerCount(), IOException.class),
                 fileSystem,
                 shell,

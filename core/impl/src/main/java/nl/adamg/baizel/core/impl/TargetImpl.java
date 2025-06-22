@@ -82,7 +82,7 @@ public class TargetImpl
     }
 
     public SourceSet sourceSet() {
-        return ! entity.targetName.isEmpty() ? SourceSets.get(entity.targetName) : SourceSets.main();
+        return ! entity.targetName.isEmpty() ? SourceSets.byId(entity.targetName) : SourceSets.main();
     }
 
     //region getters

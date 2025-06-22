@@ -118,19 +118,6 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return array;
     }
 
-    public static <T, E extends Exception> boolean allMatch(T[] input, Predicate<T, E> predicate) throws E {
-        return allMatch(Arrays.asList(input), predicate);
-    }
-
-    public static <T, E extends Exception> boolean allMatch(Collection<T> input, Predicate<T, E> predicate) throws E {
-        for(var i : input) {
-            if (! predicate.test(i)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public static <T, E extends Exception> boolean anyMatch(T[] input, Predicate<T, E> predicate) throws E {
         return anyMatch(Arrays.asList(input), predicate);
     }

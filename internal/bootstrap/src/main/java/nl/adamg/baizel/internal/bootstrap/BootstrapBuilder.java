@@ -94,7 +94,7 @@ class BootstrapBuilder {
     }
 
     private static List<String> getRepositories(ObjectTree projectInfo) {
-        return projectInfo.body().get("repository").list();
+        return projectInfo.body().get("repository").get("maven").list();
     }
 
     private static Map<String, Set<String>> getModuleCoordinates(ObjectTree projectInfo) {

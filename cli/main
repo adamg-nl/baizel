@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")"/../baizel run //cli/src/main/java/nl/adamg/baizel/cli/Baizel.java
