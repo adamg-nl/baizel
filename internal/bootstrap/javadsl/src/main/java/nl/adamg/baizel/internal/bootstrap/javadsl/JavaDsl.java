@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.PushbackReader;
 import java.io.SequenceInputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -101,6 +102,10 @@ public class JavaDsl {
         var writer = new PrintWriter(output);
         writeRecursive(writer, wrap(object), 0);
         writer.flush();
+    }
+
+    public String readToken(String input) throws IOException {
+        return parseToken(new PushbackReader(new StringReader(input)));
     }
 
     //region writer implementation
@@ -207,18 +212,27 @@ public class JavaDsl {
     }
 
     private String parseToken(PushbackReader reader) throws IOException {
-        var tokenBuilder = new StringBuilder();
-        int character;
-        while ((character = reader.read()) != -1) {
-            if (Character.isWhitespace(character) || character == '{' || character == ';' || character == '}') {
-                break;
+        var token = new StringBuilder();
+        int c;
+        while (!((c = reader.read()) == -1 || Character.isWhitespace(c) || c == '{' || c == ';' || c == '}')) {
+            if (c != '\\') {
+                token.append((char) c);
+                continue;
             }
-            tokenBuilder.append((char) character);
+            var c2 = reader.read();
+            if (c2 != 'u') {
+                token.append((char) c).append((char) c2);
+                continue;
+            }
+            // handle \\uXXXX as unicode escape sequence to allow using arbitrary characters in strings
+            token.append((char) Integer.parseInt(new String(new char[]{
+                    (char) reader.read(), (char) reader.read(),
+                    (char) reader.read(), (char) reader.read()}), 16));
         }
-        if (character != -1) {
-            reader.unread(character);
+        if (c != -1) {
+            reader.unread(c);
         }
-        return tokenBuilder.toString();
+        return token.toString();
     }
 
     private Object unwrap(Object object) {

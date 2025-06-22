@@ -292,6 +292,10 @@ public class ObjectTree {
         if (value != null && Primitives.isPrimitiveOrBoxed(value.getClass())) {
             return String.valueOf(value);
         }
+        var unwrapped = unwrap();
+        if (unwrapped.value != value) {
+            return unwrapped.toString();
+        }
         return "";
     }
 
@@ -430,6 +434,10 @@ public class ObjectTree {
 
     @Override
     public String toString() {
+        var stringValue = string();
+        if (! stringValue.isEmpty()) {
+            return stringValue;
+        }
         return String.valueOf(value);
     }
     //endregion

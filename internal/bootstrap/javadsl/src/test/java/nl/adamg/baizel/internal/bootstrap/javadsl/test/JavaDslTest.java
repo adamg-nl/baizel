@@ -1,5 +1,6 @@
 package nl.adamg.baizel.internal.bootstrap.javadsl.test;
 
+import java.io.IOException;
 import nl.adamg.baizel.internal.bootstrap.javadsl.JavaDsl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 
 import java.util.List;
 
+@SuppressWarnings("UnnecessaryUnicodeEscape")
 public class JavaDslTest {
     private final JavaDsl parser = new JavaDsl();
 
@@ -261,7 +263,72 @@ public class JavaDslTest {
         object.toString();
     }
 
-    // do not change this method!
+    @Test
+    public void testStoppingAtTerminalCharacters() throws IOException {
+        Assertions.assertEquals("aaa", parser.readToken("aaa{ignored"));
+        Assertions.assertEquals("aaa", parser.readToken("aaa;ignored"));
+        Assertions.assertEquals("aaa", parser.readToken("aaa}ignored"));
+        Assertions.assertEquals("aaa", parser.readToken("aaa ignored"));
+    }
+
+    @Test
+    public void testParseSingleSequence() throws IOException {
+        Assertions.assertEquals("}", parser.readToken("\\u007D"));
+    }
+
+    @Test
+    public void testParseWithSurrounding() throws IOException {
+        Assertions.assertEquals("b}c", parser.readToken("b\\u007Dc"));
+    }
+
+    @Test
+    public void testMultipleUnicodeEscapes() throws IOException {
+        // Multiple Unicode escapes in same token ("A": \u0041, "B": \u0042)
+        Assertions.assertEquals("ABC", parser.readToken("\\u0041\\u0042C"));
+    }
+
+    @Test
+    public void testIncompleteUnicodeEscape() throws IOException {
+        // do not assert anything here - it's undefined behavior, write as compact implementation as possible while disregarding this
+        // assume that in the input, incomplete unicode escapes never appear. they are all complete.
+    }
+
+    @Test
+    public void testInvalidHexInUnicodeEscape() throws IOException {
+        // do not assert anything here - it's undefined behavior, write as compact implementation as possible while disregarding this
+        // assume that in the input, invalid hex digits never appear. they are all valid.
+    }
+
+    @Test
+    public void testUnicodeEscapeAtEndOfInput() throws IOException {
+        // Complete Unicode escape at the end of input
+        Assertions.assertEquals("A", parser.readToken("\\u0041"));
+    }
+
+    @Test
+    public void testBackslashNotPartOfUnicodeEscape() throws IOException {
+        // do not assert anything here - it's undefined behavior, write as compact implementation as possible while disregarding this
+        // assume that in the input, backslash not part of unicode escape never appears. it is always part of unicode escape.
+    }
+
+    @Test
+    public void testUnicodeEscapeWithSpecialCharacters() throws IOException {
+        // Unicode sequence for whitespace (space: \u0020)
+        Assertions.assertEquals("A B", parser.readToken("A\\u0020B"));
+
+        // Unicode sequence for brace ('{': \u007B)
+        Assertions.assertEquals("A{", parser.readToken("A\\u007B"));
+
+        // Unicode sequence for semicolon (';': \u003B)
+        Assertions.assertEquals("A;", parser.readToken("A\\u003B"));
+    }
+
+    @Test
+    public void testEmptyToken() throws IOException {
+        // Empty input
+        Assertions.assertEquals("", parser.readToken(""));
+    }
+
     private static String normalizeWhitespace(String input) {
         return input
                 .trim()
