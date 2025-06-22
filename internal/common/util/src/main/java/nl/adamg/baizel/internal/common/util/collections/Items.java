@@ -187,15 +187,15 @@ public class Items extends nl.adamg.baizel.internal.bootstrap.util.collections.I
         return output.toString();
     }
 
-    public static <I, K2 extends Comparable<K2>, V2, E extends Exception> Map<K2, V2> mapToSortedMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
+    public static <I, K2 extends Comparable<K2>, V2, E extends Exception> Map<K2, V2> mapToSortedMap(Iterable<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
         return mapToMap(input, keySelector, valueSelector, new TreeMap<>());
     }
 
-    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
+    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Iterable<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector) throws E {
         return mapToMap(input, keySelector, valueSelector, new HashMap<>());
     }
 
-    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Collection<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector, Map<K2, V2> output) throws E {
+    public static <I, K2, V2, E extends Exception> Map<K2, V2> mapToMap(Iterable<I> input, Function<I, K2, E> keySelector, Function<I, V2, E> valueSelector, Map<K2, V2> output) throws E {
         output.clear();
         for(var i : input) {
             output.put(keySelector.apply(i), valueSelector.apply(i));

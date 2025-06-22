@@ -164,4 +164,26 @@ public final class Text {
         var isNonPrintable = (cp >= noncharStart && cp <= noncharEnd) || (cp & noncharMask) == noncharMask;
         return !isNonPrintable;
     }
+    public static String dashed(String separated) {
+        return separatedWith(separated, "-");
+    }
+
+    public static String dotted(String separated) {
+        return separatedWith(separated, ".");
+    }
+
+    public static String slashed(String separated) {
+        return separatedWith(separated, "/");
+    }
+
+    public static String separatedWith(String separated, String separator) {
+        return separated
+                .replaceAll("[^a-zA-Z0-9]+", "#")
+                .replaceAll("(^#+|#+$)", "")
+                .replaceAll("#", separator);
+    }
+
+    public static String filter(String input, String allowedRegexpRanges) {
+        return input.replaceAll("[^" + allowedRegexpRanges + "]+", "");
+    }
 }

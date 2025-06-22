@@ -6,7 +6,8 @@ import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class Services {
+public enum Services {
+    ;
     private static final Map<String, List<?>> SERVICES = new ConcurrentHashMap<>();
 
     public static <T> List<T> get(Class<T> serviceInterface) {
@@ -23,5 +24,7 @@ public final class Services {
         return services;
     }
 
-    private Services(){}
+    public static <T> T getFirst(Class<T> serviceInterface) {
+        return get(serviceInterface).get(0);
+    }
 }

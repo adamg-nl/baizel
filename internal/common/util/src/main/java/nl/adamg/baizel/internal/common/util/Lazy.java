@@ -12,13 +12,13 @@ import java.util.Objects;
  */
 public class Lazy<T, E extends Exception> {
     @CheckForNull private volatile T value;
-    @CheckForNull private volatile Supplier<T, E> initializer;
+    @CheckForNull private volatile Supplier.Nullable<T, E> initializer;
 
-    public Lazy(Supplier<T, E> initializer) {
+    public Lazy(Supplier.Nullable<T, E> initializer) {
         this.initializer = initializer;
     }
 
-    public static <T, E extends Exception> Lazy<T, E> lazy(Supplier<T, E> initializer) {
+    public static <T, E extends Exception> Lazy<T, E> lazy(Supplier.Nullable<T, E> initializer) {
         return new Lazy<>(initializer);
     }
 
@@ -46,18 +46,19 @@ public class Lazy<T, E extends Exception> {
             return value;
         }
         synchronized (this) {
-            if (initializer == null) {
+            var localInitializer = initializer;
+            if (localInitializer == null) {
                 return value;
             }
-            value = initializer.get();
-            initializer = null; // also frees objects only needed for initialization
+            value = localInitializer.get();
+            initializer = null; // also frees the objects that were only needed for initialization
             return value;
         }
     }
 
     public static class NonNull<T, E extends Exception> extends Lazy<T, E> {
         public NonNull(Supplier<T, E> initializer) {
-            super(initializer);
+            super(initializer::get);
         }
 
         public static class Safe<T> extends NonNull<T, RuntimeException> {

@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 import javax.annotation.CheckForNull;
 
 public final class PathUtil {
@@ -74,5 +75,11 @@ public final class PathUtil {
             path = path.getParent();
         }
         return path;
+    }
+
+    public static String toUnixString(Path path) {
+        var joiner = new StringJoiner("/");
+        path.forEach(p -> joiner.add(p.toString()));
+        return (path.isAbsolute() ? "/" : "") + joiner;
     }
 }
