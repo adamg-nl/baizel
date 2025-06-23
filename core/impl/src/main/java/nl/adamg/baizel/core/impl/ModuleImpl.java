@@ -188,17 +188,21 @@ public class ModuleImpl
 
     @Override
     public String artifactId() {
-        return Text.dashed(path());
+        if (! project.projectId().startsWith(project.groupId()) || project.groupId().isEmpty() || project.groupId().equals(project.projectId())) {
+            return Text.dashed(path());
+        }
+        var projectShortId = project.projectId().substring(project.groupId().length() + 1);
+        return Text.dashed(projectShortId + "-" + path());
     }
 
     @Override
     public String groupId() {
-        return project.groupId();
+        return project.projectId();
     }
 
     @Override
     public String moduleId() {
-        return project.groupId() + "." + Text.dotted(path());
+        return project.projectId() + "." + Text.dotted(path());
     }
     //endregion
 
