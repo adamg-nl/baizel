@@ -30,7 +30,8 @@ class ModuleFinder extends SimpleFileVisitor<Path> {
         if (projectRoot.relativize(dir).getNameCount() > DEPTH_LIMIT) {
             return FileVisitResult.SKIP_SUBTREE;
         }
-        return dir.getFileName().toString().startsWith(".") ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
+        var name = dir.getFileName().toString();
+        return (name.startsWith(".") && ! name.equals(".baizel")) ? FileVisitResult.SKIP_SUBTREE : FileVisitResult.CONTINUE;
     }
 
     @Override

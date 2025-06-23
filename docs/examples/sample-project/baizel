@@ -7,12 +7,12 @@ BAIZEL_DIR="$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.baizel"
 ### On demand downloads and updates local clone of Baizel to <PROJECT_ROOT>/.baizel, where it bootstraps.
 ### See .baizel/bin/baizel for full documentation.
 function main() {
-	local baizelVersion="2b42fc0b2c632ab78bba534166e7d7d9bcdbbc04"
+	local baizelVersion="1.0.12"
 	local baizelOrigin="https://github.com/adamg-nl/baizel.git"
 
 
 
-	local currentVersion=$(cat "${BAIZEL_DIR}/.git/refs/heads/main" 2>/dev/null || true)
+	local currentVersion=$(cat "${BAIZEL_DIR}/.version" 2>/dev/null || true)
 	if [[ ${currentVersion} == "" ]]; then
 		echo "Installing the Baizel Build System for Java..." 1>&2
 		mkdir "${BAIZEL_DIR}"
@@ -30,6 +30,7 @@ function main() {
 
 		git -C "${BAIZEL_DIR}" fetch origin "${baizelVersion}"
 		git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD
+		echo "${baizelVersion}" > "${BAIZEL_DIR}/.version"
 	fi
 	source "${BAIZEL_DIR}/bin/baizel"
 	unset BAIZEL_DIR
