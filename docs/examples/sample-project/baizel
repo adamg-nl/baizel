@@ -26,7 +26,7 @@ function main() {
 		local currentOrigin=$(git -C "${BAIZEL_DIR}" remote get-url origin)
 		if [[ ${currentOrigin} != ${baizelOrigin} ]]; then
 			git -C "${BAIZEL_DIR}" remote add origin "${baizelOrigin}" || exit "${?}"
-            git -C "${BAIZEL_DIR}" remote set-url origin "${baizelOrigin}" || exit "${?}"
+			git -C "${BAIZEL_DIR}" remote set-url origin "${baizelOrigin}" || exit "${?}"
 		fi
 
 		git -C "${BAIZEL_DIR}" fetch origin "${baizelVersion}" || exit "${?}"
