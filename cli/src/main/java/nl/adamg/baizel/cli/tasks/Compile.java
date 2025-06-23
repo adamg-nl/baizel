@@ -9,6 +9,7 @@ import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
+import nl.adamg.baizel.core.api.TaskScheduler.Input;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.impl.Issue;
 import nl.adamg.baizel.core.impl.TargetCoordinatesImpl;
@@ -83,7 +84,7 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<Path> run(TargetCoordinates target, List<String> args, List<TaskScheduler.Input<TaskRequest>> inputs, CoordinateKind targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, CoordinateKind targetType, Baizel baizel) throws IOException {
         LOG.info("compiling" + LoggerUtil.with("target", target.toString()));
         var module = target.getModule(baizel.project());
         var sourceSet = target.type();

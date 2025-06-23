@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
@@ -18,14 +19,11 @@ public class JarCreator {
     private final boolean setTimestamps;
     private final boolean useCompression;
 
-    public void createJar(ArrayList<Path> inputRoots, Manifest manifest, Path outputJarPath) throws IOException {
+    public void createJar(Set<Path> inputRoots, Manifest manifest, Path outputJarPath) throws IOException {
         Files.createDirectories(outputJarPath.getParent());
         try (var jar = new JarOutputStream(fileSystem.newOutputStream(outputJarPath), manifest)) {
             jar.setLevel(useCompression ? Deflater.BEST_COMPRESSION : Deflater.NO_COMPRESSION);
             for(var inputRoot : inputRoots) {
-                if (! fileSystem.exists(inputRoot)) {
-                    throw new FileNotFoundException("invalid root provided: " + inputRoot);
-                }
                 var inputFiles = fileSystem.findFiles(inputRoot, ".*");
                 for (var inputFile : inputFiles) {
                     try (var fileStream = fileSystem.newInputStream(inputFile)) {
