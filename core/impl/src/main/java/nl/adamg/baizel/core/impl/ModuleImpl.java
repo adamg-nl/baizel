@@ -200,7 +200,7 @@ public class ModuleImpl
 
     @Override
     public String moduleId() {
-        return project.projectId() + "." + Text.dotted(path());
+        return Text.dotted(project.projectId() + "." + path());
     }
     //endregion
 

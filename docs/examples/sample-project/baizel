@@ -7,7 +7,7 @@ BAIZEL_DIR="$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.baizel"
 ### On demand downloads and updates local clone of Baizel to <PROJECT_ROOT>/.baizel, where it bootstraps.
 ### See .baizel/bin/baizel for full documentation.
 function main() {
-	local baizelVersion="1.0.13"
+	local baizelVersion="1.0.14"
 	local baizelOrigin="https://github.com/adamg-nl/baizel.git"
 
 
