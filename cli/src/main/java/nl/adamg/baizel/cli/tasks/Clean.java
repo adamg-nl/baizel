@@ -31,7 +31,7 @@ public class Clean implements Task {
 
     @Override
     public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, TargetCoordinates.CoordinateKind targetType, Baizel baizel) throws IOException {
-        var module = target.getModule(baizel.project());
+        var module = baizel.project().getModule(target);
         baizel.fileSystem().delete(module.fullPath().resolve(".build"));
         return Set.of();
     }

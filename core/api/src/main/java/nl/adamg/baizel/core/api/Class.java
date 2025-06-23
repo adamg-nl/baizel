@@ -10,6 +10,6 @@ import java.util.List;
 public interface Class {
     String canonicalName();
     Path fullPath();
-    SourceRoot sourceRoot();
+    ContentRoot sourceRoot();
     List<String> imports();
 }

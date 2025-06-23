@@ -1,14 +1,15 @@
 package nl.adamg.baizel.core.impl;
 
 import java.util.Set;
+import nl.adamg.baizel.core.api.BaizelException;
 import nl.adamg.baizel.core.api.ObjectTree;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.ArtifactCoordinates;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.SemanticVersion;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.VersionTracker;
 import nl.adamg.baizel.core.entities.BaizelErrors;
-import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.io.Shell;
 import nl.adamg.baizel.internal.common.java.Services;
@@ -35,13 +36,13 @@ public class ProjectImpl
     private final Map<String, ArtifactCoordinates> dependencies;
     private final Shell shell;
     private final FileSystem fileSystem;
-    private final Consumer<Issue> reporter;
+    private final Consumer<nl.adamg.baizel.core.entities.Issue> reporter;
 
     //region factory
     public static Project of(
             Shell shell,
             FileSystem fileSystem,
-            Consumer<Issue> reporter,
+            Consumer<nl.adamg.baizel.core.entities.Issue> reporter,
             Map<String, ArtifactCoordinates> dependencies,
             String organizationId,
             String projectId,
@@ -67,13 +68,13 @@ public class ProjectImpl
         );
     }
 
-    public static Project load(Path root, Shell shell, FileSystem fileSystem, Consumer<Issue> reporter) throws IOException {
+    public static Project load(Path root, Shell shell, FileSystem fileSystem, Consumer<nl.adamg.baizel.core.entities.Issue> reporter) throws IOException {
         var projectDefPath = getProjectDefinitionFile(root);
         ObjectTree projectDef;
         if (projectDefPath != null) {
             projectDef = ObjectTreeImpl.read(projectDefPath);
             if (!"project".equals(projectDef.get(0).string())) {
-                reporter.accept(new Issue(
+                reporter.accept(new nl.adamg.baizel.core.entities.Issue(
                         "INVALID_PROJECT_FILE",
                         BaizelErrors.INPUT_ISSUE.exitCode,
                         Map.of("path", projectDefPath.toString()),
@@ -194,6 +195,19 @@ public class ProjectImpl
         return Services.getFirst(VersionTracker.class).getVersion(this, shell, fileSystem);
     }
 
+    /// @throws BaizelException if module is not found or this target is not a module-type target
+    @Override
+    public Module getModule(TargetCoordinates coordinates) throws BaizelException {
+        if (!coordinates.artifact().isEmpty() || coordinates.path().isEmpty()) {
+            throw nl.adamg.baizel.core.impl.Issue.critical(BaizelErrors.MODULE_NOT_FOUND, "module", this.toString());
+        }
+        var module = getModuleOf(root().resolve(coordinates.path()));
+        if (module == null) {
+            throw nl.adamg.baizel.core.impl.Issue.critical(BaizelErrors.MODULE_NOT_FOUND, "module", coordinates.path());
+        }
+        return module;
+    }
+
     //region implementation internals
     @CheckForNull
     private static Path getProjectDefinitionFile(Path projectRoot) {
@@ -235,7 +249,7 @@ public class ProjectImpl
     public ProjectImpl(
             Shell shell,
             FileSystem fileSystem,
-            Consumer<Issue> reporter,
+            Consumer<nl.adamg.baizel.core.entities.Issue> reporter,
             Map<String, ArtifactCoordinates> dependencies,
             nl.adamg.baizel.core.entities.Project entity
     ) {

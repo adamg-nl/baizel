@@ -1,27 +1,28 @@
 package nl.adamg.baizel.core.impl.targets;
 
-import nl.adamg.baizel.core.api.TargetType;
+import java.util.List;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.impl.Targets;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 
-public class Main implements TargetType {
-    public static final String TARGET_TYPE_ID = "main";
+public class Main implements Target {
+    public static final String TARGET_ID = "main";
 
-    @ServiceProvider(TargetType.class)
+    @ServiceProvider(Target.class)
     public Main() {}
 
     @Override
-    public String getTargetTypeId() {
-        return TARGET_TYPE_ID;
+    public String targetId() {
+        return TARGET_ID;
     }
 
     @Override
-    public String getPath() {
+    public String contentRoot() {
         return "src/main/java";
     }
 
     @Override
-    public TargetType resourceTarget() {
-        return Targets.byId(MainResources.TARGET_TYPE_ID);
+    public List<Target> resources() {
+        return List.of(Targets.byId(MainResources.TARGET_ID));
     }
 }

@@ -1,13 +1,7 @@
 package nl.adamg.baizel.core.impl;
 
-import javax.annotation.CheckForNull;
-import nl.adamg.baizel.core.api.BaizelException;
-import nl.adamg.baizel.core.api.Module;
-import nl.adamg.baizel.core.api.Project;
-import nl.adamg.baizel.core.api.SourceRoot;
-import nl.adamg.baizel.core.api.TargetType;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.api.TargetCoordinates;
-import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 /// - API:    [nl.adamg.baizel.core.api.TargetCoordinates]
@@ -71,19 +65,7 @@ public class TargetCoordinatesImpl
     }
     //endregion
 
-    /// @throws BaizelException if module is not found or this target is not a module-type target
-    public Module getModule(Project project) {
-        if (!artifact().isEmpty() || entity.path.isEmpty()) {
-            throw Issue.critical(BaizelErrors.MODULE_NOT_FOUND, "module", this.toString());
-        }
-        var module = project.getModuleOf(project.root().resolve(entity.path));
-        if (module == null) {
-            throw Issue.critical(BaizelErrors.MODULE_NOT_FOUND, "module", entity.path);
-        }
-        return module;
-    }
-
-    public TargetType type() {
+    public Target targetType() {
         return ! entity.targetName.isEmpty() ? Targets.byId(entity.targetName) : Targets.main();
     }
 

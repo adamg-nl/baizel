@@ -1,7 +1,5 @@
 package nl.adamg.baizel.core.api;
 
-import javax.annotation.CheckForNull;
-
 /// Format: `[[@<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]`
 ///
 /// Example: `@com.foo/com.foo.bar//baz/qux:test`
@@ -13,12 +11,9 @@ import javax.annotation.CheckForNull;
 /// - Impl:   [nl.adamg.baizel.core.impl.TargetCoordinatesImpl]
 @SuppressWarnings("JavadocReference")
 public interface TargetCoordinates {
-    enum CoordinateKind {MODULE, FILE, ARTIFACT, INVALID}
+    enum CoordinateKind { MODULE, FILE, ARTIFACT, INVALID }
 
-    /// @throws BaizelException if module is not found or this target is not a module nor file type target
-    Module getModule(Project project);
-
-    TargetType type();
+    Target targetType();
 
     String organization();
 

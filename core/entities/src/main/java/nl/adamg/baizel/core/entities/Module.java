@@ -13,7 +13,7 @@ public class Module implements Serializable {
     /// module root relative to the project root
     public String path;
     /// key: source set path relative to module root
-    public Map<String, SourceRoot> sourceRoots;
+    public Map<String, ContentRoot> contentRoots;
     /// qualified package names
     public List<String> exports;
     public List<Requirement> requirements;
@@ -21,12 +21,12 @@ public class Module implements Serializable {
     //region generated code
     public Module(
             String path,
-            Map<String, SourceRoot> sourceRoots,
+            Map<String, ContentRoot> contentRoots,
             List<String> exports,
             List<Requirement> requires
     ) {
         this.path = path;
-        this.sourceRoots = sourceRoots;
+        this.contentRoots = contentRoots;
         this.exports = exports;
         this.requirements = requires;
     }
@@ -35,12 +35,12 @@ public class Module implements Serializable {
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
         Module module = (Module) object;
-        return Objects.equals(path, module.path) && Objects.equals(sourceRoots, module.sourceRoots) && Objects.equals(exports, module.exports) && Objects.equals(requirements, module.requirements);
+        return Objects.equals(path, module.path) && Objects.equals(contentRoots, module.contentRoots) && Objects.equals(exports, module.exports) && Objects.equals(requirements, module.requirements);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path, sourceRoots, exports, requirements);
+        return Objects.hash(path, contentRoots, exports, requirements);
     }
     //endregion
 }

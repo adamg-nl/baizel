@@ -3,7 +3,6 @@ package nl.adamg.baizel.cli.tasks;
 import java.util.Locale;
 import javax.tools.Diagnostic;
 import nl.adamg.baizel.core.api.Requirement;
-import nl.adamg.baizel.core.api.TaskScheduler;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
@@ -48,7 +47,7 @@ public class Compile implements Task {
 
     @Override
     public Set<TaskRequest> findDependencies(TargetCoordinates target, CoordinateKind targetType, Baizel baizel) throws IOException {
-        var module = target.getModule(baizel.project());
+        var module = baizel.project().getModule(target);
         var dependencies = new TreeSet<TaskRequest>();
         for (var requirement : module.requirements()) {
             dependencies.addAll(getDependency(requirement, baizel));
@@ -84,16 +83,16 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, CoordinateKind targetType, Baizel baizel) throws IOException {
-        LOG.info("compiling" + LoggerUtil.with("target", target.toString()));
-        var module = target.getModule(baizel.project());
-        var sourceSet = target.type();
-        var sourceRoot = module.getTarget(target.type());
-        if (sourceRoot == null) {
+    public Set<Path> run(TargetCoordinates coordinates, List<String> args, List<Input<TaskRequest>> inputs, CoordinateKind coordinateKind, Baizel baizel) throws IOException {
+        LOG.info("compiling" + LoggerUtil.with("target", coordinates.toString()));
+        var module = baizel.project().getModule(coordinates);
+        var targetType = coordinates.targetType();
+        var contentRoot = module.getContentRoot(coordinates.targetType());
+        if (contentRoot == null) {
             return Set.of(); // nothing to compile
         }
         var artifactRoots = new TreeSet<Path>();
-        var outputPathSuffix = Path.of(".build/classes/java/" + sourceSet.getTargetTypeId());
+        var outputPathSuffix = Path.of(".build/classes/java/" + targetType.targetId());
         for(var input : inputs) {
             if (input.source().taskId().equals(Resolve.TASK_ID)) {
                 artifactRoots.addAll(input.paths());
@@ -110,7 +109,7 @@ public class Compile implements Task {
         }
         var outputDir = module.fullPath().resolve(outputPathSuffix);
         Files.createDirectories(outputDir);
-        var issues = COMPILER.get().compile(Set.of(sourceRoot.fullPath()), artifactRoots, outputDir);
+        var issues = COMPILER.get().compile(Set.of(contentRoot.fullPath()), artifactRoots, outputDir);
         for(var issue : issues) {
             if (issue.getKind() == Diagnostic.Kind.ERROR) {
                 throw Issue.critical(

@@ -2,19 +2,19 @@ package nl.adamg.baizel.core.api;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import javax.annotation.CheckForNull;
 
-/// - API:    [nl.adamg.baizel.core.api.SourceRoot]
-/// - Entity: [nl.adamg.baizel.core.entities.SourceRoot]
-/// - Impl:   [nl.adamg.baizel.core.impl.SourceRootImpl]
+/// - API:    [nl.adamg.baizel.core.api.ContentRoot]
+/// - Entity: [nl.adamg.baizel.core.entities.ContentRoot]
+/// - Impl:   [nl.adamg.baizel.core.impl.ContentRootImpl]
 @SuppressWarnings("JavadocReference")
-public interface SourceRoot {
-    TargetType type();
+public interface ContentRoot {
+    Target target();
     @CheckForNull
     Class getClass(String qualifiedName);
     Collection<Class> getAllClasses();
     Module module();
     Path fullPath();
-    @CheckForNull
-    SourceRoot resources();
+    List<ContentRoot> resources();
 }

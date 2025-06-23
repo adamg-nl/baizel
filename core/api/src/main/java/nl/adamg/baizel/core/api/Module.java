@@ -22,9 +22,9 @@ public interface Module {
     String path();
 
     @CheckForNull
-    SourceRoot getTarget(TargetType targetType);
+    ContentRoot getContentRoot(Target target);
 
-    Collection<SourceRoot> getAllTargets();
+    Collection<ContentRoot> getAllTargets();
 
     List<Requirement> requirements() throws IOException;
 

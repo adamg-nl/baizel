@@ -1,14 +1,13 @@
 package nl.adamg.baizel.core.impl;
 
-import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.regex.Pattern;
 import nl.adamg.baizel.core.api.Class;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.Requirement;
-import nl.adamg.baizel.core.api.SourceRoot;
-import nl.adamg.baizel.core.api.TargetType;
+import nl.adamg.baizel.core.api.ContentRoot;
+import nl.adamg.baizel.core.api.Target;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.common.io.FileSystem;
@@ -28,7 +27,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import nl.adamg.baizel.internal.common.util.Lazy;
 import nl.adamg.baizel.internal.common.util.Text;
-import nl.adamg.baizel.internal.common.util.collections.Items;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
@@ -39,7 +37,7 @@ public class ModuleImpl
     private static final String MODULE_DEF_FILE_PATH = "src/main/java/module-info.java";
     private static final Pattern ENTRY_POINT_PATTERN = Pattern.compile(".*( |\"|'|^)(?<PATH>[^ \"']+.java)(\"|'| |$)");
     /// key: source root path relative to the module root
-    private final Map<String, SourceRoot> sourceRoots = new TreeMap<>();
+    private final Map<String, ContentRoot> contentRoots = new TreeMap<>();
     private final List<Requirement> requirements = new ArrayList<>();
     private final AtomicBoolean moduleDefFileLoaded = new AtomicBoolean(false);
     private final Lazy<Class, IOException> mainClass = new Lazy<>(this::findMainClass);
@@ -125,37 +123,37 @@ public class ModuleImpl
         if (targetType == null) {
             return null;
         }
-        var target = getTarget(targetType);
+        var target = getContentRoot(targetType);
         if (target == null) {
             return null;
         }
-        var sourceRootRelativePath = relativePath.substring(targetType.getPath().length());
+        var sourceRootRelativePath = relativePath.substring(targetType.contentRoot().length());
         var className = ClassImpl.sourcePathToClassName(sourceRootRelativePath);
         return target.getClass(className);
     }
 
     @CheckForNull
     @Override
-    public SourceRoot getTarget(TargetType targetType) {
-        return sourceRoots.computeIfAbsent(targetType.getPath(), this::loadTarget);
+    public ContentRoot getContentRoot(Target target) {
+        return contentRoots.computeIfAbsent(target.contentRoot(), this::loadTarget);
     }
 
     @CheckForNull
-    private SourceRoot loadTarget(String relativePath) {
+    private ContentRoot loadTarget(String relativePath) {
         if (! fileSystem.exists(fullPath().resolve(relativePath))) {
             return null;
         }
-        return SourceRootImpl.of(this, Targets.byPath(relativePath), fileSystem);
+        return ContentRootImpl.of(this, Targets.byContentRoot(relativePath), fileSystem);
     }
 
     @Override
-    public Collection<SourceRoot> getAllTargets() {
-        if (sourceRoots.size() == Targets.values().size()) {
-            return sourceRoots.values();
+    public Collection<ContentRoot> getAllTargets() {
+        if (contentRoots.size() == Targets.values().size()) {
+            return contentRoots.values();
         }
-        var targets = new ArrayList<SourceRoot>();
+        var targets = new ArrayList<ContentRoot>();
         for(var type : Targets.values()) {
-            var target = getTarget(type);
+            var target = getContentRoot(type);
             if (target != null) {
                 targets.add(target);
             }

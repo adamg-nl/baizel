@@ -2,12 +2,12 @@ package nl.adamg.baizel.cli.tasks;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.TargetCoordinates;
+import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.api.TaskScheduler.Input;
@@ -23,21 +23,21 @@ public class Jar implements Task {
     public Jar() {}
 
     @Override
-    public boolean isApplicable(TargetCoordinates target, TargetCoordinates.CoordinateKind targetType, Baizel baizel) {
-        return targetType == TargetCoordinates.CoordinateKind.MODULE;
+    public boolean isApplicable(TargetCoordinates target, CoordinateKind coordinateKind, Baizel baizel) {
+        return coordinateKind == CoordinateKind.MODULE;
     }
 
     @Override
-    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, TargetCoordinates.CoordinateKind targetType, Baizel baizel) throws IOException {
-        var module = target.getModule(baizel.project());
-        var manifest = ManifestUtil.createManifest(module, target.type());
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, CoordinateKind targetType, Baizel baizel) throws IOException {
+        var module = baizel.project().getModule(target);
+        var manifest = ManifestUtil.createManifest(module, target.targetType());
         var jarCreator = new JarCreator(baizel.fileSystem(), false, false);
         var inputRoots = new TreeSet<Path>();
-        var targetRoot = module.getTarget(target.type());
+        var targetRoot = module.getContentRoot(target.targetType());
         if (targetRoot == null) {
             return Set.of();
         }
-        var outputPathSuffix = Path.of(".build/classes/java/" + target.type().getTargetTypeId());
+        var outputPathSuffix = Path.of(".build/classes/java/" + target.targetType().targetId());
         for(var input : inputs) {
             for(var inputPath : input.paths()) {
                 var suffixOffset = inputPath.toString().indexOf(outputPathSuffix.toString());
@@ -46,9 +46,8 @@ public class Jar implements Task {
                 }
             }
         }
-        var resourceTarget = targetRoot.resources();
-        if (resourceTarget != null) {
-            inputRoots.add(resourceTarget.fullPath());
+        for(var resourceRoot : targetRoot.resources()) {
+            inputRoots.add(resourceRoot.fullPath());
         }
         var jarFileName = module.artifactId() + "-" + baizel.project().version() + ".jar";
         var outputJarPath = module.buildDir().resolve("dist").resolve(jarFileName);
@@ -57,7 +56,7 @@ public class Jar implements Task {
     }
 
     @Override
-    public Set<TaskRequest> findDependencies(TargetCoordinates target, TargetCoordinates.CoordinateKind targetType, Baizel baizel) {
+    public Set<TaskRequest> findDependencies(TargetCoordinates target, CoordinateKind targetType, Baizel baizel) {
         return Set.of(TaskRequestImpl.of(target, Compile.TASK_ID));
     }
 

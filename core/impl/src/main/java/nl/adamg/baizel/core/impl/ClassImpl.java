@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.Class;
-import nl.adamg.baizel.core.api.SourceRoot;
+import nl.adamg.baizel.core.api.ContentRoot;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
@@ -16,17 +16,17 @@ import java.util.List;
 public class ClassImpl
         extends EntityModel<nl.adamg.baizel.core.entities.Class>
         implements Class {
-    private final SourceRoot sourceRoot;
+    private final ContentRoot sourceRoot;
     private final FileSystem fileSystem;
 
     //region factory
     public static Class of(
             String canonicalName,
-            SourceRoot sourceRoot,
+            ContentRoot contentRoot,
             FileSystem fileSystem
     ) {
         return new ClassImpl(
-                sourceRoot,
+                contentRoot,
                 fileSystem,
                 new nl.adamg.baizel.core.entities.Class(
                         canonicalName,
@@ -36,12 +36,12 @@ public class ClassImpl
     }
 
     @CheckForNull
-    public static Class load(String className, SourceRoot sourceRoot, FileSystem fileSystem) {
-        var path = sourceRoot.fullPath().resolve(classNameToSourcePath(className));
+    public static Class load(String className, ContentRoot contentRoot, FileSystem fileSystem) {
+        var path = contentRoot.fullPath().resolve(classNameToSourcePath(className));
         if (! fileSystem.exists(path)) {
             return null;
         }
-        return of(className, sourceRoot, fileSystem);
+        return of(className, contentRoot, fileSystem);
     }
     //endregion
 
@@ -64,7 +64,7 @@ public class ClassImpl
 
     //region getters
     @Override
-    public SourceRoot sourceRoot() {
+    public ContentRoot sourceRoot() {
         return sourceRoot;
     }
 
@@ -88,7 +88,7 @@ public class ClassImpl
     //endregion
 
     //region generated code
-    public ClassImpl(SourceRoot sourceRoot, FileSystem fileSystem, nl.adamg.baizel.core.entities.Class entity) {
+    public ClassImpl(ContentRoot sourceRoot, FileSystem fileSystem, nl.adamg.baizel.core.entities.Class entity) {
         super(entity);
         this.sourceRoot = sourceRoot;
         this.fileSystem = fileSystem;

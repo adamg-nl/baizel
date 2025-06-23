@@ -9,7 +9,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.Module;
-import nl.adamg.baizel.core.api.TargetType;
+import nl.adamg.baizel.core.api.Target;
 
 @SuppressWarnings("JavadocLinkAsPlainText")
 public class ManifestUtil {
@@ -49,8 +49,8 @@ public class ManifestUtil {
     public static final Attributes.Name CREATED_BY = new Attributes.Name("Created-By");
     private static final DateTimeFormatter BUILD_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public static Manifest createManifest(Module module, TargetType targetType) throws IOException {
-        var explicitManifestFile = getExplicitManifestFile(module, targetType);
+    public static Manifest createManifest(Module module, Target target) throws IOException {
+        var explicitManifestFile = getExplicitManifestFile(module, target);
         var version = module.project().version();
         var vendor = module.project().groupId();
         if (vendor.isEmpty()) {
@@ -127,21 +127,19 @@ public class ManifestUtil {
     }
 
     @CheckForNull
-    private static Path getExplicitManifestFile(Module module, TargetType targetType) {
+    private static Path getExplicitManifestFile(Module module, Target target) {
         var manifestPath = "META-INF/MANIFEST.MF";
-        var target = module.getTarget(targetType);
-        if (target == null) {
+        var contentRoot = module.getContentRoot(target);
+        if (contentRoot == null) {
             return null;
         }
-        var resourceTarget = target.resources();
-        if (resourceTarget == null) {
-            return null;
+        for(var resourceRoot : contentRoot.resources()) {
+            var file = resourceRoot.fullPath().resolve(manifestPath);
+            if (Files.exists(file)) {
+                return file;
+            }
         }
-        var file = resourceTarget.fullPath().resolve(manifestPath);
-        if (! Files.exists(file)) {
-            return null;
-        }
-        return file;
+        return null;
     }
     //endregion
 }

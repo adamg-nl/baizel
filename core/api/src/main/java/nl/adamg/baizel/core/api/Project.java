@@ -21,4 +21,6 @@ public interface Project {
     SemanticVersion version() throws IOException;
     /// any extra fields from the `project-info.json` go here
     ObjectTree metadata();
+    /// @throws BaizelException if module is not found or this target is not a module-type target
+    Module getModule(TargetCoordinates coordinates) throws BaizelException;
 }

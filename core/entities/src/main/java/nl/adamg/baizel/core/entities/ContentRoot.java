@@ -4,23 +4,23 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-/// - API:    [nl.adamg.baizel.core.api.SourceRoot]
-/// - Entity: [nl.adamg.baizel.core.entities.SourceRoot]
-/// - Impl:   [nl.adamg.baizel.core.impl.SourceRootImpl]
+/// - API:    [nl.adamg.baizel.core.api.ContentRoot]
+/// - Entity: [nl.adamg.baizel.core.entities.ContentRoot]
+/// - Impl:   [nl.adamg.baizel.core.impl.ContentRootImpl]
 @SuppressWarnings("JavadocReference")
-public class SourceRoot implements Serializable {
+public class ContentRoot implements Serializable {
     /// key: qualified class name
     public Map<String, Class> classes;
 
     //region generated code
-    public SourceRoot(Map<String, Class> classes) {
+    public ContentRoot(Map<String, Class> classes) {
         this.classes = classes;
     }
 
     @Override
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
-        SourceRoot that = (SourceRoot) object;
+        ContentRoot that = (ContentRoot) object;
         return Objects.equals(classes, that.classes);
     }
 
