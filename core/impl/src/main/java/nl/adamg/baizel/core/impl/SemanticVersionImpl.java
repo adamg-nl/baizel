@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.impl;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.SemanticVersion;
@@ -67,8 +68,8 @@ public final class SemanticVersionImpl extends EntityModel<nl.adamg.baizel.core.
                     Integer.parseInt(matcher.group("major")),
                     Integer.parseInt(matcher.group("minor")),
                     Integer.parseInt(matcher.group("patch")),
-                    matcher.group("prerelease"),
-                    matcher.group("build")
+                    Objects.requireNonNullElse(matcher.group("prerelease"), ""),
+                    Objects.requireNonNullElse(matcher.group("build"), "")
             );
         } catch (NumberFormatException e) {
             return null;
@@ -96,7 +97,7 @@ public final class SemanticVersionImpl extends EntityModel<nl.adamg.baizel.core.
 
     @Override
     public int minor() {
-        return entity.major;
+        return entity.minor;
     }
 
     @Override

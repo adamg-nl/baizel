@@ -1,5 +1,6 @@
 package nl.adamg.baizel.internal.jar;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,9 +19,13 @@ public class JarCreator {
     private final boolean useCompression;
 
     public void createJar(ArrayList<Path> inputRoots, Manifest manifest, Path outputJarPath) throws IOException {
+        Files.createDirectories(outputJarPath.getParent());
         try (var jar = new JarOutputStream(fileSystem.newOutputStream(outputJarPath), manifest)) {
             jar.setLevel(useCompression ? Deflater.BEST_COMPRESSION : Deflater.NO_COMPRESSION);
             for(var inputRoot : inputRoots) {
+                if (! fileSystem.exists(inputRoot)) {
+                    throw new FileNotFoundException("invalid root provided: " + inputRoot);
+                }
                 var inputFiles = fileSystem.findFiles(inputRoot, ".*");
                 for (var inputFile : inputFiles) {
                     try (var fileStream = fileSystem.newInputStream(inputFile)) {

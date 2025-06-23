@@ -25,7 +25,7 @@ public class GitVersionTracker implements VersionTracker {
             if (gitTag.matches("^[vV].*")) {
                 gitTag = gitTag.substring(1);
             }
-            countCommitsCommand = "git rev-list '" + Text.filter(gitTag, "a-zA-Z0-9_-") + "..HEAD' --count";
+            countCommitsCommand = "git rev-list '" + Text.filter(gitTag, "a-zA-Z0-9_.-") + "..HEAD' --count";
         } else {
             countCommitsCommand = "git rev-list --count HEAD";
         }
@@ -33,7 +33,7 @@ public class GitVersionTracker implements VersionTracker {
         if (semver == null) {
             semver = SemanticVersionImpl.of(0, 0, 0);
         }
-        var patchCommitCount = Integer.parseInt(shell.exec(countCommitsCommand, shellConfig).assertSuccess().stdErr());
+        var patchCommitCount = Integer.parseInt(shell.exec(countCommitsCommand, shellConfig).assertSuccess().stdOut());
         return SemanticVersionImpl.of(
                 semver.major(),
                 semver.minor(),

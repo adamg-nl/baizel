@@ -41,7 +41,7 @@ public class Jar implements Task {
         if (resourceTarget != null) {
             inputRoots.add(resourceTarget.fullPath());
         }
-        var jarFileName = module.artifactId() + "-" + baizel.project().version();
+        var jarFileName = module.artifactId() + "-" + baizel.project().version() + ".jar";
         var outputJarPath = module.buildDir().resolve("dist").resolve(jarFileName);
         jarCreator.createJar(inputRoots, manifest, outputJarPath);
         return Set.of(outputJarPath);

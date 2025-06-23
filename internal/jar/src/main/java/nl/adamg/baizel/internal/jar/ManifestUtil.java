@@ -19,8 +19,6 @@ public class ManifestUtil {
     public static final Attributes.Name BUILD_DATE = new Attributes.Name("Build-Date");
     /// Examples: `0a446598f2b90bb0f52f1945f08755b430ec474b`, `163b25a85093f094606c40864835f0fb60404133`
     public static final Attributes.Name BUILD_REVISION = new Attributes.Name("Build-Revision");
-    /// Examples: `11`, `17`, `21`
-    public static final Attributes.Name BUILD_JDK_SPEC = new Attributes.Name("Build-Jdk-Spec");
     /// Examples: `A high performance caching library`
     public static final Attributes.Name BUNDLE_DESCRIPTION = new Attributes.Name("Bundle-Description");
     /// Examples: `https://github.com/google/guava/`, `https://netty.io/`, `http://x-stream.github.io`
@@ -71,14 +69,13 @@ public class ManifestUtil {
             manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, mainClass.canonicalName());
         }
         manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_TITLE, module.artifactId());
-        manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_VERSION, version);
+        manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_VERSION, version.toString());
         manifest.getMainAttributes().put(Attributes.Name.IMPLEMENTATION_VENDOR, vendor);
         manifest.getMainAttributes().put(AUTOMATIC_MODULE_NAME, module.moduleId());
         manifest.getMainAttributes().put(BUILD_DATE, LocalDate.now().format(BUILD_DATE_FORMAT));
         if (! version.build().isEmpty()) {
             manifest.getMainAttributes().put(BUILD_REVISION, version.build());
         }
-        manifest.getMainAttributes().put(BUILD_JDK_SPEC, Runtime.version().feature());
         manifest.getMainAttributes().put(CREATED_BY, getJvmInfo());
         var description = module.shortDescription();
         if (! description.isEmpty()) {

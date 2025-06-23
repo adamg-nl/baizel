@@ -140,7 +140,11 @@ public class ModuleImpl
         return sourceRoots.computeIfAbsent(targetType.getPath(), this::loadTarget);
     }
 
+    @CheckForNull
     private SourceRoot loadTarget(String relativePath) {
+        if (! fileSystem.exists(fullPath().resolve(relativePath))) {
+            return null;
+        }
         return SourceRootImpl.of(this, Targets.byPath(relativePath), fileSystem);
     }
 
