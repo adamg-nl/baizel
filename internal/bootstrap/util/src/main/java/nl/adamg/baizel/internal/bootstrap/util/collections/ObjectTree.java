@@ -326,6 +326,10 @@ public class ObjectTree {
                 return 0;
             }
         }
+        var unwrapped = unwrap();
+        if (unwrapped != this) {
+            return unwrapped.integer();
+        }
         return 0;
     }
 
@@ -340,6 +344,10 @@ public class ObjectTree {
                 return 0;
             }
         }
+        var unwrapped = unwrap();
+        if (unwrapped != this) {
+            return unwrapped.longer();
+        }
         return 0;
     }
 
@@ -349,6 +357,10 @@ public class ObjectTree {
         }
         if (value instanceof String string) {
             return Boolean.parseBoolean(string);
+        }
+        var unwrapped = unwrap();
+        if (unwrapped != this) {
+            return unwrapped.bool();
         }
         return false;
     }
