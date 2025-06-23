@@ -103,6 +103,9 @@ public class TaskSchedulerImpl<Task extends Comparable<Task>> implements TaskSch
 
     @Override
     public void interrupt() {
+        if (taskException.get() != null) {
+            return; // already interrupted
+        }
         LOG.warning("interrupting all threads");
         reportException(new InterruptedException());
         for(var thread : runningTasks.values()) {

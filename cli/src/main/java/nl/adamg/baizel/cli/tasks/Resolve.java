@@ -2,7 +2,7 @@ package nl.adamg.baizel.cli.tasks;
 
 import nl.adamg.baizel.core.api.TaskScheduler.Input;
 import nl.adamg.baizel.core.api.Baizel;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
@@ -32,7 +32,7 @@ public class Resolve implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<Input<TaskRequest>> inputs, Target.Type targetType, Baizel baizel) {
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, TargetCoordinates.CoordinateKind targetType, Baizel baizel) {
         var client = clientCache.computeIfAbsent(baizel.project().artifactRepositories(), MavenClient::load);
         var coordinates = baizel.project().getArtifactCoordinates(target.artifact());
         if (coordinates == null) {
@@ -48,7 +48,7 @@ public class Resolve implements Task {
     }
 
     @Override
-    public boolean isApplicable(Target target, Target.Type targetType, Baizel baizel) {
-        return targetType == Target.Type.ARTIFACT;
+    public boolean isApplicable(TargetCoordinates target, TargetCoordinates.CoordinateKind targetType, Baizel baizel) {
+        return targetType == TargetCoordinates.CoordinateKind.ARTIFACT;
     }
 }

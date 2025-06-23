@@ -1,8 +1,8 @@
 package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.api.BaizelOptions;
-import nl.adamg.baizel.core.api.BaizelException;
 import nl.adamg.baizel.core.entities.BaizelErrors;
+import nl.adamg.baizel.internal.bootstrap.java.Primitives;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
 import java.nio.file.Path;
@@ -75,7 +75,14 @@ public class BaizelOptionsImpl
     //region entity model
     @Override
     public String toString() {
-        return WORKER_COUNT + entity.workerCount + " " + PROJECT_ROOT + entity.projectRoot;
+        var string = new StringBuilder();
+        if (!Primitives.isDefaultOrEmpty((Object) entity.workerCount)) {
+            string.append(WORKER_COUNT).append(entity.workerCount);
+        }
+        if(! Primitives.isDefaultOrEmpty((Object) entity.projectRoot)) {
+            string.append(PROJECT_ROOT).append(entity.projectRoot);
+        }
+        return string.toString();
     }
     //endregion
 

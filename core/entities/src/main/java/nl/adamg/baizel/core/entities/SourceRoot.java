@@ -9,14 +9,11 @@ import java.util.Objects;
 /// - Impl:   [nl.adamg.baizel.core.impl.SourceRootImpl]
 @SuppressWarnings("JavadocReference")
 public class SourceRoot implements Serializable {
-    /// source set root relative to the module root
-    public String path;
     /// key: qualified class name
     public Map<String, Class> classes;
 
     //region generated code
-    public SourceRoot(String path, Map<String, Class> classes) {
-        this.path = path;
+    public SourceRoot(Map<String, Class> classes) {
         this.classes = classes;
     }
 
@@ -24,12 +21,12 @@ public class SourceRoot implements Serializable {
     public boolean equals(Object object) {
         if (object == null || getClass() != object.getClass()) return false;
         SourceRoot that = (SourceRoot) object;
-        return Objects.equals(path, that.path) && Objects.equals(classes, that.classes);
+        return Objects.equals(classes, that.classes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(path, classes);
+        return Objects.hash(classes);
     }
     //endregion
 }

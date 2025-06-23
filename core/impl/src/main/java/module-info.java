@@ -1,15 +1,17 @@
 module nl.adamg.baizel.core.impl {
     exports nl.adamg.baizel.core.impl;
-    exports nl.adamg.baizel.core.impl.sourcesets;
+    exports nl.adamg.baizel.core.impl.targets;
 
     uses nl.adamg.baizel.core.api.Task;
-    uses nl.adamg.baizel.core.api.SourceSet;
+    uses nl.adamg.baizel.core.api.TargetType;
 
-    provides nl.adamg.baizel.core.api.SourceSet with
-            nl.adamg.baizel.core.impl.sourcesets.Main,
-            nl.adamg.baizel.core.impl.sourcesets.Test,
-            nl.adamg.baizel.core.impl.sourcesets.MainResources,
-            nl.adamg.baizel.core.impl.sourcesets.TestResources;
+    provides nl.adamg.baizel.core.api.TargetType with
+            nl.adamg.baizel.core.impl.targets.Main,
+            nl.adamg.baizel.core.impl.targets.Test,
+            nl.adamg.baizel.core.impl.targets.TestFixtures,
+            nl.adamg.baizel.core.impl.targets.MainResources,
+            nl.adamg.baizel.core.impl.targets.TestResources,
+            nl.adamg.baizel.core.impl.targets.TestFixturesResources;
 
     provides nl.adamg.baizel.core.api.VersionTracker with
             nl.adamg.baizel.core.impl.GitVersionTracker;

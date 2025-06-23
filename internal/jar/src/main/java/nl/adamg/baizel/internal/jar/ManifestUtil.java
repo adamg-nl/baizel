@@ -9,7 +9,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.Module;
-import nl.adamg.baizel.core.api.SourceSet;
+import nl.adamg.baizel.core.api.TargetType;
 
 @SuppressWarnings("JavadocLinkAsPlainText")
 public class ManifestUtil {
@@ -51,8 +51,8 @@ public class ManifestUtil {
     public static final Attributes.Name CREATED_BY = new Attributes.Name("Created-By");
     private static final DateTimeFormatter BUILD_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public static Manifest createManifest(Module module, SourceSet sourceSet) throws IOException {
-        var explicitManifestFile = getExplicitManifestFile(module, sourceSet);
+    public static Manifest createManifest(Module module, TargetType targetType) throws IOException {
+        var explicitManifestFile = getExplicitManifestFile(module, targetType);
         var version = module.project().version();
         var vendor = module.project().groupId();
         if (vendor.isEmpty()) {
@@ -130,26 +130,21 @@ public class ManifestUtil {
     }
 
     @CheckForNull
-    private static Path getExplicitManifestFile(Module module, SourceSet sourceSet) {
+    private static Path getExplicitManifestFile(Module module, TargetType targetType) {
         var manifestPath = "META-INF/MANIFEST.MF";
-        var resourceSet = sourceSet.resourceSet();
-        if (resourceSet != null) {
-            var resourceSetPath = module.sourceRoot(resourceSet);
-            if (resourceSetPath != null) {
-                var file = resourceSetPath.resolve(manifestPath);
-                if (Files.exists(file)) {
-                    return file;
-                }
-            }
+        var target = module.getTarget(targetType);
+        if (target == null) {
+            return null;
         }
-        var sourceSetPath = module.sourceRoot(sourceSet);
-        if (sourceSetPath != null) {
-            var file = sourceSetPath.resolve(manifestPath);
-            if (Files.exists(file)) {
-                return file;
-            }
+        var resourceTarget = target.resources();
+        if (resourceTarget == null) {
+            return null;
         }
-        return null;
+        var file = resourceTarget.fullPath().resolve(manifestPath);
+        if (! Files.exists(file)) {
+            return null;
+        }
+        return file;
     }
     //endregion
 }

@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import javax.annotation.CheckForNull;
 
@@ -8,9 +9,12 @@ import javax.annotation.CheckForNull;
 /// - Impl:   [nl.adamg.baizel.core.impl.SourceRootImpl]
 @SuppressWarnings("JavadocReference")
 public interface SourceRoot {
-    SourceSet type();
+    TargetType type();
     @CheckForNull
     Class getClass(String qualifiedName);
     Collection<Class> getAllClasses();
     Module module();
+    Path fullPath();
+    @CheckForNull
+    SourceRoot resources();
 }

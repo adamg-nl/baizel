@@ -1,7 +1,7 @@
 package nl.adamg.baizel.core.impl;
 
 import nl.adamg.baizel.core.api.Invocation;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 import nl.adamg.baizel.internal.common.util.collections.Items;
 
@@ -26,13 +26,13 @@ public class InvocationImpl
     public static Invocation of(
             List<String> tasks,
             List<String> taskArgs,
-            List<Target> targets
+            List<TargetCoordinates> targets
     ) {
         return new InvocationImpl(
                 new nl.adamg.baizel.core.entities.Invocation(
                         tasks,
                         taskArgs,
-                        Items.mapToList(targets, t -> ((TargetImpl)t).entity())
+                        Items.mapToList(targets, t -> ((TargetCoordinatesImpl)t).entity())
                 )
         );
     }
@@ -40,7 +40,7 @@ public class InvocationImpl
     public static Invocation parse(Queue<String> remainingArgs) {
         var tasks = new ArrayList<String>();
         var taskArgs = new ArrayList<String>();
-        var targets = new ArrayList<Target>();
+        var targets = new ArrayList<TargetCoordinates>();
 
         var targetPrefixes = Set.of("//", ":", "-:", "-//");
         while (! remainingArgs.isEmpty() &&
@@ -68,7 +68,7 @@ public class InvocationImpl
             if (! remainingArgs.isEmpty() && Items.noneMatch(targetPrefixes, next::startsWith)) {
                 taskArgs.add(next);
             } else {
-                targets.add(TargetImpl.parseTarget(next));
+                targets.add(TargetCoordinatesImpl.parseTarget(next));
             }
         }
         return of(tasks, taskArgs, targets);
@@ -87,8 +87,8 @@ public class InvocationImpl
     }
 
     @Override
-    public Set<Target> targets() {
-        return Items.mapToSet(entity.targets, TargetImpl::new);
+    public Set<TargetCoordinates> targets() {
+        return Items.mapToSet(entity.targets, TargetCoordinatesImpl::new);
     }
     //endregion
 

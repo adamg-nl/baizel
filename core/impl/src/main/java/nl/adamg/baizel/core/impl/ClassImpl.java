@@ -1,8 +1,10 @@
 package nl.adamg.baizel.core.impl;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
 import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.Class;
-import nl.adamg.baizel.core.api.Module;
+import nl.adamg.baizel.core.api.SourceRoot;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
@@ -14,41 +16,56 @@ import java.util.List;
 public class ClassImpl
         extends EntityModel<nl.adamg.baizel.core.entities.Class>
         implements Class {
-    private final Module module;
+    private final SourceRoot sourceRoot;
+    private final FileSystem fileSystem;
 
     //region factory
     public static Class of(
-            Module module,
             String canonicalName,
-            List<String> imports
+            SourceRoot sourceRoot,
+            FileSystem fileSystem
     ) {
         return new ClassImpl(
-                module,
+                sourceRoot,
+                fileSystem,
                 new nl.adamg.baizel.core.entities.Class(
                         canonicalName,
-                        imports
+                        new ArrayList<>()
                 )
         );
     }
 
     @CheckForNull
-    public static Class load(String className, Module module, FileSystem fileSystem) {
-
-        return null;
+    public static Class load(String className, SourceRoot sourceRoot, FileSystem fileSystem) {
+        var path = sourceRoot.fullPath().resolve(classNameToSourcePath(className));
+        if (! fileSystem.exists(path)) {
+            return null;
+        }
+        return of(className, sourceRoot, fileSystem);
     }
     //endregion
 
     /// @param pathRelativeToSourceRoot path relative to the source root
-    public static String pathToClassName(String pathRelativeToSourceRoot) {
+    public static String sourcePathToClassName(String pathRelativeToSourceRoot) {
         return pathRelativeToSourceRoot
                 .replaceFirst("\\.java$", "")
                 .replaceAll("/", ".");
     }
 
+    /// @return path relative to the source root
+    public static String classNameToSourcePath(String className) {
+        return className.replaceAll("\\.", "/") + ".java";
+    }
+
+    @Override
+    public Path fullPath() {
+        return sourceRoot.fullPath().resolve(classNameToSourcePath(entity.canonicalName));
+    }
+
     //region getters
     @Override
-    public Module module() {
-        return module;
+    public SourceRoot sourceRoot() {
+        return sourceRoot;
     }
 
     @Override
@@ -62,17 +79,19 @@ public class ClassImpl
     }
     //endregion
 
-    //region entity model
     @Override
     public String toString() {
         return entity.canonicalName;
     }
+
+    //region implementation internals
     //endregion
 
     //region generated code
-    public ClassImpl(Module module, nl.adamg.baizel.core.entities.Class entity) {
+    public ClassImpl(SourceRoot sourceRoot, FileSystem fileSystem, nl.adamg.baizel.core.entities.Class entity) {
         super(entity);
-        this.module = module;
+        this.sourceRoot = sourceRoot;
+        this.fileSystem = fileSystem;
     }
     //endregion
 }

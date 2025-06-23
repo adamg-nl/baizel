@@ -1,7 +1,7 @@
 @ParametersAreNonnullByDefault
 @ReturnValuesAreNonnullByDefault
 @FieldsAreNonnullByDefault
-package nl.adamg.baizel.core.impl.sourcesets;
+package nl.adamg.baizel.core.impl.targets;
 
 import nl.adamg.baizel.internal.common.annotations.FieldsAreNonnullByDefault;
 import nl.adamg.baizel.internal.common.annotations.ParametersAreNonnullByDefault;

@@ -5,13 +5,13 @@ import javax.tools.Diagnostic;
 import nl.adamg.baizel.core.api.Requirement;
 import nl.adamg.baizel.core.api.TaskScheduler;
 import nl.adamg.baizel.core.api.Baizel;
-import nl.adamg.baizel.core.api.Target;
-import nl.adamg.baizel.core.api.Target.Type;
+import nl.adamg.baizel.core.api.TargetCoordinates;
+import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.impl.Issue;
-import nl.adamg.baizel.core.impl.TargetImpl;
+import nl.adamg.baizel.core.impl.TargetCoordinatesImpl;
 import nl.adamg.baizel.core.impl.TaskRequestImpl;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
 import nl.adamg.baizel.internal.common.util.LoggerUtil;
@@ -41,12 +41,12 @@ public class Compile implements Task {
     }
 
     @Override
-    public boolean isApplicable(Target target, Type targetType, Baizel baizel) {
-        return targetType == Type.MODULE;
+    public boolean isApplicable(TargetCoordinates target, CoordinateKind targetType, Baizel baizel) {
+        return targetType == CoordinateKind.MODULE;
     }
 
     @Override
-    public Set<TaskRequest> findDependencies(Target target, Type targetType, Baizel baizel) throws IOException {
+    public Set<TaskRequest> findDependencies(TargetCoordinates target, CoordinateKind targetType, Baizel baizel) throws IOException {
         var module = target.getModule(baizel.project());
         var dependencies = new TreeSet<TaskRequest>();
         for (var requirement : module.requirements()) {
@@ -62,7 +62,7 @@ public class Compile implements Task {
         }
         var requiredModule = baizel.project().getModuleById(requirement.moduleId());
         if (requiredModule != null) {
-            dependencies.add(TaskRequestImpl.of(TargetImpl.module(requiredModule.path()), TASK_ID));
+            dependencies.add(TaskRequestImpl.of(TargetCoordinatesImpl.module(requiredModule.path()), TASK_ID));
             for(var transitiveRequirement : requiredModule.requirements()) {
                 if (! transitiveRequirement.isTransitive()) {
                     continue;
@@ -74,7 +74,7 @@ public class Compile implements Task {
         }
         var requiredArtifact = baizel.project().getArtifactCoordinates(requirement.moduleId());
         if (requiredArtifact != null) {
-            var artifactTarget = TargetImpl.artifact(requiredArtifact.organization(), requirement.moduleId());
+            var artifactTarget = TargetCoordinatesImpl.artifact(requiredArtifact.organization(), requirement.moduleId());
             dependencies.add(TaskRequestImpl.of(artifactTarget, Resolve.TASK_ID));
             return dependencies;
         }
@@ -83,16 +83,16 @@ public class Compile implements Task {
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<TaskScheduler.Input<TaskRequest>> inputs, Type targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<TaskScheduler.Input<TaskRequest>> inputs, CoordinateKind targetType, Baizel baizel) throws IOException {
         LOG.info("compiling" + LoggerUtil.with("target", target.toString()));
         var module = target.getModule(baizel.project());
-        var sourceSet = target.sourceSet();
-        var sourceRoot = module.sourceRoot(target.sourceSet());
+        var sourceSet = target.type();
+        var sourceRoot = module.getTarget(target.type());
         if (sourceRoot == null) {
             return Set.of(); // nothing to compile
         }
         var artifactRoots = new TreeSet<Path>();
-        var outputPathSuffix = Path.of(".build/classes/java/" + sourceSet.getSourceSetId());
+        var outputPathSuffix = Path.of(".build/classes/java/" + sourceSet.getTargetTypeId());
         for(var input : inputs) {
             if (input.source().taskId().equals(Resolve.TASK_ID)) {
                 artifactRoots.addAll(input.paths());
@@ -109,7 +109,7 @@ public class Compile implements Task {
         }
         var outputDir = module.fullPath().resolve(outputPathSuffix);
         Files.createDirectories(outputDir);
-        var issues = COMPILER.get().compile(Set.of(sourceRoot), artifactRoots, outputDir);
+        var issues = COMPILER.get().compile(Set.of(sourceRoot.fullPath()), artifactRoots, outputDir);
         for(var issue : issues) {
             if (issue.getKind() == Diagnostic.Kind.ERROR) {
                 throw Issue.critical(

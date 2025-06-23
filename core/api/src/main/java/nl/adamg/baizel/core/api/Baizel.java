@@ -19,7 +19,7 @@ public interface Baizel extends AutoCloseable {
     Shell shell();
     Project project();
     BaizelOptions options();
-    Target.Type getTargetType(Target target);
+    TargetCoordinates.CoordinateKind getTargetType(TargetCoordinates target);
     @Override
     void close() throws IOException, InterruptedException;
 }

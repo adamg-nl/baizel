@@ -5,7 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import nl.adamg.baizel.core.api.Baizel;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.api.TaskScheduler.Input;
@@ -18,12 +18,12 @@ public class IdeaExport implements Task {
     public IdeaExport() {}
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<Input<TaskRequest>> inputs, Target.Type targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, TargetCoordinates.CoordinateKind targetType, Baizel baizel) throws IOException {
         return Set.of();
     }
 
     @Override
-    public Set<TaskRequest> findDependencies(Target target, Target.Type targetType, Baizel baizel) throws IOException {
+    public Set<TaskRequest> findDependencies(TargetCoordinates target, TargetCoordinates.CoordinateKind targetType, Baizel baizel) throws IOException {
         return Set.of();
     }
 

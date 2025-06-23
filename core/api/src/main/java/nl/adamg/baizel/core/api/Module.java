@@ -5,7 +5,6 @@ import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
@@ -17,18 +16,15 @@ public interface Module {
     Path fullPath();
 
     @CheckForNull
-    Path sourceRoot(SourceSet sourceSet);
-
-    @CheckForNull
     Class getClassByPath(String relativePath);
 
     /// Relative to `project.root`. Example: `toaster/api`.
     String path();
 
     @CheckForNull
-    SourceRoot getSourceRoot(String relativePath);
+    SourceRoot getTarget(TargetType targetType);
 
-    Collection<SourceRoot> getAllSourceRoots();
+    Collection<SourceRoot> getAllTargets();
 
     List<Requirement> requirements() throws IOException;
 

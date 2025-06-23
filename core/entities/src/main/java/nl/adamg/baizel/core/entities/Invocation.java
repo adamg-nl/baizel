@@ -11,13 +11,13 @@ import java.util.Objects;
 public class Invocation implements Serializable {
     public List<String> tasks;
     public List<String> taskArgs;
-    public List<Target> targets;
+    public List<TargetCoordinates> targets;
 
     //region generated code
     public Invocation(
             List<String> tasks,
             List<String> taskArgs,
-            List<Target> targets
+            List<TargetCoordinates> targets
     ) {
         this.tasks = tasks;
         this.taskArgs = taskArgs;

@@ -10,7 +10,7 @@ import java.util.Set;
 public interface Invocation {
     Set<String> tasks();
     List<String> taskArgs();
-    Set<Target> targets();
+    Set<TargetCoordinates> targets();
     @Override String toString();
     @Override boolean equals(Object other);
     @Override int hashCode();

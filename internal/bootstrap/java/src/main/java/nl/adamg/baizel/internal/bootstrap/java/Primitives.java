@@ -32,6 +32,15 @@ public class Primitives {
         return cached == noDefaultMarker ? null : cast;
     }
 
+    public static boolean isDefaultOrEmpty(Object value) {
+        return value == null ||
+                (value instanceof Iterable<?> i && ! i.iterator().hasNext()) ||
+                (value instanceof Map<?,?> m && m.isEmpty()) ||
+                (value.getClass().isArray() && Array.getLength(value) == 0) ||
+                value.equals("") ||
+                value.equals(defaultValue(value.getClass()));
+    }
+
     public static Class<?> unbox(Class<?> boxed) {
         if (boxed.isPrimitive()) {
             return boxed;

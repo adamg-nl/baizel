@@ -2,7 +2,7 @@ package nl.adamg.baizel.cli.tasks;
 
 import nl.adamg.baizel.core.api.TaskScheduler.Input;
 import nl.adamg.baizel.core.api.Baizel;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.internal.common.annotations.ServiceProvider;
@@ -25,12 +25,12 @@ public class Clean implements Task {
     }
 
     @Override
-    public boolean isApplicable(Target target, Target.Type targetType, Baizel baizel) {
-        return targetType == Target.Type.MODULE;
+    public boolean isApplicable(TargetCoordinates target, TargetCoordinates.CoordinateKind targetType, Baizel baizel) {
+        return targetType == TargetCoordinates.CoordinateKind.MODULE;
     }
 
     @Override
-    public Set<Path> run(Target target, List<String> args, List<Input<TaskRequest>> inputs, Target.Type targetType, Baizel baizel) throws IOException {
+    public Set<Path> run(TargetCoordinates target, List<String> args, List<Input<TaskRequest>> inputs, TargetCoordinates.CoordinateKind targetType, Baizel baizel) throws IOException {
         var module = target.getModule(baizel.project());
         baizel.fileSystem().delete(module.fullPath().resolve(".build"));
         return Set.of();

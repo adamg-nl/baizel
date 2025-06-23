@@ -1,15 +1,16 @@
 package nl.adamg.baizel.core.impl;
 
+import java.lang.annotation.Target;
 import java.util.Collection;
 import java.util.regex.Pattern;
 import nl.adamg.baizel.core.api.Class;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Project;
 import nl.adamg.baizel.core.api.Requirement;
-import nl.adamg.baizel.core.api.SourceSet;
+import nl.adamg.baizel.core.api.SourceRoot;
+import nl.adamg.baizel.core.api.TargetType;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.core.entities.Issue;
-import nl.adamg.baizel.core.entities.SourceRoot;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.io.Shell;
 import nl.adamg.baizel.internal.common.javadsl.JavaDslReader;
@@ -27,6 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import nl.adamg.baizel.internal.common.util.Lazy;
 import nl.adamg.baizel.internal.common.util.Text;
+import nl.adamg.baizel.internal.common.util.collections.Items;
 
 /// - API:    [nl.adamg.baizel.core.api.Module]
 /// - Entity: [nl.adamg.baizel.core.entities.Module]
@@ -95,17 +97,6 @@ public class ModuleImpl
         return project.root().resolve(path());
     }
 
-    /// @return null if this module does not have such a source root
-    @CheckForNull
-    @Override
-    public Path sourceRoot(SourceSet sourceSet) {
-        var sourceRoot = fullPath().resolve(sourceSet.getPath());
-        if (!Files.exists(sourceRoot)) {
-            return null;
-        }
-        return sourceRoot;
-    }
-
     @Override
     @CheckForNull
     public Class mainClass() throws IOException {
@@ -130,25 +121,42 @@ public class ModuleImpl
     @Override
     @CheckForNull
     public Class getClassByPath(String relativePath) {
-        var sourceSet = getSourceSet(relativePath);
-        if (sourceSet == null) {
+        var targetType = Targets.getTargetType(relativePath);
+        if (targetType == null) {
             return null;
         }
-        var sourceRootRelativePath = relativePath.substring(sourceSet.getPath().length());
-        var sour
-        var className = ClassImpl.pathToClassName(sourceRootRelativePath);
-        return getClass(className);
+        var target = getTarget(targetType);
+        if (target == null) {
+            return null;
+        }
+        var sourceRootRelativePath = relativePath.substring(targetType.getPath().length());
+        var className = ClassImpl.sourcePathToClassName(sourceRootRelativePath);
+        return target.getClass(className);
     }
 
     @CheckForNull
     @Override
-    public nl.adamg.baizel.core.api.SourceRoot getSourceRoot(String relativePath) {
-        return null;
+    public SourceRoot getTarget(TargetType targetType) {
+        return sourceRoots.computeIfAbsent(targetType.getPath(), this::loadTarget);
+    }
+
+    private SourceRoot loadTarget(String relativePath) {
+        return SourceRootImpl.of(this, Targets.byPath(relativePath), fileSystem);
     }
 
     @Override
-    public Collection<nl.adamg.baizel.core.api.SourceRoot> getAllSourceRoots() {
-        return List.of();
+    public Collection<SourceRoot> getAllTargets() {
+        if (sourceRoots.size() == Targets.values().size()) {
+            return sourceRoots.values();
+        }
+        var targets = new ArrayList<SourceRoot>();
+        for(var type : Targets.values()) {
+            var target = getTarget(type);
+            if (target != null) {
+                targets.add(target);
+            }
+        }
+        return targets;
     }
 
     //region getters
@@ -251,16 +259,6 @@ public class ModuleImpl
 
     private ModuleDoc readDoc() throws IOException {
         return ModuleDoc.read(fullPath(), this.fileSystem);
-    }
-
-    @CheckForNull
-    private SourceSet getSourceSet(String sourceFilePath) {
-        for(var sourceSet : SourceSets.values()) {
-            if (sourceFilePath.startsWith(sourceSet.getPath())) {
-                return sourceSet;
-            }
-        }
-        return null;
     }
     //endregion
 

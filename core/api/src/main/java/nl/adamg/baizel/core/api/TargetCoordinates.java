@@ -1,26 +1,38 @@
 package nl.adamg.baizel.core.api;
 
+import javax.annotation.CheckForNull;
+
 /// Format: `[[@<ORG>/]<ARTIFACT>][//<PATH>][:<TARGET_NAME>]`
 ///
 /// Example: `@com.foo/com.foo.bar//baz/qux:test`
 ///
 /// Example: `//baz/qux`
 ///
-/// - API:    [nl.adamg.baizel.core.api.Target]
-/// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Impl:   [nl.adamg.baizel.core.impl.TargetImpl]
+/// - API:    [nl.adamg.baizel.core.api.TargetCoordinates]
+/// - Entity: [nl.adamg.baizel.core.entities.TargetCoordinates]
+/// - Impl:   [nl.adamg.baizel.core.impl.TargetCoordinatesImpl]
 @SuppressWarnings("JavadocReference")
-public interface Target {
-    enum Type { MODULE, FILE, ARTIFACT, INVALID }
+public interface TargetCoordinates {
+    enum CoordinateKind {MODULE, FILE, ARTIFACT, INVALID}
+
     /// @throws BaizelException if module is not found or this target is not a module nor file type target
     Module getModule(Project project);
-    SourceSet sourceSet();
+
+    TargetType type();
+
     String organization();
+
     /// Equal to the qualified Java module name
     String artifact();
+
     String path();
-    String targetName();
-    @Override String toString();
-    @Override boolean equals(Object other);
-    @Override int hashCode();
+
+    @Override
+    String toString();
+
+    @Override
+    boolean equals(Object other);
+
+    @Override
+    int hashCode();
 }

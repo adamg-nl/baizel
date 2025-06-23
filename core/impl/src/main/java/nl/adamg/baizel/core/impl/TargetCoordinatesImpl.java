@@ -1,28 +1,30 @@
 package nl.adamg.baizel.core.impl;
 
+import javax.annotation.CheckForNull;
 import nl.adamg.baizel.core.api.BaizelException;
 import nl.adamg.baizel.core.api.Module;
 import nl.adamg.baizel.core.api.Project;
-import nl.adamg.baizel.core.api.SourceSet;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.SourceRoot;
+import nl.adamg.baizel.core.api.TargetType;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.entities.BaizelErrors;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
-/// - API:    [nl.adamg.baizel.core.api.Target]
-/// - Entity: [nl.adamg.baizel.core.entities.Target]
-/// - Impl:   [nl.adamg.baizel.core.impl.TargetImpl]
-public class TargetImpl
-        extends EntityModel<nl.adamg.baizel.core.entities.Target>
-        implements Target {
+/// - API:    [nl.adamg.baizel.core.api.TargetCoordinates]
+/// - Entity: [nl.adamg.baizel.core.entities.TargetCoordinates]
+/// - Impl:   [nl.adamg.baizel.core.impl.TargetCoordinatesImpl]
+public class TargetCoordinatesImpl
+        extends EntityModel<nl.adamg.baizel.core.entities.TargetCoordinates>
+        implements TargetCoordinates {
     //region factory
-    public static Target of(
+    public static TargetCoordinates of(
             String org, 
             String artifact, 
             String path, 
             String name
     ) {
-        return new TargetImpl(
-                new nl.adamg.baizel.core.entities.Target(
+        return new TargetCoordinatesImpl(
+                new nl.adamg.baizel.core.entities.TargetCoordinates(
                         org,
                         artifact,
                         path,
@@ -31,16 +33,16 @@ public class TargetImpl
         );
     }
 
-    public static Target module(String path) {
+    public static TargetCoordinates module(String path) {
         return of("", "", path, "");
     }
 
     /// @param artifact qualified Java module id (that will be mapped to Maven coordinates)
-    public static Target artifact(String organization, String artifact) {
+    public static TargetCoordinates artifact(String organization, String artifact) {
         return of(organization, artifact, "", "");
     }
 
-    public static Target parseTarget(String input) {
+    public static TargetCoordinates parseTarget(String input) {
         var org = "";
         var mod = "";
         var name = "";
@@ -81,8 +83,8 @@ public class TargetImpl
         return module;
     }
 
-    public SourceSet sourceSet() {
-        return ! entity.targetName.isEmpty() ? SourceSets.byId(entity.targetName) : SourceSets.main();
+    public TargetType type() {
+        return ! entity.targetName.isEmpty() ? Targets.byId(entity.targetName) : Targets.main();
     }
 
     //region getters
@@ -99,11 +101,6 @@ public class TargetImpl
     @Override
     public String path() {
         return entity.path;
-    }
-
-    @Override
-    public String targetName() {
-        return entity.targetName;
     }
     //endregion
 
@@ -128,7 +125,7 @@ public class TargetImpl
     //endregion
 
     //region generated code
-    public TargetImpl(nl.adamg.baizel.core.entities.Target entity) {
+    public TargetCoordinatesImpl(nl.adamg.baizel.core.entities.TargetCoordinates entity) {
         super(entity);
     }
     //endregion

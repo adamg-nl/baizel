@@ -17,6 +17,10 @@ function main() {
 	# 'java .../baizel/internal/bootstrap/Bootstrap.java "${@}"'
 	# All further steps including the target tool/script will run in that JVM.
 
+	 if [[ ${1:-} == "--verbose" ]]; then
+	 	export BAIZEL_VERBOSE=true
+	 	shift
+	 fi
 	 if [[ ${1:-} == "--debug" ]]; then
 	 	export BAIZEL_DEBUG=true
 	 	export BAIZEL_VERBOSE=true

@@ -6,7 +6,7 @@ import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.BaizelOptions;
 import nl.adamg.baizel.core.api.Invocation;
 import nl.adamg.baizel.core.api.Project;
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.Task;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.core.entities.BaizelErrors;
@@ -35,7 +35,8 @@ import java.util.logging.Logger;
 ///
 /// - API:    [nl.adamg.baizel.core.api.Baizel]
 /// - Impl:   [nl.adamg.baizel.core.impl.BaizelImpl]
-/// - CLI:    `nl.adamg.baizel.cli.Baizel`
+/// - CLI:    [nl.adamg.baizel.cli.Baizel]
+@SuppressWarnings("JavadocReference")
 public class BaizelImpl implements Baizel {
     private static final Logger LOG = Logger.getLogger(BaizelImpl.class.getName());
     /// When Baizel instance is reused to run the same or overlapping set of tasks later,
@@ -89,21 +90,21 @@ public class BaizelImpl implements Baizel {
     }
 
     @Override
-    public Target.Type getTargetType(Target target) {
+    public TargetCoordinates.CoordinateKind getTargetType(TargetCoordinates target) {
         if (! target.artifact().isEmpty()) {
-            return Target.Type.ARTIFACT;
+            return TargetCoordinates.CoordinateKind.ARTIFACT;
         }
         if (target.path().isEmpty()) {
-            return Target.Type.MODULE;
+            return TargetCoordinates.CoordinateKind.MODULE;
         }
         var moduleDefFile = ModuleImpl.getModuleDefinitionFile(project.path(target.path()));
         if(moduleDefFile != null) {
-            return Target.Type.MODULE;
+            return TargetCoordinates.CoordinateKind.MODULE;
         }
         if (Files.exists(project.path(target.path()))) {
-            return Target.Type.FILE;
+            return TargetCoordinates.CoordinateKind.FILE;
         }
-        return Target.Type.INVALID;
+        return TargetCoordinates.CoordinateKind.INVALID;
     }
 
     @Override
@@ -123,7 +124,7 @@ public class BaizelImpl implements Baizel {
 
     /// Collect transitive task dependency graph for given entry tasks.
     /// Each task computes own direct dependencies in [Task#findDependencies].
-    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, Set<Target> targets) throws IOException {
+    private Map<TaskRequest, Set<TaskRequest>> collectTaskDependencies(Set<String> tasks, Set<TargetCoordinates> targets) throws IOException {
         var allDependencies = new TreeMap<TaskRequest, Set<TaskRequest>>();
         var requestQueue = (Queue<TaskRequest>) new LinkedList<TaskRequest>();
         for(var task : tasks) {

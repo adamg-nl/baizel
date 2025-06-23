@@ -5,7 +5,7 @@ package nl.adamg.baizel.core.api;
 /// - Impl:   [nl.adamg.baizel.core.impl.TaskRequestImpl]
 @SuppressWarnings("JavadocReference")
 public interface TaskRequest extends Comparable<TaskRequest> {
-    Target target();
+    TargetCoordinates target();
     String taskId();
     @Override String toString();
     @Override boolean equals(Object other);

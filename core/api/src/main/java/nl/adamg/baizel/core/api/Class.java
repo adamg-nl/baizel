@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import java.nio.file.Path;
 import java.util.List;
 
 /// - API:    [nl.adamg.baizel.core.api.Class]
@@ -7,7 +8,8 @@ import java.util.List;
 /// - Impl:   [nl.adamg.baizel.core.impl.ClassImpl]
 @SuppressWarnings("JavadocReference")
 public interface Class {
-    Module module();
     String canonicalName();
+    Path fullPath();
+    SourceRoot sourceRoot();
     List<String> imports();
 }

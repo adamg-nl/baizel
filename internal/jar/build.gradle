@@ -12,9 +12,8 @@ dependencies {
     implementation 'net.java.truevfs:truevfs-comp-zipdriver:0.14.0'
     implementation 'net.java.truevfs:truevfs-kernel-spec:0.14.0'
     implementation 'net.java.truecommons:truecommons-shed:2.5.0'
-    runtimeOnly 'net.java.truecommons:truecommons-key-default:2.5.0'
-    runtimeOnly 'net.java.truevfs:truevfs-driver-zip:0.14.0'
-    runtimeOnly 'net.java.truevfs:truevfs-kernel-spec:0.14.0'
+    implementation 'net.java.truecommons:truecommons-key-default:2.5.0'
+    implementation 'net.java.truevfs:truevfs-driver-zip:0.14.0'
 }
 
 

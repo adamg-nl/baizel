@@ -36,8 +36,10 @@ project nl.adamg.baizel {
         org.slf4j:slf4j-simple:1.7.36                                       { org.slf4j.simple; }
         net.java.truevfs:truevfs-access:0.14.0                              { net.java.truevfs.access; }
         net.java.truevfs:truevfs-comp-zipdriver:0.14.0                      { net.java.truevfs.comp.zipdriver; }
+        net.java.truevfs:truevfs-driver-zip:0.14.0                          { net.java.truevfs.driver.zip }
         net.java.truevfs:truevfs-kernel-spec:0.14.0                         { net.java.truevfs.kernel.spec; }
-        net.java.truecommons:truecommons-shed:2.5.0                         { net.java.truecommons.shed; }
+        net.java.truecommons:truecommons-shed:2.5.0                         { net.java.truecommons.shed; truecommons.shed; }
+        net.java.truecommons:truecommons-key-default:2.5.0                  { net.java.truecommons.key.def; }
         org.xerial:sqlite-jdbc:3.49.1.0                                     { org.xerial.sqlitejdbc; }
         com.fasterxml.jackson.core:jackson-core:2.17.0                      { com.fasterxml.jackson.core; }
         com.fasterxml.jackson.core:jackson-annotations:2.17.0               { com.fasterxml.jackson.annotation; }

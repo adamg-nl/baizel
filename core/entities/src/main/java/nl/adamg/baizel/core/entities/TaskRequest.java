@@ -8,11 +8,11 @@ import java.util.Objects;
 /// - Impl:   [nl.adamg.baizel.core.impl.TaskRequestImpl]
 @SuppressWarnings("JavadocReference")
 public class TaskRequest implements Serializable {
-    public Target target;
+    public TargetCoordinates target;
     public String taskId;
 
     //region generated code
-    public TaskRequest(Target target, String taskId) {
+    public TaskRequest(TargetCoordinates target, String taskId) {
         this.target = target;
         this.taskId = taskId;
     }

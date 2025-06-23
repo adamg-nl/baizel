@@ -1,6 +1,6 @@
 package nl.adamg.baizel.core.impl;
 
-import nl.adamg.baizel.core.api.Target;
+import nl.adamg.baizel.core.api.TargetCoordinates;
 import nl.adamg.baizel.core.api.TaskRequest;
 import nl.adamg.baizel.internal.common.util.EntityModel;
 
@@ -12,12 +12,12 @@ public class TaskRequestImpl
         implements TaskRequest {
     //region factory
     public static TaskRequest of(
-            Target target,
+            TargetCoordinates target,
             String task
     ) {
         return new TaskRequestImpl(
                 new nl.adamg.baizel.core.entities.TaskRequest(
-                        ((TargetImpl)target).entity(),
+                        ((TargetCoordinatesImpl)target).entity(),
                         task
                 )
         );
@@ -31,8 +31,8 @@ public class TaskRequestImpl
 
     //region getters
     @Override
-    public Target target() {
-        return new TargetImpl(entity.target);
+    public TargetCoordinates target() {
+        return new TargetCoordinatesImpl(entity.target);
     }
 
     @Override

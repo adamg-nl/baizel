@@ -1,0 +1,6 @@
+nl.adamg.baizel.core.impl.targets.Main
+nl.adamg.baizel.core.impl.targets.Test
+nl.adamg.baizel.core.impl.targets.TestFixtures
+nl.adamg.baizel.core.impl.targets.MainResources
+nl.adamg.baizel.core.impl.targets.TestResources
+nl.adamg.baizel.core.impl.targets.TestFixturesResources
