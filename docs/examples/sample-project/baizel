@@ -7,7 +7,7 @@ BAIZEL_DIR="$(dirname "${BASH_SOURCE[0]:-${(%):-%x}}")/.baizel"
 ### On demand downloads and updates local clone of Baizel to <PROJECT_ROOT>/.baizel, where it bootstraps.
 ### See .baizel/bin/baizel for full documentation.
 function main() {
-	local baizelVersion="1.0.12"
+	local baizelVersion="1.0.13"
 	local baizelOrigin="https://github.com/adamg-nl/baizel.git"
 
 
@@ -15,21 +15,22 @@ function main() {
 	local currentVersion=$(cat "${BAIZEL_DIR}/.version" 2>/dev/null || true)
 	if [[ ${currentVersion} == "" ]]; then
 		echo "Installing the Baizel Build System for Java..." 1>&2
-		mkdir "${BAIZEL_DIR}"
-		git clone "${baizelOrigin}" "${BAIZEL_DIR}"
+		rm -rf "${BAIZEL_DIR}"
+		mkdir -p "${BAIZEL_DIR}"
+		git clone "${baizelOrigin}" "${BAIZEL_DIR}" || exit "${?}"
 	fi
 	if [[ ${currentVersion} != ${baizelVersion} ]]; then
 		echo "Updating the Baizel Build System for Java from ${currentVersion} to ${baizelVersion}..." 1>&2
-		git -C "${BAIZEL_DIR}" clean -dfX
+		git -C "${BAIZEL_DIR}" clean -dfX || exit "${?}"
 
 		local currentOrigin=$(git -C "${BAIZEL_DIR}" remote get-url origin)
 		if [[ ${currentOrigin} != ${baizelOrigin} ]]; then
-			git -C "${BAIZEL_DIR}" remote add origin "${baizelOrigin}"
-            git -C "${BAIZEL_DIR}" remote set-url origin "${baizelOrigin}"
+			git -C "${BAIZEL_DIR}" remote add origin "${baizelOrigin}" || exit "${?}"
+            git -C "${BAIZEL_DIR}" remote set-url origin "${baizelOrigin}" || exit "${?}"
 		fi
 
-		git -C "${BAIZEL_DIR}" fetch origin "${baizelVersion}"
-		git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD
+		git -C "${BAIZEL_DIR}" fetch origin "${baizelVersion}" || exit "${?}"
+		git -C "${BAIZEL_DIR}" reset --hard FETCH_HEAD || exit "${?}"
 		echo "${baizelVersion}" > "${BAIZEL_DIR}/.version"
 	fi
 	source "${BAIZEL_DIR}/bin/baizel"
