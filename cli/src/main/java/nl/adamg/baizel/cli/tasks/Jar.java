@@ -33,8 +33,8 @@ public class Jar implements Task {
         var manifest = ManifestUtil.createManifest(module, target.targetType());
         var jarCreator = new JarCreator(baizel.fileSystem(), false, false);
         var inputRoots = new TreeSet<Path>();
-        var targetRoot = module.getContentRoot(target.targetType());
-        if (targetRoot == null) {
+        var contentRoot = module.getContentRoot(target.targetType());
+        if (contentRoot == null) {
             return Set.of();
         }
         var outputPathSuffix = Path.of(".build/classes/java/" + target.targetType().targetId());
@@ -46,7 +46,7 @@ public class Jar implements Task {
                 }
             }
         }
-        for(var resourceRoot : targetRoot.resources()) {
+        for(var resourceRoot : contentRoot.resources()) {
             inputRoots.add(resourceRoot.fullPath());
         }
         var jarFileName = module.artifactId() + "-" + baizel.project().version() + ".jar";

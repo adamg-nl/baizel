@@ -66,7 +66,7 @@ public class TargetCoordinatesImpl
     //endregion
 
     public Target targetType() {
-        return ! entity.targetName.isEmpty() ? Targets.byId(entity.targetName) : Targets.main();
+        return ! entity.targetId.isEmpty() ? Targets.byId(entity.targetId) : Targets.main();
     }
 
     //region getters
@@ -99,8 +99,8 @@ public class TargetCoordinatesImpl
         if (! entity.path.isEmpty()) {
             sb.append("//").append(entity.path);
         }
-        if (!entity.targetName.isEmpty()) {
-            sb.append(':').append(entity.targetName);
+        if (!entity.targetId.isEmpty()) {
+            sb.append(':').append(entity.targetId);
         }
         return sb.toString();
     }

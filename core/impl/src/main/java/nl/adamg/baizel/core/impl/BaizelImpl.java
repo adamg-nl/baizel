@@ -1,6 +1,7 @@
 package nl.adamg.baizel.core.impl;
 
 import java.util.Collections;
+import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
 import nl.adamg.baizel.core.api.TaskScheduler;
 import nl.adamg.baizel.core.api.Baizel;
 import nl.adamg.baizel.core.api.BaizelOptions;
@@ -90,21 +91,21 @@ public class BaizelImpl implements Baizel {
     }
 
     @Override
-    public TargetCoordinates.CoordinateKind getTargetType(TargetCoordinates target) {
-        if (! target.artifact().isEmpty()) {
-            return TargetCoordinates.CoordinateKind.ARTIFACT;
+    public CoordinateKind getCoordinateKind(TargetCoordinates coordinates) {
+        if (! coordinates.artifact().isEmpty()) {
+            return CoordinateKind.ARTIFACT;
         }
-        if (target.path().isEmpty()) {
-            return TargetCoordinates.CoordinateKind.MODULE;
+        if (coordinates.path().isEmpty()) {
+            return CoordinateKind.MODULE;
         }
-        var moduleDefFile = ModuleImpl.getModuleDefinitionFile(project.path(target.path()));
+        var moduleDefFile = ModuleImpl.getModuleDefinitionFile(project.path(coordinates.path()));
         if(moduleDefFile != null) {
-            return TargetCoordinates.CoordinateKind.MODULE;
+            return CoordinateKind.MODULE;
         }
-        if (Files.exists(project.path(target.path()))) {
-            return TargetCoordinates.CoordinateKind.FILE;
+        if (Files.exists(project.path(coordinates.path()))) {
+            return CoordinateKind.FILE;
         }
-        return TargetCoordinates.CoordinateKind.INVALID;
+        return CoordinateKind.INVALID;
     }
 
     @Override
@@ -119,7 +120,7 @@ public class BaizelImpl implements Baizel {
 
     //region implementation internals
     private TaskScheduler.Runner<TaskRequest> getRunner(Invocation invocation) {
-        return (task, inputs) -> Tasks.get(task.taskId()).run(task.target(), invocation.taskArgs(), inputs, getTargetType(task.target()), this);
+        return (task, inputs) -> Tasks.get(task.taskId()).run(task.target(), invocation.taskArgs(), inputs, getCoordinateKind(task.target()), this);
     }
 
     /// Collect transitive task dependency graph for given entry tasks.
@@ -141,7 +142,7 @@ public class BaizelImpl implements Baizel {
                 continue; // already processed
             }
             var task = Tasks.get(request.taskId());
-            var targetType = getTargetType(request.target());
+            var targetType = getCoordinateKind(request.target());
             if (! task.isApplicable(request.target(), targetType, this)) {
                 continue;
             }

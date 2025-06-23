@@ -24,7 +24,7 @@ public interface Module {
     @CheckForNull
     ContentRoot getContentRoot(Target target);
 
-    Collection<ContentRoot> getAllTargets();
+    Collection<ContentRoot> getAllContentRoots();
 
     List<Requirement> requirements() throws IOException;
 

@@ -1,5 +1,6 @@
 package nl.adamg.baizel.core.api;
 
+import nl.adamg.baizel.core.api.TargetCoordinates.CoordinateKind;
 import nl.adamg.baizel.core.entities.Issue;
 import nl.adamg.baizel.internal.common.io.FileSystem;
 import nl.adamg.baizel.internal.common.io.Shell;
@@ -19,7 +20,7 @@ public interface Baizel extends AutoCloseable {
     Shell shell();
     Project project();
     BaizelOptions options();
-    TargetCoordinates.CoordinateKind getTargetType(TargetCoordinates target);
+    CoordinateKind getCoordinateKind(TargetCoordinates coordinates);
     @Override
     void close() throws IOException, InterruptedException;
 }

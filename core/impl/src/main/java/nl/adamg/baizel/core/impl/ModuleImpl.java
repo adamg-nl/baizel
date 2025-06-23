@@ -119,7 +119,7 @@ public class ModuleImpl
     @Override
     @CheckForNull
     public Class getClassByPath(String relativePath) {
-        var targetType = Targets.getTargetType(relativePath);
+        var targetType = Targets.getTarget(relativePath);
         if (targetType == null) {
             return null;
         }
@@ -135,11 +135,11 @@ public class ModuleImpl
     @CheckForNull
     @Override
     public ContentRoot getContentRoot(Target target) {
-        return contentRoots.computeIfAbsent(target.contentRoot(), this::loadTarget);
+        return contentRoots.computeIfAbsent(target.contentRoot(), this::loadContentRoot);
     }
 
     @CheckForNull
-    private ContentRoot loadTarget(String relativePath) {
+    private ContentRoot loadContentRoot(String relativePath) {
         if (! fileSystem.exists(fullPath().resolve(relativePath))) {
             return null;
         }
@@ -147,7 +147,7 @@ public class ModuleImpl
     }
 
     @Override
-    public Collection<ContentRoot> getAllTargets() {
+    public Collection<ContentRoot> getAllContentRoots() {
         if (contentRoots.size() == Targets.values().size()) {
             return contentRoots.values();
         }

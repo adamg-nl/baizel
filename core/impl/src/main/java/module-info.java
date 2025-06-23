@@ -3,9 +3,9 @@ module nl.adamg.baizel.core.impl {
     exports nl.adamg.baizel.core.impl.targets;
 
     uses nl.adamg.baizel.core.api.Task;
-    uses nl.adamg.baizel.core.api.TargetType;
+    uses nl.adamg.baizel.core.api.Target;
 
-    provides nl.adamg.baizel.core.api.TargetType with
+    provides nl.adamg.baizel.core.api.Target with
             nl.adamg.baizel.core.impl.targets.Main,
             nl.adamg.baizel.core.impl.targets.Test,
             nl.adamg.baizel.core.impl.targets.TestFixtures,

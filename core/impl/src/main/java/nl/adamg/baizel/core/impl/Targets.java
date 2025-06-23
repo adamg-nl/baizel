@@ -74,7 +74,7 @@ public final class Targets {
     }
 
     @CheckForNull
-    public static Target getTargetType(String sourceFilePath) {
+    public static Target getTarget(String sourceFilePath) {
         for(var target : values()) {
             if (sourceFilePath.startsWith(target.contentRoot())) {
                 return target;
